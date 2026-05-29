@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ConvoAI — Conversational Commerce Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9fafb; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            indigo: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef } = React;
+
+/* ═══════════════════════════════════════════════
+   DATOS DUMMY
+═══════════════════════════════════════════════ */
+const LEADS = [
+  {
+    id:"1", name:"María García", channel:"whatsapp", score:92, col:"calificados",
+    preview:"¿Tienen disponible para mañana?", time:"10:32",
+    messages:[
+      {id:"m1",text:"Hola! Vi su anuncio, ¿tienen cita disponible para mañana a las 3pm?",sender:"human",time:"10:30"},
+      {id:"m2",text:"¡Hola María! Soy Aria 🤖 Sí tenemos disponibilidad mañana. ¿Prefiere AM o PM?",sender:"ai",time:"10:30"},
+      {id:"m3",text:"PM por favor, sobre las 3",sender:"human",time:"10:31"},
+      {id:"m4",text:"Perfecto, le agendo para mañana a las 3:00 PM. ¿Me confirma su nombre completo y servicio?",sender:"ai",time:"10:31"},
+      {id:"m5",text:"María García, quiero el paquete premium",sender:"human",time:"10:32"},
+    ]
+  },
+  {
+    id:"2", name:"Carlos Mendoza", channel:"instagram", score:75, col:"calificados",
+    preview:"¿Cuánto cuesta el servicio?", time:"09:15",
+    messages:[
+      {id:"m1",text:"Vi tu reels y me interesa, ¿cuánto cuesta?",sender:"human",time:"09:10"},
+      {id:"m2",text:"¡Gracias! 😊 Tenemos 3 planes: Básico $99/mes, Pro $199/mes y Premium $299/mes. ¿Cuál se ajusta mejor?",sender:"ai",time:"09:10"},
+      {id:"m3",text:"El Pro suena bien, ¿qué incluye exactamente?",sender:"human",time:"09:15"},
+    ]
+  },
+  {
+    id:"3", name:"Ana López", channel:"facebook", score:60, col:"nuevos",
+    preview:"Quiero más información", time:"Ayer",
+    messages:[
+      {id:"m1",text:"Hola, vi su anuncio en Facebook. Quiero más información",sender:"human",time:"Ayer 16:00"},
+      {id:"m2",text:"¡Hola Ana! Con gusto te ayudo. ¿Tienes alguna necesidad específica?",sender:"ai",time:"Ayer 16:00"},
+    ]
+  },
+  {
+    id:"4", name:"Roberto Silva", channel:"web", score:88, col:"agendado",
+    preview:"Listo para contratar", time:"11:05",
+    messages:[
+      {id:"m1",text:"Ya revisé todos los planes, estoy listo para contratar el Premium",sender:"human",time:"11:00"},
+      {id:"m2",text:"¡Excelente decisión Roberto! 🎉 Para el plan Premium de $299/mes puedo generarte el link de pago ahora mismo.",sender:"ai",time:"11:01"},
+      {id:"m3",text:"Sí perfecto, mi correo es roberto@empresa.com",sender:"human",time:"11:04"},
+      {id:"m4",text:"✅ Link de pago enviado — válido por 24 horas. ¡Bienvenido a la familia!",sender:"ai",time:"11:05"},
+    ]
+  },
+  {
+    id:"5", name:"Sofía Ramírez", channel:"whatsapp", score:95, col:"cerrado",
+    preview:"Confirmar pago", time:"10:58",
+    messages:[
+      {id:"m1",text:"Ya realicé el pago, ¿cómo activo mi cuenta?",sender:"human",time:"10:55"},
+      {id:"m2",text:"¡Felicidades Sofía! 🎊 Verificando... Confirmado ✅ En 5 min recibirás tus credenciales. ¡Gracias por elegir ConvoAI!",sender:"ai",time:"10:58"},
+    ]
+  },
+  {
+    id:"6", name:"Diego Torres", channel:"instagram", score:45, col:"nuevos",
+    preview:"Solo curiosidad por ahora", time:"08:30",
+    messages:[
+      {id:"m1",text:"Vi el reels, ¿qué exactamente hacen?",sender:"human",time:"08:28"},
+      {id:"m2",text:"¡Hola Diego! Automatizamos ventas y citas por WhatsApp, Instagram y más con IA. ¿Te interesa?",sender:"ai",time:"08:28"},
+      {id:"m3",text:"Solo era curiosidad por ahora",sender:"human",time:"08:30"},
+    ]
+  },
+];
+
+const KANBAN_COLS = [
+  { id:"nuevos",      title:"Nuevos Leads",      border:"border-gray-300" },
+  { id:"calificados", title:"Calificados por IA", border:"border-indigo-400" },
+  { id:"agendado",    title:"Cita Agendada",      border:"border-amber-400" },
+  { id:"cerrado",     title:"Venta Cerrada",      border:"border-emerald-400" },
+];
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function ChannelBadge({ ch }) {
+  const MAP = { whatsapp:["bg-green-500","WA"], instagram:["bg-pink-500","IG"], facebook:["bg-blue-600","FB"], web:["bg-gray-500","WB"] };
+  const [bg, label] = MAP[ch] || ["bg-gray-400","?"];
+  return <span className={`${bg} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full`}>{label}</span>;
+}
+
+function ScoreBadge({ score }) {
+  const cls = score>=80 ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+    : score>=50 ? "text-amber-700 bg-amber-50 border-amber-200"
+    : "text-red-700 bg-red-50 border-red-200";
+  return <span className={`text-[10px] font-semibold border px-1.5 py-0.5 rounded-full ${cls}`}>{score}%</span>;
+}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════ */
+function Sidebar({ active, onNav }) {
+  const items = [
+    { id:"crm",          label:"CRM / Bandeja",  emoji:"📥" },
+    { id:"channels",     label:"Canales",         emoji:"📡" },
+    { id:"integrations", label:"Integraciones",   emoji:"🔌" },
+    { id:"whitelabel",   label:"Marca Blanca",    emoji:"🎨" },
+  ];
+  return (
+    <aside className="w-56 bg-white border-r border-gray-100 flex flex-col shrink-0">
+      <div className="px-5 py-5 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs">⚡</div>
+          <span className="font-semibold text-gray-900 text-sm">ConvoAI</span>
+        </div>
+        <p className="text-[10px] text-gray-400 mt-1 ml-9">Conversational Commerce</p>
+      </div>
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Plataforma</p>
+        {items.map(({ id, label, emoji }) => {
+          const isActive = active === id;
+          return (
+            <button key={id} onClick={() => onNav(id)}
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all ${isActive ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"}`}>
+              <span className="text-base">{emoji}</span>{label}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="px-3 py-4 border-t border-gray-100">
+        <div className="flex items-center gap-2.5 px-2.5 py-2">
+          <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-[10px] font-bold">JR</div>
+          <div><p className="text-xs font-medium text-gray-700">Jairo Romo</p><p className="text-[10px] text-gray-400">Admin</p></div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   CRM VIEW
+═══════════════════════════════════════════════ */
+function CRMView() {
+  const [selected, setSelected] = useState(LEADS[0]);
+
+  return (
+    <div className="flex h-full">
+      {/* Kanban */}
+      <div className="flex-1 flex flex-col border-r border-gray-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center justify-between shrink-0">
+          <div>
+            <h1 className="text-base font-semibold text-gray-900">CRM / Bandeja de Entrada</h1>
+            <p className="text-xs text-gray-400 mt-0.5">{LEADS.length} leads activos</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <input placeholder="🔍 Buscar lead..." className="pl-3 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 w-44" />
+            <button className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50">⚙ Filtrar</button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-4 p-5 h-full" style={{minWidth:'max-content'}}>
+            {KANBAN_COLS.map(col => {
+              const colLeads = LEADS.filter(l => l.col === col.id);
+              return (
+                <div key={col.id} className="w-56 flex flex-col">
+                  <div className={`flex items-center justify-between mb-3 pb-2 border-b-2 ${col.border}`}>
+                    <h3 className="text-xs font-semibold text-gray-700">{col.title}</h3>
+                    <span className="text-[10px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-medium">{colLeads.length}</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                    {colLeads.map(lead => (
+                      <button key={lead.id} onClick={() => setSelected(lead)}
+                        className={`w-full text-left p-3 rounded-xl border bg-white transition-all hover:shadow-sm ${selected?.id === lead.id ? "border-indigo-300 shadow-sm ring-1 ring-indigo-200" : "border-gray-100 hover:border-gray-200"}`}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-semibold text-gray-800 truncate">{lead.name}</span>
+                          <span className="text-gray-300 text-xs">›</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 truncate mb-2">{lead.preview}</p>
+                        <div className="flex items-center justify-between">
+                          <ChannelBadge ch={lead.channel} />
+                          <ScoreBadge score={lead.score} />
+                        </div>
+                        <p className="text-[9px] text-gray-300 mt-1.5 text-right">{lead.time}</p>
+                      </button>
+                    ))}
+                    {colLeads.length === 0 && (
+                      <div className="border-2 border-dashed border-gray-100 rounded-xl p-4 text-center">
+                        <p className="text-[10px] text-gray-300">Sin leads</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Chat */}
+      {selected ? (
+        <div className="w-96 flex flex-col bg-white shrink-0">
+          <div className="px-4 py-3.5 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold">{selected.name.charAt(0)}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-gray-900 truncate">{selected.name}</p>
+                <ChannelBadge ch={selected.channel} />
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                <ScoreBadge score={selected.score} />
+                <span className="text-[10px] text-gray-400">score de intención</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
+            {selected.messages.map(msg => {
+              const isAI = msg.sender === "ai";
+              return (
+                <div key={msg.id} className={`flex ${isAI ? "justify-start" : "justify-end"}`}>
+                  {isAI && <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center mr-1.5 mt-0.5 shrink-0 text-[9px]">🤖</div>}
+                  <div className={`max-w-[75%] rounded-2xl px-3 py-2 ${isAI ? "bg-white border border-gray-100 text-gray-700 rounded-tl-sm" : "bg-indigo-600 text-white rounded-tr-sm"}`}>
+                    <p className="text-xs leading-relaxed">{msg.text}</p>
+                    <div className={`flex items-center gap-1 mt-1 ${isAI ? "justify-start" : "justify-end"}`}>
+                      {isAI && <span className="text-[9px] text-indigo-400 font-medium">IA</span>}
+                      {isAI && <span className="text-[9px] text-gray-300">·</span>}
+                      <span className={`text-[9px] ${isAI ? "text-gray-300" : "text-indigo-200"}`}>{msg.time}</span>
+                    </div>
+                  </div>
+                  {!isAI && <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center ml-1.5 mt-0.5 shrink-0 text-[9px]">👤</div>}
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-4 py-3 border-t border-gray-100 bg-white">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+              <input placeholder="Escribe una respuesta manual..." className="flex-1 bg-transparent text-xs text-gray-700 focus:outline-none placeholder-gray-400" />
+              <button className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg transition-colors">Enviar</button>
+            </div>
+            <p className="text-[9px] text-gray-400 mt-1.5 text-center">La IA responde automáticamente · <span className="text-indigo-500 cursor-pointer hover:underline">Tomar control manual</span></p>
+          </div>
+        </div>
+      ) : (
+        <div className="w-96 flex items-center justify-center bg-white text-center p-8">
+          <div><div className="text-4xl mb-3">🤖</div><p className="text-sm font-medium text-gray-600">Selecciona un lead</p><p className="text-xs text-gray-400 mt-1">para ver el historial de conversación</p></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   CHANNELS VIEW
+═══════════════════════════════════════════════ */
+function ChannelsView() {
+  const initChannels = [
+    { id:"whatsapp", name:"WhatsApp Business API", desc:"Conecta tu número oficial de WhatsApp Business para enviar y recibir mensajes automáticamente.", icon:"WA", iconBg:"bg-green-500", connected:true, tokenLabel:"Token de acceso permanente (Meta)", placeholder:"EAAB...xyz", badge:"Recomendado" },
+    { id:"instagram", name:"Instagram Direct", desc:"Responde DMs de Instagram de forma automática con tu asistente de IA.", icon:"IG", iconBg:"bg-pink-500", connected:true, tokenLabel:"Token de Instagram (Meta)", placeholder:"IGQ..." },
+    { id:"facebook", name:"Facebook Messenger", desc:"Automatiza las conversaciones de tu página de Facebook con IA.", icon:"FB", iconBg:"bg-blue-600", connected:false, tokenLabel:"Page Access Token (Meta)", placeholder:"EAABsbCS..." },
+    { id:"webchat", name:"Web Chat Widget", desc:"Incrusta un widget de chat en tu sitio web. Copia el snippet y pégalo en tu HTML.", icon:"WB", iconBg:"bg-indigo-500", connected:false, tokenLabel:"ID de sitio web", placeholder:"site_abc123" },
+  ];
+  const [channels, setChannels] = useState(initChannels);
+  const toggle = id => setChannels(prev => prev.map(c => c.id===id ? {...c,connected:!c.connected} : c));
+  const connected = channels.filter(c=>c.connected).length;
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold text-gray-900">Canales de Comunicación</h1>
+          <p className="text-sm text-gray-500 mt-1">Conecta los canales donde tus clientes te contactan. La IA responderá en todos ellos de forma unificada.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {[{label:"Canales activos",value:connected,color:"text-emerald-600"},{label:"Mensajes hoy",value:"1,284",color:"text-indigo-600"},{label:"Tasa de respuesta",value:"< 2s",color:"text-amber-600"}].map(s=>(
+            <div key={s.label} className="bg-white border border-gray-100 rounded-xl p-4">
+              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+        <div className="space-y-4">
+          {channels.map(ch=>(
+            <div key={ch.id} className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-sm transition-all">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl ${ch.iconBg} flex items-center justify-center text-white text-xs font-bold shadow-sm`}>{ch.icon}</div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900">{ch.name}</h3>
+                      {ch.badge && <span className="text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-full font-medium">{ch.badge}</span>}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5 max-w-md">{ch.desc}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-4">
+                  {ch.connected && <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">✓ Conectado</span>}
+                  <button onClick={()=>toggle(ch.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${ch.connected ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
+                    🔗 {ch.connected ? "Desconectar" : "Conectar"}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{ch.tokenLabel}</label>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <input type="password" defaultValue={ch.connected ? "EAAB_dummy_token_connected_xyz" : ""} placeholder={ch.placeholder}
+                    className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 font-mono" />
+                  <button className="px-3 py-2 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-all font-medium">Guardar</button>
+                </div>
+              </div>
+              {ch.id==="webchat" && (
+                <div className="mt-3">
+                  <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Código de instalación</label>
+                  <div className="mt-1.5 bg-gray-900 rounded-lg p-3 text-[10px] font-mono text-green-400 leading-relaxed">
+                    {'<script src="https://cdn.convoai.app/widget.js"'}<br/>{'  data-site="site_abc123"'}<br/>{'  defer></script>'}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   INTEGRATIONS VIEW
+═══════════════════════════════════════════════ */
+function IntegrationsView() {
+  const initIntegrations = [
+    { id:"stripe", name:"Stripe", desc:"Acepta pagos directamente en el chat. La IA genera links de pago y confirma cobros de forma autónoma.", icon:"S", iconBg:"bg-purple-600", connected:true, detail:"Cuenta: acct_1P...xyz · Modo: Producción" },
+    { id:"gcalendar", name:"Google Calendar", desc:"La IA consulta tu disponibilidad y agenda citas directamente en tu Google Calendar.", icon:"G", iconBg:"bg-white border border-gray-200", connected:false, detail:"No conectado" },
+  ];
+  const [integrations, setIntegrations] = useState(initIntegrations);
+  const [showKey, setShowKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [webhooks, setWebhooks] = useState([
+    { id:"wh1", name:"Nuevo Lead → CRM Propio", url:"https://mi-crm.com/webhook/convoai", event:"lead.created", active:true },
+    { id:"wh2", name:"Pago Confirmado → Slack", url:"https://hooks.slack.com/services/T00.../B00.../xyz", event:"payment.succeeded", active:true },
+  ]);
+
+  const KEY = "sk_live_convoai_Xk9mP2qL4nR8vT1wZ5yA3jB7cD0eF6gH";
+  const toggle = id => setIntegrations(prev => prev.map(i => i.id===id ? {...i,connected:!i.connected} : i));
+  const copy = () => { setCopied(true); setTimeout(()=>setCopied(false),2000); };
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold text-gray-900">Integraciones y API</h1>
+          <p className="text-sm text-gray-500 mt-1">Conecta ConvoAI con tu stack de herramientas existente para automatizar flujos de negocio completos.</p>
+        </div>
+
+        {/* Integraciones nativas */}
+        <section className="mb-8">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Integraciones nativas</h2>
+          <div className="space-y-4">
+            {integrations.map(intg=>(
+              <div key={intg.id} className="bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-4 hover:shadow-sm transition-all">
+                <div className={`w-12 h-12 rounded-2xl ${intg.iconBg} flex items-center justify-center text-white text-lg font-bold shrink-0 shadow-sm`}>{intg.icon}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h3 className="text-sm font-semibold text-gray-900">{intg.name}</h3>
+                    {intg.connected && <span className="flex items-center gap-1 text-emerald-600 text-[10px] font-medium">✓ Activo</span>}
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">{intg.desc}</p>
+                  <p className="text-[10px] text-gray-300 mt-1">{intg.detail}</p>
+                </div>
+                <button onClick={()=>toggle(intg.id)}
+                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all ${intg.connected ? "border border-gray-200 text-gray-600 hover:bg-gray-50" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
+                  🔗 {intg.connected ? "Configurar" : "Conectar"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* API Key */}
+        <section className="mb-8">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">API Key</h2>
+          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Clave de API</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Usa esta clave para autenticar peticiones a la API REST de ConvoAI.</p>
+              </div>
+              <a href="#" className="text-[11px] text-indigo-600 hover:underline">Ver documentación ↗</a>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-mono text-xs text-gray-700 truncate">
+                {showKey ? KEY : "sk_live_convoai_" + "•".repeat(32)}
+              </div>
+              <button onClick={()=>setShowKey(!showKey)} className="px-3 py-2 text-xs border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50">{showKey?"Ocultar":"Mostrar"}</button>
+              <button onClick={copy} className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-lg transition-all ${copied?"border-emerald-200 text-emerald-600 bg-emerald-50":"border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
+                📋 {copied?"¡Copiado!":"Copiar"}
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-red-100 rounded-lg text-red-500 hover:bg-red-50">🔄 Rotar</button>
+            </div>
+            <p className="text-[10px] text-gray-400 mt-2">⚠️ Nunca compartas esta clave públicamente. Trátala como una contraseña.</p>
+          </div>
+        </section>
+
+        {/* Webhooks */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Webhooks</h2>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700">
+              + Nuevo webhook
+            </button>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <table className="w-full">
+              <thead className="border-b border-gray-100 bg-gray-50">
+                <tr>{["Nombre","URL de destino","Evento","Estado",""].map(h=>(
+                  <th key={h} className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-3 text-left">{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {webhooks.map(wh=>(
+                  <tr key={wh.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-xs font-medium text-gray-800">{wh.name}</td>
+                    <td className="px-4 py-3 text-xs text-gray-400 font-mono" style={{maxWidth:'180px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{wh.url}</td>
+                    <td className="px-4 py-3"><span className="text-[9px] bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded-full font-mono">{wh.event}</span></td>
+                    <td className="px-4 py-3"><span className={`text-[10px] font-medium ${wh.active?"text-emerald-600":"text-gray-400"}`}>● {wh.active?"Activo":"Inactivo"}</span></td>
+                    <td className="px-4 py-3"><button onClick={()=>setWebhooks(p=>p.filter(w=>w.id!==wh.id))} className="text-gray-300 hover:text-red-500 transition-colors text-xs">🗑</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   WHITE LABEL VIEW
+═══════════════════════════════════════════════ */
+const PRESET_COLORS = [
+  {name:"Índigo",value:"#6366f1"},{name:"Violeta",value:"#8b5cf6"},
+  {name:"Rosa",value:"#ec4899"},{name:"Azul",value:"#3b82f6"},
+  {name:"Esmeralda",value:"#10b981"},{name:"Naranja",value:"#f97316"},
+  {name:"Slate",value:"#475569"},{name:"Negro",value:"#111827"},
+];
+
+function WhiteLabelView() {
+  const [assistantName, setAssistantName] = useState("Aria");
+  const [welcomeMsg, setWelcomeMsg] = useState("¡Hola! Soy Aria, tu asistente virtual. ¿En qué te puedo ayudar hoy? 😊");
+  const [color, setColor] = useState("#6366f1");
+  const [logo, setLogo] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const fileRef = useRef(null);
+
+  function handleLogo(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setLogo(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function save() {
+    // TODO: PATCH /api/settings/whitelabel
+    setSaved(true);
+    setTimeout(()=>setSaved(false),2500);
+  }
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-4xl mx-auto px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold text-gray-900">Marca Blanca</h1>
+          <p className="text-sm text-gray-500 mt-1">Personaliza la plataforma con tu identidad de marca. Tus clientes verán tu logo y colores, no los nuestros.</p>
+        </div>
+        <div className="grid gap-6" style={{gridTemplateColumns:'3fr 2fr'}}>
+          {/* Settings panel */}
+          <div className="space-y-5">
+            {/* Logo */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">📁 Logo de la empresa</h3>
+              <div onClick={()=>fileRef.current?.click()} className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-all">
+                {logo ? <img src={logo} alt="logo" className="h-16 object-contain mx-auto rounded-lg" />
+                : <div><div className="text-3xl mb-2">📤</div><p className="text-sm font-medium text-gray-600">Arrastra tu logo aquí</p><p className="text-xs text-gray-400 mt-1">PNG, SVG o JPG — máx. 2MB · recomendado 200×60px</p></div>}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogo} />
+              {logo && <button onClick={()=>setLogo(null)} className="mt-2 text-xs text-red-500 hover:text-red-700">Eliminar logo</button>}
+            </div>
+
+            {/* Asistente */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">🤖 Asistente de IA</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Nombre del asistente</label>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <input value={assistantName} onChange={e=>setAssistantName(e.target.value)} maxLength={20} placeholder="Ej: Aria, Sofía, Max..."
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-gray-50" />
+                    <span className="text-[10px] text-gray-400 shrink-0">{assistantName.length}/20</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Mensaje de bienvenida</label>
+                  <textarea value={welcomeMsg} onChange={e=>setWelcomeMsg(e.target.value)} rows={3} maxLength={200}
+                    className="w-full mt-1.5 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-gray-50 resize-none" />
+                  <p className="text-[10px] text-gray-400 text-right">{welcomeMsg.length}/200</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Color */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">🎨 Color primario</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {PRESET_COLORS.map(c=>(
+                  <button key={c.value} onClick={()=>setColor(c.value)} title={c.name}
+                    className="w-8 h-8 rounded-lg transition-all hover:scale-110 flex items-center justify-center text-white text-xs"
+                    style={{backgroundColor:c.value}}>
+                    {color===c.value && "✓"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50">
+                  <div className="w-4 h-4 rounded-md" style={{backgroundColor:color}} />
+                  <span className="text-xs font-mono text-gray-700">{color.toUpperCase()}</span>
+                </div>
+                <input type="color" value={color} onChange={e=>setColor(e.target.value)} className="w-8 h-8 rounded-lg cursor-pointer border border-gray-200" />
+                <span className="text-xs text-gray-400">o elige un color personalizado</span>
+              </div>
+            </div>
+
+            {/* Domain */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-sm font-semibold text-gray-900">🌐 Dominio personalizado</h3>
+                <span className="text-[10px] bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-full font-medium">Pro</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 shrink-0">https://</span>
+                <input defaultValue="dashboard.miempresa.com" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-gray-50" />
+              </div>
+              <p className="text-[10px] text-gray-400 mt-2">Apunta tu CNAME a <code className="bg-gray-100 px-1 rounded font-mono">app.convoai.app</code> para activar tu dominio.</p>
+            </div>
+
+            <button onClick={save}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${saved ? "bg-emerald-500 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}>
+              {saved ? "✓ Cambios guardados" : "✨ Guardar configuración"}
+            </button>
+          </div>
+
+          {/* Preview */}
+          <div>
+            <div className="sticky top-0">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">👁 Vista previa del widget</p>
+              <div className="bg-gray-100 rounded-2xl p-4 flex items-end justify-end" style={{minHeight:'380px',position:'relative'}}>
+                <div className="absolute inset-0 rounded-2xl overflow-hidden opacity-20 pointer-events-none p-4">
+                  <div className="h-6 bg-white rounded mb-3" /><div className="space-y-2">{[...Array(4)].map((_,i)=><div key={i} className={`h-2.5 bg-gray-400 rounded ${i%2===0?'w-full':'w-3/4'}`}/>)}</div>
+                </div>
+                <div className="relative z-10 w-60 bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+                  <div className="px-4 py-3 flex items-center gap-2.5" style={{backgroundColor:color}}>
+                    {logo ? <img src={logo} alt="logo" className="h-6 object-contain" />
+                    : <div className="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white text-xs font-bold">{assistantName.charAt(0)}</div>}
+                    <div>
+                      <p className="text-white text-xs font-semibold">{assistantName||"Asistente"}</p>
+                      <p className="text-[9px]" style={{color:'rgba(255,255,255,0.7)'}}>En línea ahora</p>
+                    </div>
+                    <div className="ml-auto w-2 h-2 rounded-full bg-green-400" />
+                  </div>
+                  <div className="p-3 space-y-2 bg-gray-50" style={{minHeight:'160px'}}>
+                    <div className="flex gap-2">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0" style={{backgroundColor:color}}>{assistantName.charAt(0)}</div>
+                      <div className="bg-white rounded-xl rounded-tl-sm px-3 py-2 shadow-sm" style={{maxWidth:'85%'}}>
+                        <p className="text-[10px] text-gray-700 leading-relaxed">{welcomeMsg||"¡Hola! ¿En qué te puedo ayudar?"}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="px-3 py-2 rounded-xl rounded-tr-sm text-[10px] text-white" style={{backgroundColor:color}}>Hola, tengo una pregunta</div>
+                    </div>
+                  </div>
+                  <div className="px-3 py-2.5 bg-white border-t border-gray-100 flex items-center gap-2">
+                    <input className="flex-1 text-[10px] bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-200 focus:outline-none" placeholder="Escribe tu mensaje..." readOnly />
+                    <button className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px]" style={{backgroundColor:color}}>↑</button>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                <p className="text-[10px] text-amber-700 font-medium">💡 Vista previa en tiempo real</p>
+                <p className="text-[10px] text-amber-600 mt-0.5">Los cambios se reflejan aquí antes de guardar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD ROOT
+═══════════════════════════════════════════════ */
+function App() {
+  const [view, setView] = useState("crm");
+  return (
+    <div style={{display:'flex',height:'100vh',overflow:'hidden'}}>
+      <Sidebar active={view} onNav={setView} />
+      <main style={{flex:1,overflow:'hidden'}}>
+        {view==="crm" && <CRMView />}
+        {view==="channels" && <ChannelsView />}
+        {view==="integrations" && <IntegrationsView />}
+        {view==="whitelabel" && <WhiteLabelView />}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

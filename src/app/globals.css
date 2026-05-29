@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/* ─── Fuente Geist (Google Fonts) ──────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+/* ─── CSS Custom Properties — Design System Convers ────────────── */
+:root {
+  /* Primary brand — editable por white label en runtime */
+  --primary:        #605BFF;
+  --primary-soft:   #f0efff;
+  --primary-hover:  #4f46e5;
+
+  /* Backgrounds */
+  --bg:        #fafafa;
+  --surface:   #ffffff;
+  --surface-2: #f5f5f5;
+
+  /* Text */
+  --text:       #18181b;
+  --text-muted: #71717a;
+
+  /* Border */
+  --border: #ededed;
+
+  /* Sidebar */
+  --sidebar-w-expanded: 232px;
+  --sidebar-w-rail:     60px;
+}
+
+[data-theme="dark"] {
+  --primary-soft: #1e1d3f;
+  --bg:        #0a0a0c;
+  --surface:   #131316;
+  --surface-2: #1c1c20;
+  --text:       #f4f4f5;
+  --text-muted: #a1a1aa;
+  --border:     #232328;
+}
+
+/* ─── Tailwind utilities — escala ink-* custom ─────────────────── */
+@layer utilities {
+  /* Backgrounds */
+  .bg-ink-50  { background-color: #fafafa; }
+  .bg-ink-100 { background-color: #f4f4f5; }
+  .bg-ink-150 { background-color: #ebebec; }
+  .bg-ink-200 { background-color: #e4e4e7; }
+  .bg-ink-300 { background-color: #d4d4d8; }
+  .bg-ink-400 { background-color: #a1a1aa; }
+  .bg-ink-500 { background-color: #71717a; }
+  .bg-ink-600 { background-color: #52525b; }
+  .bg-ink-700 { background-color: #3f3f46; }
+  .bg-ink-800 { background-color: #27272a; }
+  .bg-ink-900 { background-color: #18181b; }
+  .bg-ink-950 { background-color: #09090b; }
+  .bg-primary      { background-color: var(--primary); }
+  .bg-primary-soft { background-color: var(--primary-soft); }
+
+  /* Text */
+  .text-ink-300 { color: #d4d4d8; }
+  .text-ink-400 { color: #a1a1aa; }
+  .text-ink-500 { color: #71717a; }
+  .text-ink-600 { color: #52525b; }
+  .text-ink-700 { color: #3f3f46; }
+  .text-ink-800 { color: #27272a; }
+  .text-ink-900 { color: #18181b; }
+  .text-primary  { color: var(--primary); }
+  .text-primary-soft { color: var(--primary-soft); }
+
+  /* Borders */
+  .border-ink-100 { border-color: #f4f4f5; }
+  .border-ink-150 { border-color: #ebebec; }
+  .border-ink-200 { border-color: #e4e4e7; }
+  .border-ink-300 { border-color: #d4d4d8; }
+  .border-primary  { border-color: var(--primary); }
+
+  /* Hover */
+  .hover\:bg-ink-50:hover  { background-color: #fafafa; }
+  .hover\:bg-ink-100:hover { background-color: #f4f4f5; }
+  .hover\:bg-ink-800:hover { background-color: #27272a; }
+  .hover\:text-ink-700:hover { color: #3f3f46; }
+  .hover\:text-ink-900:hover { color: #18181b; }
+  .hover\:opacity-90:hover { opacity: 0.9; }
+
+  /* Focus ring */
+  .focus\:ring-primary\/15:focus { --tw-ring-color: color-mix(in srgb, var(--primary) 15%, transparent); }
+
+  /* Ring */
+  .ring-primary\/30 { --tw-ring-color: color-mix(in srgb, var(--primary) 30%, transparent); }
+}
+
+/* ─── Base ─────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, kbd, pre, .font-mono {
+  font-family: 'Geist Mono', 'Fira Code', monospace;
+}
+
+/* ─── Scrollbar minimalista ─────────────────────────────────────── */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #d4d4d8; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+/* ─── Utility helpers ───────────────────────────────────────────── */
+.size-7  { width: 1.75rem; height: 1.75rem; }
+.size-8  { width: 2rem;    height: 2rem;    }
+.size-9  { width: 2.25rem; height: 2.25rem; }
+.size-10 { width: 2.5rem;  height: 2.5rem;  }
+.size-12 { width: 3rem;    height: 3rem;    }
+
+/* Shimmer animation — para movedByAI badge */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--primary) 25%, #a5b4fc 50%, var(--primary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Pulse suave para autopilot */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* ─── Toast slide-in ────────────────────────────────────────────── */
+@keyframes toast-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ─── Print ─────────────────────────────────────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; color: black; }
+}

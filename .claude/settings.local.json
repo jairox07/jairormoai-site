@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Jairo Romo/autoserv-crm/**)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\Jairo Romo\\\\autoserv-crm\\\\app\")",
+      "Bash(rm -rf \"C:\\\\Users\\\\Jairo Romo\\\\autoserv-crm\\\\app\" && ls \"C:\\\\Users\\\\Jairo Romo\\\\autoserv-crm\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Jairo Romo\\\\autoserv-crm\\\\src\\\\app\\\\dashboard\")",
+      "Bash(git -C \"C:/Users/Jairo Romo/autoserv-crm\" add src/components/CalendarModal.tsx src/components/Dashboard.tsx src/components/Sidebar.tsx src/components/Topbar.tsx src/components/CommandPalette.tsx src/components/MultiChatDock.tsx src/components/views/CRMView.tsx src/components/views/PartsView.tsx)",
+      "Bash(git -C \"C:/Users/Jairo Romo/autoserv-crm\" status --short)",
+      "PowerShell(python --version)",
+      "PowerShell(python --version; $v = python --version 2>&1 | Select-String \"3\\\\.\\(\\\\d+\\)\"; $minor = [int]$v[0].Matches[0].Groups[1].Value; if \\($minor -ge 11\\) { \"✓ Python 3.11 o superior listo\" } else { \"✗ Necesitas Python 3.11+\" })",
+      "Read(//c/Users/Jairo Romo/Downloads/**)",
+      "Bash(powershell -Command \"Expand-Archive -Path mcpmarket-plugin-my-toolkit.zip -DestinationPath . -Force\")",
+      "PowerShell($pluginsDir = \"$env:USERPROFILE\\\\.claude\\\\plugins\"; if \\(-not \\(Test-Path $pluginsDir\\)\\) { New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null }; Copy-Item -Path \"C:\\\\Users\\\\Jairo Romo\\\\Downloads\\\\mcpmarket-my-toolkit\" -Destination $pluginsDir -Recurse -Force; Write-Host \"Plugin installed to: $pluginsDir\\\\mcpmarket-my-toolkit\"; Get-ChildItem \"$pluginsDir\\\\mcpmarket-my-toolkit\" -Recurse | Select-Object -First 10)",
+      "Bash(curl -sSL https://app.mcpmarket.com/install/JeanPWcMyDG6ivbaGDlysNtSjR2yU6zTkE5CGpXH-wo)",
+      "Bash(bash)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Jairo Romo\\\\GitClaudeCode\\\\docs\\\\superpowers\\\\specs\")",
+      "Bash(git -C \"C:\\\\Users\\\\Jairo Romo\\\\GitClaudeCode\" init)",
+      "Bash(git -C \"C:\\\\Users\\\\Jairo Romo\\\\GitClaudeCode\" add -A)",
+      "Bash(git -C \"C:\\\\Users\\\\Jairo Romo\\\\GitClaudeCode\" commit -m \"chore: initial commit\")"
+    ]
+  }
+}
