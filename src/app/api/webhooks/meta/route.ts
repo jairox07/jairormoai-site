@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
+import { supportAgent } from "@/lib/agent/supportAgent";
 
 // GET  /api/webhooks/meta  — verificación del webhook de Meta (subscribe step)
 // POST /api/webhooks/meta  — recibe eventos de WA/IG/FB firmados con HMAC-SHA256
@@ -90,27 +91,18 @@ interface IncomingMsg {
 async function handleIncomingMessage(msg: IncomingMsg) {
   console.log(`[${msg.channel}] Mensaje de ${msg.from}: ${msg.text}`);
 
-  // TODO:
-  // 1. Buscar/crear Conversation en DB
-  // 2. Guardar Message{from: 'lead', ...}
-  // 3. Si autopilot ON → llamar a POST /api/ai/reply con historial + RAG context
-  // 4. Enviar respuesta vía Meta Graph API
-  // 5. Emitir evento WebSocket → frontend actualiza en vivo
+  if (!msg.text.trim()) return;
 
-  // Ejemplo de respuesta automática con Claude:
-  if (process.env.ANTHROPIC_API_KEY) {
-    const aiRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/ai/reply`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [{ role: "user", content: msg.text }],
-      }),
-    });
-    if (aiRes.ok) {
-      const { reply } = await aiRes.json();
-      await sendMetaMessage(msg, reply);
-    }
-  }
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+
+  const reply = await supportAgent({
+    contactHandle: msg.from,
+    message: msg.text,
+    history: [],   // v1: stateless — no conversation history persistence yet
+    baseUrl,
+  });
+
+  await sendMetaMessage(msg, reply);
 }
 
 // ─── Enviar mensaje vía Meta Graph API ───────────────────────────
