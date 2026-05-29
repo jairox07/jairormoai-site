@@ -175,3 +175,65 @@ IMPORTANTE:
 
 BASE DE CONOCIMIENTO:
 ${KNOWLEDGE_BASE}`;
+
+// ─── Configurable agent brand ────────────────────────────────────
+
+export interface AgentConfig {
+  agentName: string;       // Name shown in WhatsApp replies
+  brandName: string;       // Business name
+  industry: string;        // e.g. "agencia automotriz"
+  knowledgeBase: string;   // Full KB text injected into system prompt
+  language: string;        // e.g. "español mexicano"
+  toneRules: string[];     // Hard rules for the model
+}
+
+export const KARROTT_AUTOMOTIVE_KB = `
+# KARROTT — BASE DE CONOCIMIENTO AUTOMOTRIZ
+
+## IDENTIDAD
+Karrott es una plataforma de gestión para agencias automotrices. Las agencias que usan Karrott venden vehículos nuevos y seminuevos, ofrecen servicios de posventa y financiamiento.
+
+## INVENTARIO TÍPICO
+- Vehículos nuevos: modelos del año vigente y anterior con precio de lista
+- Seminuevos certificados: revisión de 150 puntos, garantía 6–12 meses
+- Precio de lista es orientativo — el precio final incluye descuentos, accesorios y plan de financiamiento
+
+## FINANCIAMIENTO
+- Crédito automotriz: enganche desde 10–20%, plazos 12–60 meses
+- Mensualidades aproximadas calculadas al cierre de la operación
+- Instituciones: BBVA, Banorte, Santander, Scotiabank, financiera de la marca
+- Seguro de auto incluible en el crédito
+
+## PROCESO DE COMPRA
+1. Cliente expresa interés en modelo/versión
+2. Agente presenta opciones de inventario disponible
+3. Prueba de manejo agendada en agencia
+4. Cotización formal con opciones de financiamiento
+5. Separación con anticipo
+6. Trámites y entrega
+
+## POSVENTA Y SERVICIO
+- Citas de servicio (mantenimiento, garantía, hojalatería)
+- Refacciones originales y alternativas
+- Tiempo de respuesta en taller: según carga, 1–5 días hábiles
+
+## POLÍTICAS
+- Precios sujetos a disponibilidad y tipo de cambio en vehículos de importación
+- Seminuevos: no se aceptan devoluciones tras firma, solo garantías
+- Cancelación de separado: reembolsable con 48h de anticipación
+\`;
+
+export const KARROTT_AGENT_CONFIG: AgentConfig = {
+  agentName: "Karla",
+  brandName: "Karrott",
+  industry: "agencia automotriz",
+  knowledgeBase: KARROTT_AUTOMOTIVE_KB,
+  language: "español mexicano",
+  toneRules: [
+    "Nunca confirmes precio exacto sin que el asesor de ventas lo valide primero",
+    "No garantices disponibilidad de inventario — siempre di 'sujeto a existencia'",
+    "Si el cliente pregunta por un modelo específico que no conoces, di que lo verificarás con el equipo",
+    "Máximo 1 emoji por mensaje",
+    "Responde siempre en español mexicano",
+  ],
+};
