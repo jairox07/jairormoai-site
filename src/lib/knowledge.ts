@@ -182,8 +182,8 @@ export interface AgentConfig {
   agentName: string;       // Name shown in WhatsApp replies
   brandName: string;       // Business name
   industry: string;        // e.g. "agencia automotriz"
-  knowledgeBase: string;   // Full KB text injected into system prompt
-  language: string;        // e.g. "español mexicano"
+  knowledgeBase: string;   // Base KB — callers may concatenate dealer-specific inventory at runtime
+  language: string;        // e.g. "español mexicano" — also enforced via toneRules for belt-and-suspenders
   toneRules: string[];     // Hard rules for the model
 }
 
