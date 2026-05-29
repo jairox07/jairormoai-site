@@ -221,7 +221,7 @@ Karrott es una plataforma de gestión para agencias automotrices. Las agencias q
 - Precios sujetos a disponibilidad y tipo de cambio en vehículos de importación
 - Seminuevos: no se aceptan devoluciones tras firma, solo garantías
 - Cancelación de separado: reembolsable con 48h de anticipación
-\`;
+`;
 
 export const KARROTT_AGENT_CONFIG: AgentConfig = {
   agentName: "Karla",
