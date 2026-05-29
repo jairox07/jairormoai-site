@@ -70,37 +70,50 @@ export async function handleCreateTicket(
   input: CreateTicketInput,
   baseUrl: string
 ): Promise<{ ticketId: string; message: string }> {
-  const res = await fetch(`${baseUrl}/api/tickets`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: input.contactHandle,
-      handle: input.contactHandle,
-      channel: "whatsapp",
-      column: "new",
-      priority: input.priority,
-      category: "soporte",
-      subject: input.subject,
-      lastSeen: new Date().toISOString(),
-      avatarHue: 210,
-      assignee: null,
-      tags: ["whatsapp-agent"],
-      messages: [
-        {
-          from: "system",
-          type: "system",
-          t: new Date().toISOString(),
-          text: input.description,
-        },
-      ],
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/api/tickets`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: input.contactHandle,
+        handle: input.contactHandle,
+        channel: "whatsapp",
+        column: "new",
+        priority: input.priority,
+        category: "soporte",
+        subject: input.subject,
+        lastSeen: new Date().toISOString(),
+        avatarHue: 210,
+        assignee: null,
+        tags: ["whatsapp-agent"],
+        messages: [
+          {
+            from: "system",
+            type: "system",
+            t: new Date().toISOString(),
+            text: input.description,
+          },
+        ],
+      }),
+    });
+  } catch (err) {
+    throw new Error(`No se pudo conectar con el servidor de tickets: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   if (!res.ok) {
     throw new Error(`Error creando ticket: ${res.status}`);
   }
 
-  const { data } = await res.json();
+  const json = await res.json().catch(() => {
+    throw new Error(`Respuesta no-JSON del servidor (${res.status})`);
+  });
+  const { data } = json;
+
+  if (!data?.id) {
+    throw new Error("Respuesta inesperada del servidor: falta data.id");
+  }
+
   return {
     ticketId: data.id,
     message: `Ticket #${data.id} creado exitosamente`,
@@ -116,6 +129,7 @@ export async function handleHandoffHuman(
   const agentsOnline = false;
 
   if (agentsOnline) {
+    // TODO: unreachable in v1 — presence check not implemented yet
     // Future: emit WebSocket event to route conversation to chat dock
     return { status: "routed", message: "Conversación transferida a agente humano" };
   }
