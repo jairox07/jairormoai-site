@@ -111,20 +111,27 @@ async function sendMetaMessage(msg: IncomingMsg, text: string) {
   if (!token || !msg.phoneNumberId) return;
 
   const url = `https://graph.facebook.com/v21.0/${msg.phoneNumberId}/messages`;
-  await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: msg.from,
-      type: "text",
-      text: { body: text },
-    }),
-  });
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: msg.from,
+        type: "text",
+        text: { body: text },
+      }),
+    });
+    if (!res.ok) {
+      console.error(`[sendMetaMessage] Meta API error ${res.status} for ${msg.from}`);
+    }
+  } catch (err) {
+    console.error("[sendMetaMessage] Network error:", err);
+  }
 }
 
 // ─── Tipos de payload de Meta ────────────────────────────────────
