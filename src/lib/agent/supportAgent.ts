@@ -10,6 +10,16 @@ import {
 } from "./tools";
 import { KARROTT_AGENT_CONFIG } from "@/lib/knowledge";
 
+// Lazily initialised — only created when ANTHROPIC_API_KEY is present at call time.
+let _client: Anthropic | null = null;
+
+function getClient(apiKey: string): Anthropic {
+  if (!_client) {
+    _client = new Anthropic({ apiKey });
+  }
+  return _client;
+}
+
 const FALLBACK_REPLY =
   "Estamos teniendo problemas técnicos en este momento. Un agente te contactará pronto para ayudarte.";
 
@@ -26,7 +36,7 @@ export async function supportAgent(input: SupportAgentInput): Promise<string> {
     return FALLBACK_REPLY;
   }
 
-  const client = new Anthropic({ apiKey });
+  const client = getClient(apiKey);
   const systemPrompt = buildSystemPrompt(KARROTT_AGENT_CONFIG);
 
   // Append the current message to conversation history
@@ -55,14 +65,34 @@ export async function supportAgent(input: SupportAgentInput): Promise<string> {
 
         try {
           if (block.name === "create_ticket") {
+            const raw = block.input as Record<string, unknown>;
+            if (
+              typeof raw.subject !== "string" ||
+              typeof raw.description !== "string" ||
+              typeof raw.priority !== "string" ||
+              typeof raw.contactHandle !== "string"
+            ) {
+              resultContent = JSON.stringify({ error: "Entrada inválida para create_ticket" });
+              toolResults.push({ type: "tool_result", tool_use_id: block.id, content: resultContent });
+              continue;
+            }
             const result = await handleCreateTicket(
-              block.input as CreateTicketInput,
+              raw as unknown as CreateTicketInput,
               input.baseUrl
             );
             resultContent = JSON.stringify(result);
           } else if (block.name === "handoff_human") {
+            const raw = block.input as Record<string, unknown>;
+            if (
+              typeof raw.reason !== "string" ||
+              typeof raw.contactHandle !== "string"
+            ) {
+              resultContent = JSON.stringify({ error: "Entrada inválida para handoff_human" });
+              toolResults.push({ type: "tool_result", tool_use_id: block.id, content: resultContent });
+              continue;
+            }
             const result = await handleHandoffHuman(
-              block.input as HandoffHumanInput,
+              raw as unknown as HandoffHumanInput,
               input.baseUrl
             );
             resultContent = JSON.stringify(result);
@@ -95,6 +125,12 @@ export async function supportAgent(input: SupportAgentInput): Promise<string> {
         ],
       });
 
+      // Per spec, we do not loop further after one tool round-trip.
+      // If Claude calls a tool again in the follow-up, log and return fallback.
+      if (followUp.stop_reason === "tool_use") {
+        console.warn("[supportAgent] Unexpected second tool_use in follow-up; returning fallback.");
+        return FALLBACK_REPLY;
+      }
       const text = followUp.content.find((b) => b.type === "text");
       return text?.type === "text" ? text.text : FALLBACK_REPLY;
     }
