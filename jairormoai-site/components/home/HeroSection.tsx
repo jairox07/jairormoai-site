@@ -1,0 +1,95 @@
+'use client'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useParallax } from '@/lib/hooks/useParallax'
+import { useMouseTilt } from '@/lib/hooks/useMouseTilt'
+import { EyebrowPill } from '@/components/ui/EyebrowPill'
+import { Button } from '@/components/ui/Button'
+import { SocialRow } from './SocialRow'
+import { HERO_TAGS } from '@/lib/constants'
+
+export function HeroSection() {
+  const leftRef = useParallax(0.12)
+  const tiltRef = useMouseTilt(4)
+
+  return (
+    <section className="relative min-h-screen flex items-center px-6 md:px-12 lg:px-20 py-24">
+      <div className="max-w-6xl mx-auto w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+        {/* LEFT */}
+        <div ref={leftRef} className="flex-1 will-change-transform">
+          <EyebrowPill live className="mb-7">
+            IA Aplicada al Mundo Real
+          </EyebrowPill>
+
+          <h1 className="font-sora font-black text-[clamp(2.8rem,5vw,4.5rem)] leading-[1.05] tracking-tight mb-5">
+            Inteligencia<br />
+            <span className="text-cyan">sin fricción.</span>
+          </h1>
+
+          <p className="font-sora font-light text-lg text-gray leading-relaxed max-w-[520px] mb-7">
+            Construyo, enseño y escalo sistemas de IA para empresas reales.
+            Sin teoría vacía, sin promesas falsas.
+          </p>
+
+          <div className="flex flex-wrap gap-2 mb-8">
+            {HERO_TAGS.map((tag) => (
+              <span
+                key={tag}
+                className="font-mono text-[11px] font-bold uppercase tracking-[1.5px] text-gray2 bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 rounded-md"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Link href="/sessions">
+              <Button variant="primary" size="lg">Agendar sesión</Button>
+            </Link>
+            <Link href="/vault">
+              <Button variant="ghost" size="lg">Ver proyectos →</Button>
+            </Link>
+          </div>
+
+          <SocialRow />
+        </div>
+
+        {/* RIGHT — Photo */}
+        <div className="flex-shrink-0 flex flex-col items-center">
+          <div ref={tiltRef} className="relative will-change-transform" style={{ width: 340, height: 340 }}>
+            {/* Glow */}
+            <div className="absolute inset-[-40px] rounded-full bg-[radial-gradient(circle,rgba(79,195,247,0.12),transparent_65%)] blur-2xl" />
+            {/* Ring */}
+            <div className="absolute inset-0 rounded-full bg-brand-grad z-0" />
+            {/* Border gap */}
+            <div className="absolute inset-[3px] rounded-full bg-bg z-[1]" />
+            {/* Photo */}
+            <div className="absolute inset-[9px] rounded-full overflow-hidden z-[2] bg-bg3">
+              <Image
+                src="/jairo-photo.png"
+                alt="Jairo Romo"
+                fill
+                className="object-cover object-top"
+                priority
+              />
+            </div>
+            {/* Floating dots */}
+            <span className="absolute top-[8%] right-[-6%] w-2 h-2 rounded-full bg-cyan shadow-[0_0_8px_#4FC3F7] animate-float z-[3]" />
+            <span className="absolute bottom-[20%] left-[-5%] w-1.5 h-1.5 rounded-full bg-purp shadow-[0_0_8px_#8B5CF6] animate-float z-[3]" style={{ animationDelay: '2s' }} />
+            <span className="absolute top-[55%] right-[-9%] w-1.5 h-1.5 rounded-full bg-cyan shadow-[0_0_6px_#4FC3F7] animate-float z-[3]" style={{ animationDelay: '1s' }} />
+          </div>
+          <div className="mt-4 font-mono text-[12px] text-cyan tracking-[3px] uppercase">
+            @jairoromo.ai
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <div className="w-px h-12 bg-[linear-gradient(to_bottom,rgba(79,195,247,0.4),transparent)] animate-scroll-hint" />
+        <span className="font-mono text-[10px] text-gray2 tracking-[3px] uppercase">scroll</span>
+      </div>
+    </section>
+  )
+}
