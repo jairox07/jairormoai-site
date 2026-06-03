@@ -1,0 +1,68 @@
+<h2>Hero Romo.ai — Arquitectura del Sitio</h2>
+<p class="subtitle">8 subsistemas identificados. ¿Cuál construimos primero? Selecciona en orden de prioridad (multi-select).</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="home" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <h3>🏠 Home / Landing</h3>
+      <p>Hero section · Timeline experiencia · Social links · CTA colaboración · Donaciones Stripe · Formulario contacto</p>
+    </div>
+  </div>
+  <div class="option" data-choice="sessions" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <h3>📅 Sesiones 1:1</h3>
+      <p>3 paquetes de mentoría · Stripe checkout · Widget calendario post-pago</p>
+    </div>
+  </div>
+  <div class="option" data-choice="vault" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>🗄️ AI Repository / Bóveda</h3>
+      <p>Cards de proyectos · Filtros por categoría · Demo / código links</p>
+    </div>
+  </div>
+  <div class="option" data-choice="events" onclick="toggleSelect(this)">
+    <div class="letter">4</div>
+    <div class="content">
+      <h3>🎤 Live Events</h3>
+      <p>Cartelera · Selector timezone · Registro · Add to calendar</p>
+    </div>
+  </div>
+  <div class="option" data-choice="auth" onclick="toggleSelect(this)">
+    <div class="letter">5</div>
+    <div class="content">
+      <h3>🔐 Auth System</h3>
+      <p>Login / Signup · Email + Social OAuth · Bienvenida premium animada</p>
+    </div>
+  </div>
+  <div class="option" data-choice="downloads" onclick="toggleSelect(this)">
+    <div class="letter">6</div>
+    <div class="content">
+      <h3>📦 Descargables Exclusivos</h3>
+      <p>Área privada (auth-gated) · Prompts · PDFs · Repos de código</p>
+    </div>
+  </div>
+  <div class="option" data-choice="community" onclick="toggleSelect(this)">
+    <div class="letter">7</div>
+    <div class="content">
+      <h3>💬 Comunidad</h3>
+      <p>Feed interactivo · Posts de Jairo · Comentarios · Likes · Tendencias IA</p>
+    </div>
+  </div>
+  <div class="option" data-choice="lms" onclick="toggleSelect(this)">
+    <div class="letter">8</div>
+    <div class="content">
+      <h3>🎓 LMS / Cursos</h3>
+      <p>Catálogo de cursos · Stripe · Video player · Progreso · Materiales descargables</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: rgba(79,195,247,0.07); border: 1px solid rgba(79,195,247,0.2); border-radius: 12px;">
+  <p style="margin: 0; font-size: 0.9rem; color: #94A3B8;">
+    ⚡ Stack sugerido: <strong>Next.js 14 + Tailwind CSS + Framer Motion + Supabase Auth + Stripe</strong><br/>
+    Cada subsistema = spec propio → plan propio → implementación propia.
+  </p>
+</div>
