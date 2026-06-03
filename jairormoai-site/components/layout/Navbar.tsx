@@ -1,0 +1,54 @@
+'use client'
+import Link from 'next/link'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
+
+const NAV_LINKS = [
+  { href: '/', label: 'Inicio' },
+  { href: '/sessions', label: 'Sesiones 1:1' },
+  { href: '/vault', label: 'Bóveda IA' },
+]
+
+export function Navbar() {
+  const pathname = usePathname()
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50">
+      {/* Gradient topline */}
+      <div className="h-[3px] bg-brand-grad" />
+
+      <nav className="flex items-center justify-between px-6 md:px-12 py-4 bg-bg/70 backdrop-blur-xl border-b border-white/[0.05]">
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-3 group">
+          <Image src="/logo.svg" alt="jairoromo.ai logo" width={36} height={36} priority />
+          <span className="font-sora font-black text-[1rem] tracking-tight">
+            jairo<span className="text-cyan">romo.ai</span>
+          </span>
+        </Link>
+
+        {/* Nav links */}
+        <div className="hidden md:flex items-center gap-8">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'font-sora text-sm font-medium transition-colors duration-200',
+                pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <Link href="/login">
+          <Button variant="primary" size="sm">Iniciar sesión</Button>
+        </Link>
+      </nav>
+    </header>
+  )
+}
