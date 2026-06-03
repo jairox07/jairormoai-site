@@ -1,3 +1,8 @@
+/**
+ * NOTE: This project uses Tailwind CSS v4 which reads configuration from
+ * the @theme block in app/globals.css, NOT from this file.
+ * This file is retained for reference and tooling compatibility only.
+ */
 import type { Config } from 'tailwindcss'
 
 const config: Config = {

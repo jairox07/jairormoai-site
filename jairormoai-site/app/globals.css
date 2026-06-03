@@ -38,6 +38,8 @@
   }
 }
 
+/* Raw CSS custom properties for use in non-Tailwind CSS rules */
+/* Tailwind utilities use the @theme block above */
 :root {
   --bg: #080B14;
   --bg2: #0C1120;
