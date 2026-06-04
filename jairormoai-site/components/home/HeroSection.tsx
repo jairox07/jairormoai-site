@@ -23,8 +23,8 @@ export function HeroSection() {
           </EyebrowPill>
 
           <h1 className="font-sora font-black text-[clamp(2.8rem,5vw,4.5rem)] leading-[1.05] tracking-tight mb-5">
-            Inteligencia<br />
-            <span className="text-cyan">sin fricción.</span>
+            Inteligencia Artificial<br />
+            Aplicada, <span className="text-cyan">sin fricción.</span>
           </h1>
 
           <p className="font-sora font-light text-lg text-gray leading-relaxed max-w-[520px] mb-7">
