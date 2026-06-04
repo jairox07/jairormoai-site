@@ -17,7 +17,12 @@ export function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-3">
             <Link href="/" className="flex items-center gap-3">
-              <Image src="/logo.svg" alt="jairoromo.ai" width={32} height={32} />
+              <Image
+                src="https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/jr-logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2pyLWxvZ28ucG5nIiwiaWF0IjoxNzgwNjEwNzE0LCJleHAiOjE4MTIxNDY3MTR9.P0MhIJ7aSwxI0dEz8jA2OoiKPb6Zi1fsx4D7-nTa75A"
+                alt="jairoromo.ai"
+                width={32}
+                height={32}
+              />
               <span className="font-sora font-black text-sm">
                 jairo<span className="text-cyan">romo.ai</span>
               </span>

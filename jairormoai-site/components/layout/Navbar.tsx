@@ -23,7 +23,13 @@ export function Navbar() {
       <nav className="flex items-center justify-between px-6 md:px-12 py-4 bg-bg/70 backdrop-blur-xl border-b border-white/[0.05]">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-3 group">
-          <Image src="/logo.svg" alt="jairoromo.ai logo" width={36} height={36} priority />
+          <Image
+            src="https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/jr-logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2pyLWxvZ28ucG5nIiwiaWF0IjoxNzgwNjEwNzE0LCJleHAiOjE4MTIxNDY3MTR9.P0MhIJ7aSwxI0dEz8jA2OoiKPb6Zi1fsx4D7-nTa75A"
+            alt="jairoromo.ai logo"
+            width={36}
+            height={36}
+            priority
+          />
           <span className="font-sora font-black text-[1rem] tracking-tight">
             jairo<span className="text-cyan">romo.ai</span>
           </span>
