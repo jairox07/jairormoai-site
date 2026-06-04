@@ -3,10 +3,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 
-// Dynamic import to avoid SSR issues with Mux player
-import dynamic from 'next/dynamic'
-const MuxPlayer = dynamic(() => import('@mux/mux-player-react'), { ssr: false })
-
 interface LessonPlayerProps {
   lessonId: string
   playbackId: string
@@ -54,14 +50,14 @@ export function LessonPlayer({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Mux Player */}
+      {/* Mux iframe embed — no server-only dependencies */}
       <div className="rounded-xl overflow-hidden bg-black aspect-video">
-        <MuxPlayer
-          playbackId={playbackId}
-          style={{ width: '100%', height: '100%' } as any}
-          streamType="on-demand"
-          accentColor="#4FC3F7"
-          onEnded={markComplete}
+        <iframe
+          src={`https://stream.mux.com/${playbackId}`}
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          style={{ width: '100%', height: '100%', border: 0 }}
+          title="Lesson video"
         />
       </div>
 
