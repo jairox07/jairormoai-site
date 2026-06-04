@@ -6,9 +6,6 @@ const nextConfig: NextConfig = {
     // resolution differences between Windows dev and Linux CI.
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
