@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { mux } from '@/lib/mux'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST() {
@@ -11,7 +10,14 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const upload = await mux.video.uploads.create({
+  // Lazy import to avoid Turbopack bundling @mux/mux-node at build time
+  const Mux = (await import('@mux/mux-node')).default
+  const muxClient = new Mux({
+    tokenId: process.env.MUX_TOKEN_ID!,
+    tokenSecret: process.env.MUX_TOKEN_SECRET!,
+  })
+
+  const upload = await muxClient.video.uploads.create({
     new_asset_settings: {
       playback_policy: ['public'],
       encoding_tier: 'smart',
