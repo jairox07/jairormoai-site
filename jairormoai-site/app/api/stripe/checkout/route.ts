@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { SESSION_PACKAGES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       line_items: [{ price: body.stripePriceId, quantity: 1 }],
       success_url: `${siteUrl}/courses/${body.courseSlug}?enrolled=true`,
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   if (!pkg) return NextResponse.json({ error: 'Invalid package' }, { status: 400 })
   if (!pkg.stripePriceId) return NextResponse.json({ error: 'Price not configured' }, { status: 400 })
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: 'payment',
     line_items: [{ price: pkg.stripePriceId, quantity: 1 }],
     success_url: `${siteUrl}/sessions/success?session_id={CHECKOUT_SESSION_ID}&pkg=${pkg.id}`,
