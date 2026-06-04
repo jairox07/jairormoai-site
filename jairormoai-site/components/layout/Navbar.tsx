@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
   { href: '/sessions', label: 'Sesiones 1:1' },
   { href: '/vault', label: 'Bóveda IA' },
+  { href: '/courses', label: 'Cursos' },
 ]
 
 export function Navbar() {
