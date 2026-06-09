@@ -18,7 +18,7 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <Link href="/" className="flex items-center gap-3">
               <Image
-                src="https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/jr-logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2pyLWxvZ28ucG5nIiwiaWF0IjoxNzgwNjEwNzE0LCJleHAiOjE4MTIxNDY3MTR9.P0MhIJ7aSwxI0dEz8jA2OoiKPb6Zi1fsx4D7-nTa75A"
+                src="https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/jr-logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2pyLWxvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MTAzMTk1MywiZXhwIjoxODEyNTY3OTUzfQ.l-50MC-iOhuOWWXQNykabWlio6wAwZpOJLTBVaUP5eo"
                 alt="jairoromo.ai"
                 width={32}
                 height={32}
