@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { CourseCard } from '@/components/courses/CourseCard'
+import { CoursesClient } from '@/components/courses/CoursesClient'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 import type { Course } from '@/lib/types'
 
@@ -63,24 +63,11 @@ export default async function CoursesPage() {
           </p>
         </div>
 
-        {courses.length === 0 ? (
-          <div className="text-center py-24">
-            <p className="font-mono text-[11px] text-gray2 uppercase tracking-wider">
-              Cursos próximamente
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                lessonCount={countMap[course.id] ?? 0}
-                enrolled={enrolledCourseIds.includes(course.id)}
-              />
-            ))}
-          </div>
-        )}
+        <CoursesClient
+          courses={courses}
+          enrolledCourseIds={enrolledCourseIds}
+          countMap={countMap}
+        />
       </div>
     </div>
   )
