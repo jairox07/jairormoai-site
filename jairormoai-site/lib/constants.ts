@@ -63,9 +63,31 @@ export const HERO_TAGS = ['LLMs', 'RAG', 'Automatización', 'Agentes IA', 'Fine-
 export const VAULT_CATEGORIES = [
   { id: 'all', label: 'Todos' },
   { id: 'general', label: 'General' },
-  { id: 'gemini', label: 'Gemini' },
   { id: 'claude', label: 'Claude' },
+  { id: 'gemini', label: 'Gemini' },
   { id: 'skills', label: 'Skills' },
   { id: 'recursos', label: 'Recursos' },
+  { id: 'legal', label: '⚖️ Abogados' },
+  { id: 'inmobiliaria', label: '🏡 Inmobiliaria' },
   { id: 'comunidad', label: 'Proyectos Comunidad' },
 ] as const
+
+// Color per industry/category for vault cards
+export const CATEGORY_COLORS: Record<string, {
+  badge: string   // bg + text + border for the badge
+  card: string    // card border + bg tint
+  accent: string  // hex for share icon hover etc.
+}> = {
+  general:      { badge: 'bg-white/[0.06] border-white/[0.12] text-gray2',  card: 'border-white/[0.07] bg-bg2/40',     accent: '#94A3B8' },
+  claude:       { badge: 'bg-cyan/[0.08] border-cyan/[0.18] text-cyan',     card: 'border-cyan/[0.12] bg-cyan/[0.02]', accent: '#4FC3F7' },
+  gemini:       { badge: 'bg-[#3B82F6]/[0.08] border-[#3B82F6]/[0.18] text-[#60A5FA]', card: 'border-[#3B82F6]/[0.12] bg-[#3B82F6]/[0.02]', accent: '#60A5FA' },
+  skills:       { badge: 'bg-purp/[0.08] border-purp/[0.18] text-purp',    card: 'border-purp/[0.12] bg-purp/[0.02]', accent: '#8B5CF6' },
+  recursos:     { badge: 'bg-[#F97316]/[0.08] border-[#F97316]/[0.18] text-[#FB923C]', card: 'border-[#F97316]/[0.12] bg-[#F97316]/[0.02]', accent: '#FB923C' },
+  legal:        { badge: 'bg-[#F59E0B]/[0.08] border-[#F59E0B]/[0.18] text-[#FCD34D]', card: 'border-[#F59E0B]/[0.18] bg-[#F59E0B]/[0.03]', accent: '#F59E0B' },
+  inmobiliaria: { badge: 'bg-[#10B981]/[0.08] border-[#10B981]/[0.18] text-[#34D399]', card: 'border-[#10B981]/[0.18] bg-[#10B981]/[0.03]', accent: '#10B981' },
+  comunidad:    { badge: 'bg-[#EC4899]/[0.08] border-[#EC4899]/[0.18] text-[#F472B6]', card: 'border-[#EC4899]/[0.12] bg-[#EC4899]/[0.02]', accent: '#EC4899' },
+  automatizaciones: { badge: 'bg-cyan/[0.08] border-cyan/[0.18] text-cyan', card: 'border-cyan/[0.12] bg-cyan/[0.02]', accent: '#4FC3F7' },
+  ml:           { badge: 'bg-purp/[0.08] border-purp/[0.18] text-purp',    card: 'border-purp/[0.12] bg-purp/[0.02]', accent: '#8B5CF6' },
+  llms:         { badge: 'bg-[#3B82F6]/[0.08] border-[#3B82F6]/[0.18] text-[#60A5FA]', card: 'border-[#3B82F6]/[0.12] bg-[#3B82F6]/[0.02]', accent: '#60A5FA' },
+  rags:         { badge: 'bg-[#F97316]/[0.08] border-[#F97316]/[0.18] text-[#FB923C]', card: 'border-[#F97316]/[0.12] bg-[#F97316]/[0.02]', accent: '#FB923C' },
+}

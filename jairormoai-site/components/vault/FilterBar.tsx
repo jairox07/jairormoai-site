@@ -1,6 +1,5 @@
 'use client'
-import { cn } from '@/lib/utils'
-import { VAULT_CATEGORIES } from '@/lib/constants'
+import { VAULT_CATEGORIES, CATEGORY_COLORS } from '@/lib/constants'
 
 interface FilterBarProps {
   active: string
@@ -10,20 +9,26 @@ interface FilterBarProps {
 export function FilterBar({ active, onChange }: FilterBarProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {VAULT_CATEGORIES.map((cat) => (
-        <button
-          key={cat.id}
-          onClick={() => onChange(cat.id)}
-          className={cn(
-            'font-mono text-[11px] font-bold uppercase tracking-[2px] px-4 py-2 rounded-lg transition-all duration-200',
-            active === cat.id
-              ? 'bg-cyan text-bg shadow-[0_0_16px_rgba(79,195,247,0.35)]'
-              : 'bg-white/[0.04] border border-white/[0.08] text-gray2 hover:border-cyan/25 hover:text-white'
-          )}
-        >
-          {cat.label}
-        </button>
-      ))}
+      {VAULT_CATEGORIES.map((cat) => {
+        const color = CATEGORY_COLORS[cat.id]
+        const isActive = active === cat.id
+        const accent = color?.accent || '#94A3B8'
+
+        return (
+          <button
+            key={cat.id}
+            onClick={() => onChange(cat.id)}
+            className="font-mono text-[11px] font-bold uppercase tracking-[2px] px-4 py-2 rounded-lg transition-all duration-200 border"
+            style={
+              isActive
+                ? { background: accent, color: '#080B14', borderColor: accent, boxShadow: `0 0 16px ${accent}55` }
+                : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)', color: '#3D4F63' }
+            }
+          >
+            {cat.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
