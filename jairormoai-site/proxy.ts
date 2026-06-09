@@ -30,6 +30,14 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Protect /admin — must be logged in (page itself checks admin email)
+  if (pathname.startsWith('/admin') && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(url)
+  }
+
   // Protect /dashboard/*
   if (pathname.startsWith('/dashboard') && !user) {
     const url = request.nextUrl.clone()

@@ -6,16 +6,30 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function SignupPage() {
-  const [form, setForm] = useState({ full_name: '', email: '', password: '' })
-  const [error, setError] = useState('')
+  const [form, setForm] = useState({ full_name: '', email: '', password: '', confirm_password: '' })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
 
+  const validate = () => {
+    const e: Record<string, string> = {}
+    if (!form.full_name.trim()) e.full_name = 'Nombre requerido'
+    if (!form.email) e.email = 'Email requerido'
+    else if (!EMAIL_REGEX.test(form.email)) e.email = 'Formato de email inválido'
+    if (form.password.length < 8) e.password = 'Mínimo 8 caracteres'
+    if (!form.confirm_password) e.confirm_password = 'Repite tu contraseña'
+    else if (form.password !== form.confirm_password) e.confirm_password = 'Las contraseñas no coinciden'
+    return e
+  }
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-    if (form.password.length < 8) { setError('La contraseña debe tener al menos 8 caracteres'); return }
+    const errs = validate()
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    setErrors({})
     setLoading(true)
     const supabase = createClient()
     const { error: authError } = await supabase.auth.signUp({
@@ -24,7 +38,7 @@ export default function SignupPage() {
       options: { data: { full_name: form.full_name } },
     })
     setLoading(false)
-    if (authError) { setError(authError.message); return }
+    if (authError) { setErrors({ global: authError.message }); return }
     setDone(true)
   }
 
@@ -60,20 +74,32 @@ export default function SignupPage() {
           <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <Input
               id="name" label="Nombre completo" placeholder="Tu nombre"
+              error={errors.full_name}
               value={form.full_name} onChange={(e) => setForm(f => ({ ...f, full_name: e.target.value }))}
             />
             <Input
               id="email" label="Email" type="email" placeholder="tu@correo.com"
+              error={errors.email}
               value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
             />
             <Input
               id="password" label="Contraseña" type="password" placeholder="Mínimo 8 caracteres"
+              error={errors.password}
               value={form.password} onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
             />
-            {error && <p className="font-mono text-[11px] text-red-400">{error}</p>}
+            <Input
+              id="confirm_password" label="Repetir contraseña" type="password" placeholder="Repite tu contraseña"
+              error={errors.confirm_password}
+              value={form.confirm_password} onChange={(e) => setForm(f => ({ ...f, confirm_password: e.target.value }))}
+            />
+            {errors.global && <p className="font-mono text-[11px] text-red-400">{errors.global}</p>}
             <Button type="submit" variant="primary" loading={loading} className="w-full">
               Crear cuenta
             </Button>
+            <p className="font-mono text-[11px] text-gray2 text-center">
+              ¿Olvidaste tu contraseña?{' '}
+              <Link href="/forgot-password" className="text-cyan hover:underline">Restablecer</Link>
+            </p>
           </form>
         </div>
       </div>

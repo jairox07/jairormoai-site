@@ -3,15 +3,18 @@ import { useState } from 'react'
 import { FilterBar } from '@/components/vault/FilterBar'
 import { ProjectCard } from '@/components/vault/ProjectCard'
 import { VaultGate } from '@/components/vault/VaultGate'
+import { CommentSection } from '@/components/comments/CommentSection'
 import type { Project } from '@/lib/types'
 
 interface VaultClientProps {
   projects: Project[]
   isLoggedIn: boolean
+  userId: string | null
 }
 
-export function VaultClient({ projects, isLoggedIn }: VaultClientProps) {
+export function VaultClient({ projects, isLoggedIn, userId }: VaultClientProps) {
   const [activeFilter, setActiveFilter] = useState('all')
+  const [expandedComments, setExpandedComments] = useState<string | null>(null)
 
   if (!isLoggedIn) {
     return <VaultGate />
@@ -34,7 +37,20 @@ export function VaultClient({ projects, isLoggedIn }: VaultClientProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <div key={project.id} className="flex flex-col">
+              <ProjectCard project={project} />
+              <button
+                onClick={() => setExpandedComments(expandedComments === project.id ? null : project.id)}
+                className="mt-2 font-mono text-[10px] text-gray2 hover:text-cyan transition-colors text-left px-1"
+              >
+                {expandedComments === project.id ? '▲ Cerrar comentarios' : '▼ Ver comentarios'}
+              </button>
+              {expandedComments === project.id && (
+                <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 p-6 mt-1">
+                  <CommentSection projectId={project.id} userId={userId} />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}

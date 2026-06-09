@@ -10,11 +10,13 @@ export const metadata = {
 export default async function VaultPage() {
   let projects = []
   let isLoggedIn = false
+  let userId: string | null = null
 
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     isLoggedIn = !!user
+    userId = user?.id ?? null
 
     if (isLoggedIn) {
       const { data } = await supabase
@@ -43,7 +45,7 @@ export default async function VaultPage() {
           </p>
         </div>
 
-        <VaultClient projects={projects} isLoggedIn={isLoggedIn} />
+        <VaultClient projects={projects} isLoggedIn={isLoggedIn} userId={userId} />
       </div>
     </div>
   )

@@ -59,6 +59,9 @@ export default function LoginPage() {
             <Button type="submit" variant="primary" loading={loading} className="w-full">
               Iniciar sesión
             </Button>
+            <Link href="/forgot-password" className="font-mono text-[11px] text-gray2 text-center hover:text-cyan transition-colors block">
+              ¿Olvidaste tu contraseña?
+            </Link>
           </form>
 
           <div className="flex items-center gap-4 my-6">

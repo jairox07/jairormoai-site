@@ -82,22 +82,44 @@ export function ProjectCard({ project }: { project: Project }) {
         ))}
       </div>
 
-      {(project.demo_url || project.repo_url) && (
-        <div className="flex gap-3 mt-auto">
-          {project.demo_url && (
-            <a href={project.demo_url} target="_blank" rel="noopener noreferrer"
-              className="font-mono text-[11px] font-bold uppercase tracking-wider text-cyan hover:underline">
-              Demo →
-            </a>
-          )}
-          {project.repo_url && (
-            <a href={project.repo_url} target="_blank" rel="noopener noreferrer"
-              className="font-mono text-[11px] font-bold uppercase tracking-wider text-gray2 hover:text-white">
-              Código →
-            </a>
-          )}
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-3 mt-auto">
+        {project.demo_url && (
+          <a href={project.demo_url} target="_blank" rel="noopener noreferrer"
+            className="font-mono text-[11px] font-bold uppercase tracking-wider text-cyan hover:underline">
+            Demo →
+          </a>
+        )}
+        {project.repo_url && (
+          <a href={project.repo_url} target="_blank" rel="noopener noreferrer"
+            className="font-mono text-[11px] font-bold uppercase tracking-wider text-gray2 hover:text-white">
+            Código →
+          </a>
+        )}
+        {project.is_free && project.download_url ? (
+          <a
+            href={project.download_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              fetch('/api/activity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event_type: 'download', metadata: { project_id: project.id, title: project.title } }),
+              })
+            }}
+            className="ml-auto flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider bg-cyan/10 border border-cyan/25 text-cyan px-3 py-1.5 rounded-lg hover:bg-cyan/20 transition-colors"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Descargar gratis
+          </a>
+        ) : !project.is_free && project.price_cents > 0 ? (
+          <span className="ml-auto font-mono text-[11px] font-bold text-purp border border-purp/30 bg-purp/[0.08] px-3 py-1.5 rounded-lg">
+            ${(project.price_cents / 100).toFixed(0)} USD
+          </span>
+        ) : null}
+      </div>
     </article>
   )
 }
