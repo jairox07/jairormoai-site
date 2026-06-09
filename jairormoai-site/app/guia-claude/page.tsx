@@ -62,7 +62,7 @@ const FAQS = [
   { q: '¿Funciona para equipos o empresas?', a: 'Sí. Los capítulos 21-25 están dedicados a implementaciones empresariales: SSO, compliance, API en producción, CI/CD y planes Team/Enterprise. Para licencias de equipo, contáctanos.' },
 ]
 
-const STRIPE_BUY_LINK = 'https://buy.stripe.com/REPLACE_GUIA_CLAUDE' // ← reemplaza con tu link de Stripe
+const STRIPE_BUY_LINK = 'https://buy.stripe.com/cNicN65lz8e9c9P6GB6wE0c'
 
 export default function GuiaClaudePage() {
   const [activeTab, setActiveTab] = useState(0)

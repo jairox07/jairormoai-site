@@ -5,9 +5,10 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 
-const NAV_LINKS = [
+const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/', label: 'Inicio' },
   { href: '/sessions', label: 'Sesiones 1:1' },
+  { href: '/guia-claude', label: 'Guía Claude', highlight: true },
   { href: '/vault', label: 'Bóveda IA' },
   { href: '/courses', label: 'Cursos' },
 ]
@@ -43,10 +44,17 @@ export function Navbar() {
               href={link.href}
               className={cn(
                 'font-sora text-sm font-medium transition-colors duration-200',
-                pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
+                link.highlight
+                  ? 'text-cyan font-bold'
+                  : pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
               )}
             >
               {link.label}
+              {link.highlight && (
+                <span className="ml-1.5 font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                  nuevo
+                </span>
+              )}
             </Link>
           ))}
         </div>
