@@ -6,10 +6,8 @@ import type { SESSION_PACKAGES } from '@/lib/constants'
 type Package = typeof SESSION_PACKAGES[number]
 
 export function SessionCard({ pkg }: { pkg: Package }) {
-  const stripeLink = (pkg as Package & { stripeLink?: string }).stripeLink
-
   const onBuy = () => {
-    if (stripeLink) window.open(stripeLink, '_blank')
+    if (pkg.stripeLink) window.open(pkg.stripeLink, '_blank')
   }
 
   return (
@@ -48,7 +46,6 @@ export function SessionCard({ pkg }: { pkg: Package }) {
 
       <Button
         variant={pkg.popular ? 'primary' : 'ghost'}
-        loading={loading}
         onClick={onBuy}
         className="w-full"
       >
