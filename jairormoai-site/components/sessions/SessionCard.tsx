@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import type { SESSION_PACKAGES } from '@/lib/constants'
@@ -7,18 +6,10 @@ import type { SESSION_PACKAGES } from '@/lib/constants'
 type Package = typeof SESSION_PACKAGES[number]
 
 export function SessionCard({ pkg }: { pkg: Package }) {
-  const [loading, setLoading] = useState(false)
+  const stripeLink = (pkg as Package & { stripeLink?: string }).stripeLink
 
-  const onBuy = async () => {
-    setLoading(true)
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ packageId: pkg.id }),
-    })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else setLoading(false)
+  const onBuy = () => {
+    if (stripeLink) window.open(stripeLink, '_blank')
   }
 
   return (
