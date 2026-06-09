@@ -1,6 +1,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRef, useState, useCallback } from 'react'
 import { useParallax } from '@/lib/hooks/useParallax'
 import { useMouseTilt } from '@/lib/hooks/useMouseTilt'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
@@ -8,9 +9,32 @@ import { Button } from '@/components/ui/Button'
 import { SocialRow } from './SocialRow'
 import { HERO_TAGS } from '@/lib/constants'
 
+const ORIGINAL_PHOTO = 'https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/aragonai-7984aeb5-3408-4714-bbc3-f21c8bb0dd2f.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2FyYWdvbmFpLTc5ODRhZWI1LTM0MDgtNDcxNC1iYmMzLWYyMWM4YmIwZGQyZi5qcGVnIiwiaWF0IjoxNzgwNjEwNzAxLCJleHAiOjE4MTIxNDY3MDF9.tIzFipsnTXhr4EvUFkW3_a8Qh6byTAkwBnS20ZfhvmY'
+const CYBORG_PHOTO = '/jairo-cyborg.jpg'
+
 export function HeroSection() {
   const leftRef = useParallax(0.12)
   const tiltRef = useMouseTilt(4)
+  const revealRef = useRef<HTMLDivElement>(null)
+  const [clipPct, setClipPct] = useState(50)
+  const [isHovering, setIsHovering] = useState(false)
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = revealRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    setClipPct(Math.max(0, Math.min(100, (x / rect.width) * 100)))
+  }, [])
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false)
+    setClipPct(50)
+  }, [])
 
   return (
     <section className="relative min-h-screen flex items-center px-6 md:px-12 lg:px-20 py-24">
@@ -55,32 +79,73 @@ export function HeroSection() {
           <SocialRow />
         </div>
 
-        {/* RIGHT — Photo */}
+        {/* RIGHT — Photo with Cyborg Reveal */}
         <div className="flex-shrink-0 flex flex-col items-center">
-          <div ref={tiltRef} className="relative will-change-transform" style={{ width: 340, height: 340 }}>
+          <div ref={tiltRef} className="relative will-change-transform" style={{ width: 425, height: 425 }}>
             {/* Glow */}
             <div className="absolute inset-[-40px] rounded-full bg-[radial-gradient(circle,rgba(79,195,247,0.12),transparent_65%)] blur-2xl" />
             {/* Ring */}
             <div className="absolute inset-0 rounded-full bg-brand-grad z-0" />
             {/* Border gap */}
             <div className="absolute inset-[3px] rounded-full bg-bg z-[1]" />
-            {/* Photo */}
-            <div className="absolute inset-[9px] rounded-full overflow-hidden z-[2] bg-bg3">
+
+            {/* Photo container — reveal lives here */}
+            <div
+              ref={revealRef}
+              className="absolute inset-[9px] rounded-full overflow-hidden z-[2] bg-bg3 cursor-ew-resize select-none"
+              onMouseMove={handleMouseMove}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              {/* BACKGROUND: cyborg image (always visible) */}
               <Image
-                src="https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/aragonai-7984aeb5-3408-4714-bbc3-f21c8bb0dd2f.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2FyYWdvbmFpLTc5ODRhZWI1LTM0MDgtNDcxNC1iYmMzLWYyMWM4YmIwZGQyZi5qcGVnIiwiaWF0IjoxNzgwNjEwNzAxLCJleHAiOjE4MTIxNDY3MDF9.tIzFipsnTXhr4EvUFkW3_a8Qh6byTAkwBnS20ZfhvmY"
-                alt="Jairo Romo"
+                src={CYBORG_PHOTO}
+                alt="Jairo Romo — versión IA"
                 fill
-                className="object-cover object-top"
+                className="object-cover object-top pointer-events-none"
                 priority
               />
+
+              {/* FOREGROUND: original photo, clipped to reveal from left */}
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{
+                  clipPath: `polygon(0 0, ${clipPct}% 0, ${clipPct}% 100%, 0 100%)`,
+                  transition: isHovering ? 'none' : 'clip-path 0.4s ease-in-out',
+                }}
+              >
+                <Image
+                  src={ORIGINAL_PHOTO}
+                  alt="Jairo Romo"
+                  fill
+                  className="object-cover object-top pointer-events-none"
+                  priority
+                />
+              </div>
+
+              {/* Divider line */}
+              {isHovering && (
+                <div
+                  className="absolute top-0 bottom-0 w-[2px] bg-cyan/70 shadow-[0_0_8px_#4FC3F7] pointer-events-none z-10"
+                  style={{ left: `${clipPct}%`, transform: 'translateX(-50%)' }}
+                />
+              )}
             </div>
+
             {/* Floating dots */}
             <span className="absolute top-[8%] right-[-6%] w-2 h-2 rounded-full bg-cyan shadow-[0_0_8px_#4FC3F7] animate-float z-[3]" />
             <span className="absolute bottom-[20%] left-[-5%] w-1.5 h-1.5 rounded-full bg-purp shadow-[0_0_8px_#8B5CF6] animate-float z-[3]" style={{ animationDelay: '2s' }} />
             <span className="absolute top-[55%] right-[-9%] w-1.5 h-1.5 rounded-full bg-cyan shadow-[0_0_6px_#4FC3F7] animate-float z-[3]" style={{ animationDelay: '1s' }} />
           </div>
-          <div className="mt-4 font-mono text-[12px] text-cyan tracking-[3px] uppercase">
-            @jairoromo.ai
+
+          {/* Hint label */}
+          <div className="mt-4 flex flex-col items-center gap-1">
+            <div className="font-mono text-[12px] text-cyan tracking-[3px] uppercase">
+              @jairoromo.ai
+            </div>
+            <div className="font-mono text-[9px] text-gray2/50 tracking-[1.5px] uppercase">
+              ← desliza →
+            </div>
           </div>
         </div>
       </div>
