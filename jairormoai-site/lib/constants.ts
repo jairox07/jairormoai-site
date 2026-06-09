@@ -62,8 +62,10 @@ export const HERO_TAGS = ['LLMs', 'RAG', 'Automatización', 'Agentes IA', 'Fine-
 
 export const VAULT_CATEGORIES = [
   { id: 'all', label: 'Todos' },
-  { id: 'automatizaciones', label: 'Automatizaciones' },
-  { id: 'ml', label: 'Machine Learning' },
-  { id: 'llms', label: 'LLMs' },
-  { id: 'rags', label: 'RAGs' },
+  { id: 'general', label: 'General' },
+  { id: 'gemini', label: 'Gemini' },
+  { id: 'claude', label: 'Claude' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'recursos', label: 'Recursos' },
+  { id: 'comunidad', label: 'Proyectos Comunidad' },
 ] as const

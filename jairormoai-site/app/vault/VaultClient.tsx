@@ -2,10 +2,20 @@
 import { useState } from 'react'
 import { FilterBar } from '@/components/vault/FilterBar'
 import { ProjectCard } from '@/components/vault/ProjectCard'
+import { VaultGate } from '@/components/vault/VaultGate'
 import type { Project } from '@/lib/types'
 
-export function VaultClient({ projects }: { projects: Project[] }) {
+interface VaultClientProps {
+  projects: Project[]
+  isLoggedIn: boolean
+}
+
+export function VaultClient({ projects, isLoggedIn }: VaultClientProps) {
   const [activeFilter, setActiveFilter] = useState('all')
+
+  if (!isLoggedIn) {
+    return <VaultGate />
+  }
 
   const filtered = activeFilter === 'all'
     ? projects

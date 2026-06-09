@@ -4,22 +4,27 @@ import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
 export const metadata = {
   title: 'Bóveda IA — jairoromo.ai',
-  description: 'Proyectos reales desarrollados con Inteligencia Artificial. RAG, automatizaciones, LLMs, ML.',
+  description: 'Recursos, prompts, skills y proyectos de la comunidad jairoromo.ai. Claude, Gemini, automatizaciones y más.',
 }
 
 export default async function VaultPage() {
   let projects = []
+  let isLoggedIn = false
 
   try {
     const supabase = await createClient()
-    const { data } = await supabase
-      .from('projects')
-      .select('*')
-      .order('featured', { ascending: false })
-      .order('created_at', { ascending: false })
-    projects = data || []
+    const { data: { user } } = await supabase.auth.getUser()
+    isLoggedIn = !!user
+
+    if (isLoggedIn) {
+      const { data } = await supabase
+        .from('projects')
+        .select('*')
+        .order('featured', { ascending: false })
+        .order('created_at', { ascending: false })
+      projects = data || []
+    }
   } catch {
-    // Supabase not configured yet — show empty state
     projects = []
   }
 
@@ -29,16 +34,16 @@ export default async function VaultPage() {
         <div className="mb-14">
           <EyebrowPill className="mb-6">Bóveda IA</EyebrowPill>
           <h1 className="font-sora font-black text-4xl md:text-5xl mb-5 leading-tight">
-            Proyectos reales.<br />
-            <span className="text-cyan">Resultados medibles.</span>
+            Recursos, prompts<br />
+            <span className="text-cyan">y proyectos reales.</span>
           </h1>
           <p className="font-sora text-gray text-lg max-w-2xl">
-            Sistemas de IA implementados en producción para empresas reales.
-            No demos. No teoría.
+            Herramientas, skills y recursos de Claude, Gemini y más.
+            Generado por la comunidad jairoromo.ai.
           </p>
         </div>
 
-        <VaultClient projects={projects} />
+        <VaultClient projects={projects} isLoggedIn={isLoggedIn} />
       </div>
     </div>
   )

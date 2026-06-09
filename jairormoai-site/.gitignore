@@ -44,3 +44,5 @@ next-env.d.ts
 # Tool-generated directories
 .superpowers/
 .claude/
+preview.html
+preview.html

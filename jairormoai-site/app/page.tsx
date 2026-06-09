@@ -3,6 +3,7 @@ import { StatsBar } from '@/components/home/StatsBar'
 import { ExperienceTimeline } from '@/components/home/ExperienceTimeline'
 import { CollabCTA } from '@/components/home/CollabCTA'
 import { DonationSection } from '@/components/home/DonationSection'
+import { NewsletterSection } from '@/components/home/NewsletterSection'
 import { ContactForm } from '@/components/home/ContactForm'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
@@ -14,6 +15,7 @@ export default function HomePage() {
       <ExperienceTimeline />
       <CollabCTA />
       <DonationSection />
+      <NewsletterSection />
 
       {/* Contact */}
       <section id="contacto" className="py-24 px-6 md:px-12">
