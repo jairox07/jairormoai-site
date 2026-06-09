@@ -4,8 +4,15 @@ import { EyebrowPill } from '@/components/ui/EyebrowPill'
 import type { Course } from '@/lib/types'
 
 export const metadata = {
-  title: 'Cursos — jairoromo.ai',
-  description: 'Aprende IA aplicada al mundo real. Cursos prácticos de Jairo Romo.',
+  title: 'Cursos de IA en Español — Aprende Claude, GPT y Automatización',
+  description: 'Cursos prácticos de Inteligencia Artificial en español con Jairo Romo. Claude, GPT, Gemini, RAG, Agentes IA. Para profesionales en México y LATAM que quieren resultados reales.',
+  alternates: { canonical: 'https://jairoromo.ai/courses' },
+  openGraph: {
+    title: 'Cursos de IA en Español con Jairo Romo',
+    description: 'Aprende IA aplicada al mundo real. Sin teoría vacía. Cursos en español para profesionales y empresas.',
+    url: 'https://jairoromo.ai/courses',
+    type: 'website',
+  },
 }
 
 export default async function CoursesPage() {

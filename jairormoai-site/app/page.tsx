@@ -1,4 +1,11 @@
+import type { Metadata } from 'next'
 import { HeroSection } from '@/components/home/HeroSection'
+
+export const metadata: Metadata = {
+  title: 'Jairo Romo — Consultor de IA en Español | México y LATAM',
+  description: 'Jairo Romo: consultor y builder de IA en español. +3,000 horas con LLMs desde 2022. Comunidad de 5K+. Sesiones 1:1, cursos y recursos de Claude, GPT, Gemini, RAG y Agentes IA para profesionales en México y LATAM.',
+  alternates: { canonical: 'https://jairoromo.ai' },
+}
 import { StatsBar } from '@/components/home/StatsBar'
 import { ExperienceTimeline } from '@/components/home/ExperienceTimeline'
 import { CollabCTA } from '@/components/home/CollabCTA'

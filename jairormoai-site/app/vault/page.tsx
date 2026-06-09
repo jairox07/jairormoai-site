@@ -3,8 +3,15 @@ import { VaultClient } from './VaultClient'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
 export const metadata = {
-  title: 'Bóveda IA — jairoromo.ai',
-  description: 'Recursos, prompts, skills y proyectos de la comunidad jairoromo.ai. Claude, Gemini, automatizaciones y más.',
+  title: 'Bóveda IA — Prompts, Skills y Proyectos con IA en Español',
+  description: 'Biblioteca de recursos de IA en español. Prompts para Claude y Gemini, skills para abogados e inmobiliaria, proyectos descargables y automatizaciones reales. Comunidad jairoromo.ai.',
+  alternates: { canonical: 'https://jairoromo.ai/vault' },
+  openGraph: {
+    title: 'Bóveda IA — Prompts, Skills y Proyectos con IA en Español',
+    description: 'Prompts, templates, skills por industria y proyectos reales con IA. Gratis y de pago. Regístrate para acceder.',
+    url: 'https://jairoromo.ai/vault',
+    type: 'website',
+  },
 }
 
 export default async function VaultPage() {

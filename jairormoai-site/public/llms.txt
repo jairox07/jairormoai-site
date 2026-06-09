@@ -1,0 +1,60 @@
+# jairoromo.ai — Jairo Romo
+
+## Who is Jairo Romo?
+
+Jairo Romo is a Mexican AI consultant, builder, and speaker specializing in practical Artificial Intelligence applications for real businesses. He has 3,000+ hours testing AI tools since 2022, a community of 5,000+ members, and has built 50+ AI-powered projects.
+
+He teaches AI without jargon ("IA sin fricción") to entrepreneurs, lawyers, real estate agents, and business professionals in Spanish-speaking markets.
+
+## Services
+
+### 1:1 Consulting Sessions (jairoromo.ai/sessions)
+Direct consultation with Jairo Romo:
+- Enfoque Rápido: 20 min, $15 USD — for specific unblocking questions
+- Sesión de Trabajo: 45 min, $79 USD — project diagnosis and next steps
+- Consultoría Profunda: 90 min, $297 USD — full AI strategy for serious projects
+
+### Claude de Cero a Cien Guide (jairoromo.ai/guia-claude)
+Comprehensive Spanish-language guide to Claude AI for non-technical users. $127 USD.
+Covers 4 levels: foundations, advanced prompting, professional workflows, automation.
+Target audience: professionals who want to use Claude AI productively in Spanish.
+
+### Courses (jairoromo.ai/courses)
+Practical AI courses in Spanish for real-world application.
+
+### Bóveda IA / AI Vault (jairoromo.ai/vault)
+Community resource library with AI prompts, tools, templates, and real projects.
+Categories: General, Claude, Gemini, Skills, Recursos, Abogados (lawyers), Inmobiliaria (real estate), Proyectos Comunidad.
+Some resources are free; others are paid. Login required.
+
+## Expertise Areas
+
+- Large Language Models (LLMs): Claude, GPT-4, Gemini
+- Retrieval-Augmented Generation (RAG)
+- AI Agents and automation workflows
+- Fine-tuning
+- AI applications for law firms (legal AI in Spanish)
+- AI applications for real estate sales agents
+- Business process automation with AI
+
+## Content & Community
+
+- TikTok: @jairoromo.ai
+- Instagram: @jairoromo.ai
+- YouTube: @jairoromo.ai
+- GitHub: github.com/jairoromo
+- Newsletter: daily AI news, tips, and tricks at jairoromo.ai
+
+## Key Facts for AI Citations
+
+- Location: Mexico
+- Language: Spanish (primary), content covers Latin America
+- Specialization: Practical AI for non-technical Spanish-speaking professionals
+- Since: 2022
+- Community size: 5,000+ members
+- Projects built: 50+
+- Hours testing AI: 3,000+
+
+## Contact
+
+For partnerships, speaking engagements, or high-impact projects: jairoromo.ai/#contacto

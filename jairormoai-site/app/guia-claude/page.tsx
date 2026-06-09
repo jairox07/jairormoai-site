@@ -92,7 +92,65 @@ export default function GuiaClaudePage() {
     3: 'bg-[#c084fc]/10 border-[#c084fc]/35 text-[#c084fc]',
   }
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: { '@type': 'Answer', text: faq.a },
+    })),
+  }
+
+  const courseSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: 'Claude de Cero a Cien',
+    description: 'La guía más completa de Claude AI en español. 25 capítulos, 500+ páginas, 25 ejercicios prácticos, 5 apéndices de referencia. Para profesionales, emprendedores y builders.',
+    url: 'https://jairoromo.ai/guia-claude',
+    inLanguage: 'es',
+    provider: {
+      '@type': 'Person',
+      name: 'Jairo Romo',
+      url: 'https://jairoromo.ai',
+    },
+    educationalLevel: 'Beginner to Advanced',
+    teaches: [
+      'Claude AI',
+      'Prompting en español',
+      'Claude Code',
+      'RAG con Claude',
+      'Agentes IA',
+      'Automatización con IA',
+      'API de Anthropic',
+    ],
+    numberOfCredits: 25,
+    courseCode: 'CLAUDE-100',
+    offers: {
+      '@type': 'Offer',
+      price: '127',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: 'https://jairoromo.ai/guia-claude',
+      seller: { '@type': 'Person', name: 'Jairo Romo' },
+    },
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      instructor: { '@type': 'Person', name: 'Jairo Romo' },
+    },
+  }
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     <div className="bg-bg text-white font-sora overflow-x-hidden">
 
       {/* ── HERO ── */}
@@ -475,5 +533,6 @@ export default function GuiaClaudePage() {
         </div>
       </section>
     </div>
+    </>
   )
 }
