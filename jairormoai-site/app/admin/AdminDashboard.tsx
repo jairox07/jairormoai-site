@@ -46,8 +46,17 @@ interface Props {
   adminEmail: string
   stats: { totalUsers: number; newsletterCount: number; enrollmentCount: number; commentCount: number; pageViewCount: number; pageViewTodayCount: number }
   recentActivity: ActivityLog[]
-  recentUsers: Array<{ id: string; full_name: string | null; created_at: string }>
-  newsletterSubs: Array<{ email: string; created_at: string }>
+  recentUsers: Array<{
+    id: string
+    full_name: string | null
+    email: string | null
+    created_at: string
+    last_sign_in_at: string | null
+    is_admin?: boolean | null
+    purchases: string[]
+    interactions: Record<string, number>
+  }>
+  newsletterSubs: Array<{ email: string; created_at: string; isRegistered: boolean; purchases: string[] }>
   enrollments: Array<{ user_id: string; course_id: string; enrolled_at: string; stripe_session_id: string | null; courses: unknown }>
   topPages: Array<{ path: string; count: number }>
 }
@@ -250,23 +259,48 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
               <thead>
                 <tr className="border-b border-white/[0.07]">
                   <th className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">Usuario</th>
+                  <th className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">Email</th>
                   <th className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">Registro</th>
+                  <th className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">Último login</th>
+                  <th className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">Compras</th>
+                  <th className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">Interacciones</th>
                 </tr>
               </thead>
               <tbody>
-                {recentUsers.map((u, i) => (
-                  <tr key={u.id} className={i % 2 === 0 ? 'bg-white/[0.01]' : ''}>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-purp/10 border border-purp/20 flex items-center justify-center font-mono text-[11px] text-purp font-bold">
-                          {(u.full_name || 'U')[0].toUpperCase()}
+                {recentUsers.map((u, i) => {
+                  const interactionTotal = Object.values(u.interactions).reduce((a, b) => a + b, 0)
+                  const interactionDetail = Object.entries(u.interactions)
+                    .map(([k, v]) => `${EVENT_LABELS[k] || k}: ${v}`)
+                    .join(', ')
+                  return (
+                    <tr key={u.id} className={i % 2 === 0 ? 'bg-white/[0.01]' : ''}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-purp/10 border border-purp/20 flex items-center justify-center font-mono text-[11px] text-purp font-bold">
+                            {(u.full_name || u.email || 'U')[0].toUpperCase()}
+                          </div>
+                          <span className="font-sora text-sm">{u.full_name || '—'}</span>
+                          {u.is_admin && (
+                            <span className="font-mono text-[9px] bg-cyan/10 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">admin</span>
+                          )}
                         </div>
-                        <span className="font-sora text-sm">{u.full_name || '—'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-[11px] text-gray2">{formatDate(u.created_at)}</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">{u.email || '—'}</td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">{formatDate(u.created_at)}</td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">{u.last_sign_in_at ? formatDate(u.last_sign_in_at) : '—'}</td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">
+                        {u.purchases.length > 0 ? (
+                          <span className="font-mono text-[10px] bg-cyan/10 border border-cyan/30 text-cyan px-2 py-0.5 rounded-full" title={u.purchases.join(', ')}>
+                            {u.purchases.length} compra{u.purchases.length > 1 ? 's' : ''}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2" title={interactionDetail}>
+                        {interactionTotal > 0 ? interactionTotal : '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -279,9 +313,21 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
             </div>
             <div className="divide-y divide-white/[0.04]">
               {newsletterSubs.map((s) => (
-                <div key={s.email} className="flex items-center justify-between px-6 py-3">
-                  <span className="font-sora text-sm">{s.email}</span>
-                  <span className="font-mono text-[10px] text-gray2">{formatDate(s.created_at)}</span>
+                <div key={s.email} className="flex items-center justify-between px-6 py-3 gap-3">
+                  <span className="font-sora text-sm truncate">{s.email}</span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {s.isRegistered ? (
+                      <span className="font-mono text-[9px] bg-cyan/10 border border-cyan/30 text-cyan px-2 py-0.5 rounded-full uppercase tracking-wider">registrado</span>
+                    ) : (
+                      <span className="font-mono text-[9px] bg-white/[0.04] border border-white/[0.08] text-gray2 px-2 py-0.5 rounded-full uppercase tracking-wider">solo newsletter</span>
+                    )}
+                    {s.purchases.length > 0 && (
+                      <span className="font-mono text-[9px] bg-purp/10 border border-purp/30 text-purp px-2 py-0.5 rounded-full" title={s.purchases.join(', ')}>
+                        {s.purchases.length} compra{s.purchases.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                    <span className="font-mono text-[10px] text-gray2">{formatDate(s.created_at)}</span>
+                  </div>
                 </div>
               ))}
               {newsletterSubs.length === 0 && (

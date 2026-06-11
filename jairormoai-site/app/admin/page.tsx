@@ -34,10 +34,12 @@ export default async function AdminPage() {
     { count: pageViewCount },
     { count: pageViewTodayCount },
     { data: recentActivity },
-    { data: recentUsers },
+    { data: profiles },
     { data: newsletterSubs },
-    { data: enrollments },
+    { data: allEnrollments },
     { data: pageViews },
+    { data: interactionEvents },
+    { data: authUsersData },
   ] = await Promise.all([
     service.from('profiles').select('*', { count: 'exact', head: true }),
     service.from('newsletter_subscribers').select('*', { count: 'exact', head: true }),
@@ -46,10 +48,12 @@ export default async function AdminPage() {
     service.from('activity_log').select('*', { count: 'exact', head: true }).eq('event_type', 'page_view'),
     service.from('activity_log').select('*', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', todayStart.toISOString()),
     service.from('activity_log').select('*').order('created_at', { ascending: false }).limit(50),
-    service.from('profiles').select('id, full_name, created_at').order('created_at', { ascending: false }).limit(20),
-    service.from('newsletter_subscribers').select('email, created_at').order('created_at', { ascending: false }).limit(50),
-    service.from('enrollments').select('user_id, course_id, enrolled_at, stripe_session_id, courses(title)').order('enrolled_at', { ascending: false }).limit(20),
+    service.from('profiles').select('id, full_name, created_at, is_admin').order('created_at', { ascending: false }).limit(200),
+    service.from('newsletter_subscribers').select('email, created_at').order('created_at', { ascending: false }).limit(100),
+    service.from('enrollments').select('user_id, course_id, enrolled_at, stripe_session_id, courses(title)').order('enrolled_at', { ascending: false }).limit(500),
     service.from('activity_log').select('metadata, created_at').eq('event_type', 'page_view').order('created_at', { ascending: false }).limit(500),
+    service.from('activity_log').select('user_id, event_type, created_at').neq('event_type', 'page_view').order('created_at', { ascending: false }).limit(1000),
+    service.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ])
 
   // Aggregate top pages from recent page_view events
@@ -65,6 +69,60 @@ export default async function AdminPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 8)
 
+  // Map auth user id -> { email, last_sign_in_at }
+  const authById = new Map<string, { email: string; last_sign_in_at: string | null }>()
+  const authByEmail = new Map<string, { id: string; email: string }>()
+  for (const u of authUsersData?.users || []) {
+    if (!u.email) continue
+    authById.set(u.id, { email: u.email, last_sign_in_at: u.last_sign_in_at ?? null })
+    authByEmail.set(u.email.toLowerCase(), { id: u.id, email: u.email })
+  }
+
+  // Group enrollments by user
+  const purchasesByUser = new Map<string, string[]>()
+  for (const e of allEnrollments || []) {
+    const course = e.courses as { title?: string } | null
+    const title = course?.title || e.course_id
+    const list = purchasesByUser.get(e.user_id) || []
+    list.push(title)
+    purchasesByUser.set(e.user_id, list)
+  }
+
+  // Count interactions (non-page_view events) by user
+  const interactionsByUser = new Map<string, Record<string, number>>()
+  for (const a of interactionEvents || []) {
+    if (!a.user_id) continue
+    const counts = interactionsByUser.get(a.user_id) || {}
+    counts[a.event_type] = (counts[a.event_type] || 0) + 1
+    interactionsByUser.set(a.user_id, counts)
+  }
+
+  // Build enriched users list
+  const recentUsers = (profiles || []).map((p) => {
+    const auth = authById.get(p.id)
+    return {
+      id: p.id,
+      full_name: p.full_name,
+      email: auth?.email ?? null,
+      created_at: p.created_at,
+      last_sign_in_at: auth?.last_sign_in_at ?? null,
+      is_admin: p.is_admin,
+      purchases: purchasesByUser.get(p.id) || [],
+      interactions: interactionsByUser.get(p.id) || {},
+    }
+  })
+
+  // Enrich newsletter subs with registration + purchase info
+  const newsletterEnriched = (newsletterSubs || []).map((s) => {
+    const match = authByEmail.get(s.email.toLowerCase())
+    return {
+      email: s.email,
+      created_at: s.created_at,
+      isRegistered: !!match,
+      purchases: match ? (purchasesByUser.get(match.id) || []) : [],
+    }
+  })
+
   return (
     <AdminDashboard
       adminEmail={user.email!}
@@ -77,9 +135,9 @@ export default async function AdminPage() {
         pageViewTodayCount: pageViewTodayCount ?? 0,
       }}
       recentActivity={recentActivity || []}
-      recentUsers={recentUsers || []}
-      newsletterSubs={newsletterSubs || []}
-      enrollments={enrollments || []}
+      recentUsers={recentUsers}
+      newsletterSubs={newsletterEnriched}
+      enrollments={(allEnrollments || []).slice(0, 20)}
       topPages={topPages}
     />
   )
