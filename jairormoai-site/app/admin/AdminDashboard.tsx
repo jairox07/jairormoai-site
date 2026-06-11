@@ -1,9 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { ActivityLog } from '@/lib/types'
+
+type TabId = 'overview' | 'users' | 'newsletter' | 'purchases' | 'activity'
+const VALID_TABS: TabId[] = ['overview', 'users', 'newsletter', 'purchases', 'activity']
 
 const EVENT_ICONS: Record<string, string> = {
   signup: '👤',
@@ -49,9 +52,17 @@ interface Props {
 
 export function AdminDashboard({ stats, recentActivity: initialActivity, recentUsers, newsletterSubs, enrollments }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [activity, setActivity] = useState<ActivityLog[]>(initialActivity)
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'newsletter' | 'purchases' | 'activity'>('overview')
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [liveCount, setLiveCount] = useState(0)
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && (VALID_TABS as string[]).includes(tab)) {
+      setActiveTab(tab as TabId)
+    }
+  }, [searchParams])
 
   const handleLogout = async () => {
     const supabase = createClient()

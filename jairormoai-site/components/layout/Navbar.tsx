@@ -1,9 +1,11 @@
 'use client'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/', label: 'Inicio' },
@@ -13,8 +15,72 @@ const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/courses', label: 'Cursos' },
 ]
 
+const ADMIN_EMAIL = 'jairoromo@gmail.com'
+
+const ADMIN_SECTIONS = [
+  { tab: 'overview', label: 'Resumen', icon: '📊' },
+  { tab: 'users', label: 'Usuarios', icon: '👥' },
+  { tab: 'newsletter', label: 'Newsletter', icon: '📧' },
+  { tab: 'purchases', label: 'Compras', icon: '💳' },
+  { tab: 'activity', label: 'Actividad', icon: '⚡' },
+]
+
+function AdminMenu() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="font-mono text-[11px] font-bold uppercase tracking-[2px] px-3 py-2 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan hover:bg-cyan/20 transition-colors flex items-center gap-1.5"
+      >
+        Admin
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={cn('transition-transform', open && 'rotate-180')}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-48 rounded-xl border border-white/[0.08] bg-bg2/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden z-50">
+          {ADMIN_SECTIONS.map((s) => (
+            <Link
+              key={s.tab}
+              href={`/admin?tab=${s.tab}`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 font-sora text-sm text-gray hover:text-white hover:bg-white/[0.04] transition-colors"
+            >
+              <span className="text-base">{s.icon}</span>
+              {s.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Navbar() {
   const pathname = usePathname()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAdmin(data.user?.email === ADMIN_EMAIL)
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdmin(session?.user?.email === ADMIN_EMAIL)
+    })
+    return () => sub.subscription.unsubscribe()
+  }, [])
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -60,9 +126,12 @@ export function Navbar() {
         </div>
 
         {/* CTA */}
-        <Link href="/login">
-          <Button variant="primary" size="sm">Iniciar sesión</Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          {isAdmin && <AdminMenu />}
+          <Link href="/login">
+            <Button variant="primary" size="sm">Iniciar sesión</Button>
+          </Link>
+        </div>
       </nav>
     </header>
   )
