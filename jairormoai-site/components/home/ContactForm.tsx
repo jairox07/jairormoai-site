@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { createClient } from '@/lib/supabase/client'
 
 type FormState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -23,9 +22,16 @@ export function ContactForm() {
     e.preventDefault()
     if (!validate()) return
     setState('loading')
-    const supabase = createClient()
-    const { error } = await supabase.from('contact_submissions').insert([form])
-    setState(error ? 'error' : 'success')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      setState(res.ok ? 'success' : 'error')
+    } catch {
+      setState('error')
+    }
   }
 
   if (state === 'success') {
