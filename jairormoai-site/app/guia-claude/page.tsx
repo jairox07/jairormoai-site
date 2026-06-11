@@ -62,7 +62,7 @@ const FAQS = [
   { q: '¿Funciona para equipos o empresas?', a: 'Sí. Los capítulos 21-25 están dedicados a implementaciones empresariales: SSO, compliance, API en producción, CI/CD y planes Team/Enterprise. Para licencias de equipo, contáctanos.' },
 ]
 
-const STRIPE_BUY_LINK = 'https://buy.stripe.com/cNicN65lz8e9c9P6GB6wE0c'
+const STRIPE_BUY_LINK = 'https://buy.stripe.com/dRm4gA01fcupa1H6GB6wE0f'
 
 export default function GuiaClaudePage() {
   const [activeTab, setActiveTab] = useState(0)
@@ -128,7 +128,7 @@ export default function GuiaClaudePage() {
     courseCode: 'CLAUDE-100',
     offers: {
       '@type': 'Offer',
-      price: '127',
+      price: '25',
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       url: 'https://jairoromo.ai/guia-claude',
@@ -174,7 +174,7 @@ export default function GuiaClaudePage() {
           <div className="flex flex-col items-center gap-4 mb-4">
             <div className="flex items-center gap-4">
               <span className="font-sora font-black text-5xl bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] bg-clip-text text-transparent">
-                $127 USD
+                $25 USD
               </span>
             </div>
             <span className="font-mono text-[11px] text-cyan uppercase tracking-[2px]">Pago único · Sin suscripción</span>
@@ -463,9 +463,9 @@ export default function GuiaClaudePage() {
               <p className="text-gray mb-10">La guía más completa en español sobre Claude AI</p>
 
               <div className="font-sora font-black text-[72px] bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] bg-clip-text text-transparent leading-none mb-2">
-                $127 USD
+                $25 USD
               </div>
-              <div className="text-gray2 mb-2 text-[16px]">~$2,600 MXN · Precio de lanzamiento</div>
+              <div className="text-gray2 mb-2 text-[16px]">~$510 MXN · Precio de lanzamiento</div>
               <div className="font-mono text-[12px] text-cyan uppercase tracking-[2px] mb-10">Pago único · Sin suscripción</div>
 
               <div className="flex flex-col gap-2.5 text-left max-w-md mx-auto mb-11">

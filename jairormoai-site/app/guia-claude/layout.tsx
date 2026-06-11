@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Claude de Cero a Cien — La Guía Más Completa de Claude AI en Español',
-  description: 'Guía completa de Claude AI en español. 25 capítulos, 500+ páginas, ejercicios prácticos. Para profesionales, emprendedores y builders que quieren dominar Claude desde cero. $127 USD, un solo pago.',
+  description: 'Guía completa de Claude AI en español. 25 capítulos, 500+ páginas, ejercicios prácticos. Para profesionales, emprendedores y builders que quieren dominar Claude desde cero. $25 USD, un solo pago.',
   alternates: { canonical: 'https://jairoromo.ai/guia-claude' },
   keywords: [
     'guía Claude AI español',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Claude de Cero a Cien — Guía Completa de Claude AI en Español',
-    description: '25 capítulos, 500+ páginas, ejercicios prácticos. La guía más completa de Claude AI en español. $127 USD, acceso de por vida.',
+    description: '25 capítulos, 500+ páginas, ejercicios prácticos. La guía más completa de Claude AI en español. $25 USD, acceso de por vida.',
     url: 'https://jairoromo.ai/guia-claude',
     type: 'website',
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Claude de Cero a Cien — La guía más completa en español',
-    description: '25 capítulos, 500+ páginas. Domina Claude AI desde cero. $127 USD.',
+    description: '25 capítulos, 500+ páginas. Domina Claude AI desde cero. $25 USD.',
   },
 }
 

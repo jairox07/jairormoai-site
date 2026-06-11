@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { ActivityLog } from '@/lib/types'
 
-type TabId = 'overview' | 'users' | 'newsletter' | 'purchases' | 'activity'
-const VALID_TABS: TabId[] = ['overview', 'users', 'newsletter', 'purchases', 'activity']
+type TabId = 'overview' | 'users' | 'newsletter' | 'purchases' | 'activity' | 'profile'
+const VALID_TABS: TabId[] = ['overview', 'users', 'newsletter', 'purchases', 'activity', 'profile']
 
 const EVENT_ICONS: Record<string, string> = {
   signup: '👤',
@@ -43,14 +43,16 @@ function formatDate(iso: string) {
 }
 
 interface Props {
-  stats: { totalUsers: number; newsletterCount: number; enrollmentCount: number; commentCount: number }
+  adminEmail: string
+  stats: { totalUsers: number; newsletterCount: number; enrollmentCount: number; commentCount: number; pageViewCount: number; pageViewTodayCount: number }
   recentActivity: ActivityLog[]
   recentUsers: Array<{ id: string; full_name: string | null; created_at: string }>
   newsletterSubs: Array<{ email: string; created_at: string }>
   enrollments: Array<{ user_id: string; course_id: string; enrolled_at: string; stripe_session_id: string | null; courses: unknown }>
+  topPages: Array<{ path: string; count: number }>
 }
 
-export function AdminDashboard({ stats, recentActivity: initialActivity, recentUsers, newsletterSubs, enrollments }: Props) {
+export function AdminDashboard({ adminEmail, stats, recentActivity: initialActivity, recentUsers, newsletterSubs, enrollments, topPages }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activity, setActivity] = useState<ActivityLog[]>(initialActivity)
@@ -84,25 +86,20 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
 
   const STAT_CARDS = [
     { label: 'Usuarios registrados', value: stats.totalUsers, icon: '👥', color: 'cyan' },
+    { label: 'Visitas totales', value: stats.pageViewCount, icon: '👁', color: 'purp' },
+    { label: 'Visitas hoy', value: stats.pageViewTodayCount, icon: '📈', color: 'cyan' },
     { label: 'Newsletter', value: stats.newsletterCount, icon: '📧', color: 'purp' },
     { label: 'Inscripciones', value: stats.enrollmentCount, icon: '🎓', color: 'cyan' },
     { label: 'Comentarios', value: stats.commentCount, icon: '💬', color: 'purp' },
   ]
 
-  const TABS = [
-    { id: 'overview', label: 'Resumen' },
-    { id: 'users', label: `Usuarios (${recentUsers.length})` },
-    { id: 'newsletter', label: `Newsletter (${newsletterSubs.length})` },
-    { id: 'purchases', label: `Compras (${enrollments.length})` },
-    { id: 'activity', label: 'Actividad en vivo' },
-  ] as const
-
   const QUICK_ACCESS = [
     { id: 'overview', label: 'Resumen', icon: '📊', color: 'cyan' },
-    { id: 'users', label: 'Usuarios', icon: '👥', color: 'purp' },
-    { id: 'newsletter', label: 'Newsletter', icon: '📧', color: 'cyan' },
-    { id: 'purchases', label: 'Compras', icon: '💳', color: 'purp' },
+    { id: 'users', label: `Usuarios (${recentUsers.length})`, icon: '👥', color: 'purp' },
+    { id: 'newsletter', label: `Newsletter (${newsletterSubs.length})`, icon: '📧', color: 'cyan' },
+    { id: 'purchases', label: `Compras (${enrollments.length})`, icon: '💳', color: 'purp' },
     { id: 'activity', label: 'Actividad', icon: '⚡', color: 'cyan' },
+    { id: 'profile', label: 'Perfil', icon: '⚙️', color: 'purp' },
   ] as const
 
   return (
@@ -143,7 +140,7 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
         </div>
 
         {/* Quick Access Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-10">
           {QUICK_ACCESS.map((section) => (
             <button
               key={section.id}
@@ -163,30 +160,13 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
         </div>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
           {STAT_CARDS.map((card) => (
             <div key={card.label} className="rounded-2xl border border-white/[0.07] bg-bg2/60 p-6">
               <div className="text-2xl mb-3">{card.icon}</div>
               <div className="font-sora font-black text-3xl text-white mb-1">{card.value}</div>
               <div className="font-mono text-[11px] text-gray2 uppercase tracking-wider">{card.label}</div>
             </div>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`font-mono text-[11px] font-bold uppercase tracking-[2px] px-4 py-2 rounded-lg transition-all ${
-                activeTab === tab.id
-                  ? 'bg-cyan text-bg'
-                  : 'bg-white/[0.04] border border-white/[0.08] text-gray2 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
           ))}
         </div>
 
@@ -208,6 +188,9 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
                     <span className="font-mono text-[10px] text-gray2">{formatDate(u.created_at)}</span>
                   </div>
                 ))}
+                {recentUsers.length === 0 && (
+                  <p className="font-sora text-gray text-sm text-center py-6">Sin registros todavía.</p>
+                )}
               </div>
             </div>
 
@@ -227,6 +210,34 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
                 ))}
                 {activity.length === 0 && (
                   <p className="font-sora text-gray text-sm text-center py-6">Sin actividad registrada aún.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Top pages */}
+            <div className="rounded-2xl border border-purp/15 bg-bg2/40 p-6 lg:col-span-2">
+              <div className="flex items-center gap-2 mb-5">
+                <h3 className="font-sora font-bold">Páginas más visitadas</h3>
+                <span className="text-base">👁</span>
+              </div>
+              <div className="space-y-2">
+                {topPages.map((p) => {
+                  const max = topPages[0]?.count || 1
+                  return (
+                    <div key={p.path} className="flex items-center gap-3">
+                      <span className="font-mono text-[11px] text-gray w-40 truncate flex-shrink-0">{p.path}</span>
+                      <div className="flex-1 h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[linear-gradient(90deg,#4FC3F7,#8B5CF6)]"
+                          style={{ width: `${(p.count / max) * 100}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-[11px] text-gray2 w-10 text-right flex-shrink-0">{p.count}</span>
+                    </div>
+                  )
+                })}
+                {topPages.length === 0 && (
+                  <p className="font-sora text-gray text-sm text-center py-6">Sin visitas registradas todavía.</p>
                 )}
               </div>
             </div>
@@ -341,6 +352,42 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
                 </p>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 p-8 max-w-lg">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] flex items-center justify-center font-sora font-black text-xl text-bg flex-shrink-0">
+                {adminEmail[0].toUpperCase()}
+              </div>
+              <div>
+                <div className="font-sora font-bold text-lg">Administrador</div>
+                <div className="font-mono text-[12px] text-gray2">{adminEmail}</div>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center justify-between py-3 border-b border-white/[0.05]">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-gray2">Email</span>
+                <span className="font-sora text-sm">{adminEmail}</span>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b border-white/[0.05]">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-gray2">Rol</span>
+                <span className="font-mono text-[11px] bg-cyan/10 border border-cyan/30 text-cyan px-2 py-1 rounded-full uppercase tracking-wider">Admin</span>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b border-white/[0.05]">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-gray2">Sitio</span>
+                <span className="font-sora text-sm">jairoromo.ai</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="w-full font-mono text-[11px] font-bold uppercase tracking-[2px] px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+            >
+              Cerrar sesión
+            </button>
           </div>
         )}
       </div>
