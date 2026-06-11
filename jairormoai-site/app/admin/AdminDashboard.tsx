@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { ActivityLog } from '@/lib/types'
 
@@ -46,9 +48,16 @@ interface Props {
 }
 
 export function AdminDashboard({ stats, recentActivity: initialActivity, recentUsers, newsletterSubs, enrollments }: Props) {
+  const router = useRouter()
   const [activity, setActivity] = useState<ActivityLog[]>(initialActivity)
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'newsletter' | 'purchases' | 'activity'>('overview')
   const [liveCount, setLiveCount] = useState(0)
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -77,6 +86,14 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
     { id: 'activity', label: 'Actividad en vivo' },
   ] as const
 
+  const QUICK_ACCESS = [
+    { id: 'overview', label: 'Resumen', icon: '📊', color: 'cyan' },
+    { id: 'users', label: 'Usuarios', icon: '👥', color: 'purp' },
+    { id: 'newsletter', label: 'Newsletter', icon: '📧', color: 'cyan' },
+    { id: 'purchases', label: 'Compras', icon: '💳', color: 'purp' },
+    { id: 'activity', label: 'Actividad', icon: '⚡', color: 'cyan' },
+  ] as const
+
   return (
     <div className="min-h-screen py-24 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
@@ -88,15 +105,50 @@ export function AdminDashboard({ stats, recentActivity: initialActivity, recentU
             </div>
             <h1 className="font-sora font-black text-3xl">jairoromo.ai</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan animate-pulse shadow-[0_0_6px_#4FC3F7]" />
-            <span className="font-mono text-[11px] text-cyan">LIVE</span>
-            {liveCount > 0 && (
-              <span className="font-mono text-[10px] bg-cyan/10 border border-cyan/20 text-cyan px-2 py-0.5 rounded-full ml-1">
-                +{liveCount} nuevos
-              </span>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan animate-pulse shadow-[0_0_6px_#4FC3F7]" />
+              <span className="font-mono text-[11px] text-cyan">LIVE</span>
+              {liveCount > 0 && (
+                <span className="font-mono text-[10px] bg-cyan/10 border border-cyan/20 text-cyan px-2 py-0.5 rounded-full ml-1">
+                  +{liveCount} nuevos
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l border-white/[0.1]">
+              <Link href="/">
+                <button className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-gray2 hover:text-white transition-colors">
+                  Inicio
+                </button>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+              >
+                Salir
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* Quick Access Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
+          {QUICK_ACCESS.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setActiveTab(section.id)}
+              className={`rounded-xl p-4 transition-all border ${
+                activeTab === section.id
+                  ? section.color === 'cyan'
+                    ? 'bg-cyan/20 border-cyan/40 ring-2 ring-cyan/30'
+                    : 'bg-purp/20 border-purp/40 ring-2 ring-purp/30'
+                  : 'bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.08]'
+              }`}
+            >
+              <div className="text-2xl mb-2">{section.icon}</div>
+              <div className="font-sora text-[13px] font-bold">{section.label}</div>
+            </button>
+          ))}
         </div>
 
         {/* Stats grid */}
