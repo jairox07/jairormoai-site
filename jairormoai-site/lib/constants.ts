@@ -58,6 +58,8 @@ export const SESSION_PACKAGES = [
   },
 ] as const
 
+export const GUIA_CLAUDE_STRIPE_LINK = 'https://buy.stripe.com/dRm4gA01fcupa1H6GB6wE0f'
+
 export const HERO_TAGS = ['LLMs', 'RAG', 'Automatización', 'Agentes IA', 'Fine-tuning']
 
 export const VAULT_CATEGORIES = [

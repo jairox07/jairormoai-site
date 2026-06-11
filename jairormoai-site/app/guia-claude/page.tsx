@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { GUIA_CLAUDE_STRIPE_LINK } from '@/lib/constants'
 
 const TABS = [
   {
@@ -62,7 +63,7 @@ const FAQS = [
   { q: '¿Funciona para equipos o empresas?', a: 'Sí. Los capítulos 21-25 están dedicados a implementaciones empresariales: SSO, compliance, API en producción, CI/CD y planes Team/Enterprise. Para licencias de equipo, contáctanos.' },
 ]
 
-const STRIPE_BUY_LINK = 'https://buy.stripe.com/dRm4gA01fcupa1H6GB6wE0f'
+const STRIPE_BUY_LINK = GUIA_CLAUDE_STRIPE_LINK
 
 export default function GuiaClaudePage() {
   const [activeTab, setActiveTab] = useState(0)

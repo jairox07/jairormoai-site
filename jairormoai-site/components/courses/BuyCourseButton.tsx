@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
+import { GUIA_CLAUDE_STRIPE_LINK } from '@/lib/constants'
 
 interface BuyCourseButtonProps {
   courseSlug: string
@@ -18,6 +19,12 @@ export function BuyCourseButton({ courseSlug, stripePriceId, isLoggedIn }: BuyCo
       router.push(`/login?redirect=/courses/${courseSlug}`)
       return
     }
+
+    if (!stripePriceId) {
+      window.location.href = GUIA_CLAUDE_STRIPE_LINK
+      return
+    }
+
     setLoading(true)
     const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
