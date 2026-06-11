@@ -147,7 +147,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-bg text-white font-sora antialiased">
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-TSVBK4TN35"
+          src="https://www.googletagmanager.com/gtag/js?id=G-CFF1WP6C2D"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -155,7 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-TSVBK4TN35');
+            gtag('config', 'G-CFF1WP6C2D');
           `}
         </Script>
         <PageViewTracker />
