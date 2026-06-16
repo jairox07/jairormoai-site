@@ -12,7 +12,7 @@ values (
   19700,
   '',
   true,
-  '/images/courses/claude-code-pymes.jpg',
+  '/images/courses/claude-code-pymes.png',
   now() + interval '24 hours'
 );
 
