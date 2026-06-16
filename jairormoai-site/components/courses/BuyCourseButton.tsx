@@ -9,9 +9,16 @@ interface BuyCourseButtonProps {
   stripePriceId: string
   isLoggedIn: boolean
   freeUntil?: string
+  firstLessonId?: string
 }
 
-export function BuyCourseButton({ courseSlug, stripePriceId, isLoggedIn, freeUntil }: BuyCourseButtonProps) {
+export function BuyCourseButton({
+  courseSlug,
+  stripePriceId,
+  isLoggedIn,
+  freeUntil,
+  firstLessonId,
+}: BuyCourseButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -19,7 +26,7 @@ export function BuyCourseButton({ courseSlug, stripePriceId, isLoggedIn, freeUnt
 
   const onClick = async () => {
     if (!isLoggedIn) {
-      router.push(`/login?redirect=/courses/${courseSlug}`)
+      router.push(`/signup?redirect=/courses/${courseSlug}`)
       return
     }
 
@@ -31,8 +38,14 @@ export function BuyCourseButton({ courseSlug, stripePriceId, isLoggedIn, freeUnt
         body: JSON.stringify({ courseSlug }),
       })
       const data = await res.json()
-      if (data.ok) router.push(`/courses/${courseSlug}?enrolled=true`)
-      else setLoading(false)
+      if (data.ok) {
+        const dest = firstLessonId
+          ? `/courses/${courseSlug}/${firstLessonId}`
+          : `/courses/${courseSlug}?enrolled=true`
+        router.push(dest)
+      } else {
+        setLoading(false)
+      }
       return
     }
 
@@ -52,11 +65,13 @@ export function BuyCourseButton({ courseSlug, stripePriceId, isLoggedIn, freeUnt
     else setLoading(false)
   }
 
+  const label = isFreeNow
+    ? isLoggedIn ? 'Inscribirme gratis' : 'Regístrate — es gratis'
+    : isLoggedIn ? 'Comprar curso' : 'Acceder para comprar'
+
   return (
     <Button variant="primary" size="lg" loading={loading} onClick={onClick}>
-      {isLoggedIn
-        ? isFreeNow ? 'Obtener gratis' : 'Comprar curso'
-        : isFreeNow ? 'Acceder para obtener gratis' : 'Acceder para comprar'}
+      {label}
     </Button>
   )
 }

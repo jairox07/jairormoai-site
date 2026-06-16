@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
@@ -29,8 +29,6 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
   const typedCourse = course as Course
   const user = authData?.user ?? null
 
-  if (!user && typedCourse.free_until) redirect(`/login?redirect=/courses/${slug}`)
-
   const { data: lessons } = await supabase
     .from('lessons')
     .select('id, title, order_index, duration_seconds, mux_playback_id')
@@ -50,6 +48,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
 
   const completedCount = enrollment ? Object.keys(enrollment.progress || {}).length : 0
   const totalLessons = lessons?.length ?? 0
+  const firstLessonId = lessons?.[0]?.id
 
   function formatDuration(secs: number | null): string {
     if (!secs) return ''
@@ -111,6 +110,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
                   stripePriceId={typedCourse.stripe_price_id}
                   isLoggedIn={!!user}
                   freeUntil={typedCourse.free_until ?? undefined}
+                  firstLessonId={firstLessonId}
                 />
               </div>
             </>
