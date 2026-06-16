@@ -1,6 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -8,7 +9,10 @@ import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export default function SignupPage() {
+function SignupForm() {
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/'
+
   const [form, setForm] = useState({ full_name: '', email: '', password: '', confirm_password: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -32,15 +36,21 @@ export default function SignupPage() {
     setErrors({})
     setLoading(true)
     const supabase = createClient()
+    const emailRedirectTo = `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}`
     const { error: authError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: form.full_name } },
+      options: {
+        data: { full_name: form.full_name },
+        emailRedirectTo,
+      },
     })
     setLoading(false)
     if (authError) { setErrors({ global: authError.message }); return }
     setDone(true)
   }
+
+  const loginHref = redirectTo !== '/' ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login'
 
   if (done) {
     return (
@@ -66,7 +76,7 @@ export default function SignupPage() {
           <h1 className="font-sora font-black text-3xl mb-2">Crea tu cuenta.</h1>
           <p className="font-sora text-gray text-sm">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/login" className="text-cyan hover:underline">Inicia sesión</Link>
+            <Link href={loginHref} className="text-cyan hover:underline">Inicia sesión</Link>
           </p>
         </div>
 
@@ -104,5 +114,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   )
 }

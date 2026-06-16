@@ -1,14 +1,17 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/'
+
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,7 +24,7 @@ export default function LoginPage() {
     const { error: authError } = await supabase.auth.signInWithPassword(form)
     setLoading(false)
     if (authError) { setError(authError.message); return }
-    router.push('/')
+    router.push(redirectTo)
     router.refresh()
   }
 
@@ -29,9 +32,11 @@ export default function LoginPage() {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}` },
     })
   }
+
+  const signupHref = redirectTo !== '/' ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : '/signup'
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-24">
@@ -41,7 +46,7 @@ export default function LoginPage() {
           <h1 className="font-sora font-black text-3xl mb-2">Bienvenido de vuelta.</h1>
           <p className="font-sora text-gray text-sm">
             ¿No tienes cuenta?{' '}
-            <Link href="/signup" className="text-cyan hover:underline">Regístrate</Link>
+            <Link href={signupHref} className="text-cyan hover:underline">Regístrate</Link>
           </p>
         </div>
 
@@ -82,5 +87,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

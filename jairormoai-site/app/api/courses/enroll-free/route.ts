@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { sendEmail, welcomeCourseEmail } from '@/lib/brevo'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const { data: course } = await service
     .from('courses')
-    .select('id, free_until')
+    .select('id, title, free_until')
     .eq('slug', courseSlug)
     .single()
 
@@ -40,6 +41,13 @@ export async function POST(req: NextRequest) {
     stripe_session_id: 'free',
     progress: {},
   }, { onConflict: 'user_id,course_id' })
+
+  const name = user.user_metadata?.full_name ?? ''
+  sendEmail({
+    to: [{ email: user.email!, name }],
+    subject: `¡Ya tienes acceso a ${course.title}!`,
+    htmlContent: welcomeCourseEmail(name, course.title, courseSlug),
+  }).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }
