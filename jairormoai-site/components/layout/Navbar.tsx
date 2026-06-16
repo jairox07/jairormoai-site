@@ -68,6 +68,54 @@ function AdminMenu() {
   )
 }
 
+function VaultMenu() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="font-sora text-sm font-medium text-gray hover:text-white transition-colors flex items-center gap-1"
+      >
+        Bóveda IA
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={cn('transition-transform', open && 'rotate-180')}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 mt-2 w-56 rounded-xl border border-white/[0.08] bg-bg2/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden z-50">
+          <Link
+            href="/vault"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-3 font-sora text-sm text-gray hover:text-white hover:bg-white/[0.04] transition-colors border-b border-white/[0.05]"
+          >
+            Todos los recursos
+          </Link>
+          <Link
+            href="/vault/proyectos"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-3 font-sora text-sm text-gray hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            <span className="flex items-center justify-between">
+              Proyectos
+              <span className="font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full">nuevo</span>
+            </span>
+          </Link>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Navbar() {
   const pathname = usePathname()
   const [isAdmin, setIsAdmin] = useState(false)
@@ -105,25 +153,30 @@ export function Navbar() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'font-sora text-sm font-medium transition-colors duration-200',
-                link.highlight
-                  ? 'text-cyan font-bold'
-                  : pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
-              )}
-            >
-              {link.label}
-              {link.highlight && (
-                <span className="ml-1.5 font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                  nuevo
-                </span>
-              )}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) => {
+            if (link.label === 'Bóveda IA') {
+              return <VaultMenu key={link.href} />
+            }
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'font-sora text-sm font-medium transition-colors duration-200',
+                  link.highlight
+                    ? 'text-cyan font-bold'
+                    : pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
+                )}
+              >
+                {link.label}
+                {link.highlight && (
+                  <span className="ml-1.5 font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                    nuevo
+                  </span>
+                )}
+              </Link>
+            )
+          })}
         </div>
 
         {/* CTA */}

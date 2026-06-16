@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Contratos Laborales — jairoromo.ai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- docx.js for Word export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.2/docx.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#080B14; --bg2:#0C1120; --bg3:#0F1628;
+    --cyan:#4FC3F7; --purp:#8B5CF6; --mid:#6B8EF5;
+    --gray:#94A3B8; --gray2:#3D4F63; --white:#FFFFFF;
+    --grad:linear-gradient(135deg,#4FC3F7 0%,#6B8EF5 50%,#8B5CF6 100%);
+    --radius:14px;
+  }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--white); font-family:'Sora',sans-serif; font-size:15px; line-height:1.6; min-height:100vh; }
+  .topline { height:3px; background:var(--grad); width:100%; }
+  header { background:var(--bg2); border-bottom:1px solid rgba(255,255,255,0.06); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .badge-jr { width:36px; height:36px; background:var(--grad); border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:900; font-size:14px; color:white; box-shadow:0 0 18px rgba(79,195,247,0.35); flex-shrink:0; }
+  .brand-name { font-family:'Sora',sans-serif; font-weight:700; font-size:15px; }
+  .brand-name span { background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .header-pill { font-family:'Space Mono',monospace; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--cyan); background:rgba(79,195,247,0.07); border:1.5px solid rgba(79,195,247,0.22); padding:5px 14px; border-radius:40px; }
+  .hero { padding:48px 24px 36px; max-width:780px; margin:0 auto; }
+  .eyebrow { display:inline-flex; align-items:center; gap:7px; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--cyan); background:rgba(79,195,247,0.07); border:1px solid rgba(79,195,247,0.18); padding:7px 16px; border-radius:40px; margin-bottom:18px; }
+  .eyebrow-dot { width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 7px var(--cyan); }
+  .hero h1 { font-size:clamp(28px,5vw,42px); font-weight:900; line-height:1.15; margin-bottom:12px; }
+  .hero h1 .acc { background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero p { color:var(--gray); font-size:15px; max-width:580px; margin-bottom:20px; }
+  .disclaimer-banner { background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.25); border-radius:10px; padding:10px 16px; font-size:12px; color:var(--gray); display:flex; align-items:flex-start; gap:8px; }
+  .main { max-width:780px; margin:0 auto; padding:0 24px 60px; display:flex; flex-direction:column; gap:20px; }
+  .steps-nav { display:flex; gap:0; align-items:center; background:var(--bg2); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius); overflow:hidden; }
+  .step-btn { flex:1; padding:11px 6px; background:none; border:none; font-family:'Space Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gray2); cursor:pointer; transition:all 0.2s; border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .step-btn:last-child { border-right:none; }
+  .step-btn.active { background:rgba(79,195,247,0.08); color:var(--cyan); }
+  .step-btn .step-num { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; background:rgba(255,255,255,0.05); border:1.5px solid var(--gray2); transition:all 0.2s; }
+  .step-btn.active .step-num { background:var(--cyan); border-color:var(--cyan); color:var(--bg); }
+  .step-btn.done .step-num { background:rgba(79,195,247,0.2); border-color:var(--cyan); color:var(--cyan); }
+  .step-btn.done { color:var(--gray); }
+  .card { background:var(--bg3); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius); padding:24px; }
+  .card-title { font-size:15px; font-weight:700; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+  .card-title .icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.2); }
+  .tipo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tipo-opt { background:var(--bg2); border:1.5px solid rgba(255,255,255,0.07); border-radius:10px; padding:14px 16px; cursor:pointer; transition:all 0.2s; text-align:left; }
+  .tipo-opt:hover { border-color:rgba(79,195,247,0.3); }
+  .tipo-opt.selected { border-color:var(--cyan); background:rgba(79,195,247,0.06); }
+  .tipo-opt .tipo-label { font-weight:700; font-size:13px; margin-bottom:3px; }
+  .tipo-opt .tipo-desc { font-size:11px; color:var(--gray); line-height:1.4; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.span2 { grid-column:span 2; }
+  label { font-family:'Space Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); }
+  input,select,textarea { background:var(--bg2); border:1.5px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--white); font-family:'Sora',sans-serif; font-size:14px; padding:10px 14px; width:100%; transition:border-color 0.2s; outline:none; appearance:none; -webkit-appearance:none; }
+  input:focus,select:focus,textarea:focus { border-color:var(--cyan); }
+  select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+  textarea { resize:vertical; min-height:80px; line-height:1.5; }
+  input::placeholder,textarea::placeholder { color:var(--gray2); }
+  .sueldo-wrap { position:relative; }
+  .sueldo-prefix { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--gray); font-size:14px; pointer-events:none; }
+  .sueldo-wrap input { padding-left:28px; }
+  .info-box { background:rgba(79,195,247,0.04); border:1px solid rgba(79,195,247,0.15); border-radius:10px; padding:12px 16px; font-size:12px; color:var(--gray); line-height:1.5; }
+  .info-box strong { color:var(--cyan); }
+  .clausulas-grid { display:flex; flex-direction:column; gap:8px; }
+  .clausula-item { display:flex; align-items:flex-start; gap:12px; padding:11px 14px; background:var(--bg2); border:1.5px solid rgba(255,255,255,0.07); border-radius:9px; cursor:pointer; transition:all 0.2s; }
+  .clausula-item:hover { border-color:rgba(79,195,247,0.25); }
+  .clausula-item.on { border-color:rgba(79,195,247,0.4); background:rgba(79,195,247,0.05); }
+  .clausula-check { width:18px; height:18px; border-radius:5px; flex-shrink:0; border:2px solid var(--gray2); margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:11px; color:transparent; }
+  .clausula-item.on .clausula-check { background:var(--cyan); border-color:var(--cyan); color:var(--bg); }
+  .clausula-text { flex:1; }
+  .clausula-name { font-size:13px; font-weight:700; margin-bottom:2px; }
+  .clausula-desc { font-size:11px; color:var(--gray); line-height:1.4; }
+  .preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .preview-doc { background:#fff; color:#1a1a1a; border-radius:10px; padding:40px 48px; font-family:'Georgia',serif; font-size:13px; line-height:1.8; max-height:520px; overflow-y:auto; border:1px solid rgba(255,255,255,0.1); }
+  .preview-doc h2 { font-size:16px; font-weight:bold; text-align:center; margin-bottom:4px; letter-spacing:1px; text-transform:uppercase; }
+  .preview-doc .doc-subtitle { text-align:center; font-size:12px; color:#555; margin-bottom:28px; font-style:italic; }
+  .preview-doc .section-title { font-size:12px; font-weight:bold; text-transform:uppercase; letter-spacing:1px; border-bottom:1.5px solid #1a1a1a; padding-bottom:4px; margin:20px 0 10px; }
+  .preview-doc p { margin-bottom:10px; text-align:justify; }
+  .preview-doc .firma-block { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-top:40px; }
+  .preview-doc .firma-col { text-align:center; }
+  .preview-doc .firma-line { border-top:1.5px solid #333; margin-bottom:6px; margin-top:40px; }
+  .preview-doc .firma-label { font-size:11px; color:#555; }
+  .preview-doc .watermark { text-align:center; margin-top:28px; font-size:10px; color:#aaa; font-family:'Space Mono',monospace; letter-spacing:1.5px; }
+  /* DOWNLOAD BUTTONS AREA */
+  .download-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px; }
+  .dl-btn { display:flex; flex-direction:column; align-items:center; gap:5px; padding:14px 10px; border-radius:10px; border:none; cursor:pointer; transition:all 0.2s; font-family:'Sora',sans-serif; }
+  .dl-btn .dl-icon { font-size:22px; }
+  .dl-btn .dl-label { font-size:11px; font-weight:700; }
+  .dl-btn .dl-sub { font-size:10px; opacity:0.7; }
+  .dl-btn-txt { background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.12); color:var(--white); }
+  .dl-btn-txt:hover { background:rgba(255,255,255,0.1); }
+  .dl-btn-docx { background:rgba(37,99,235,0.15); border:1.5px solid rgba(37,99,235,0.35); color:#93c5fd; }
+  .dl-btn-docx:hover { background:rgba(37,99,235,0.25); }
+  .dl-btn-pdf { background:rgba(220,38,38,0.12); border:1.5px solid rgba(220,38,38,0.3); color:#fca5a5; }
+  .dl-btn-pdf:hover { background:rgba(220,38,38,0.2); }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; border-radius:9px; border:none; font-family:'Sora',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; text-decoration:none; }
+  .btn-primary { background:var(--grad); color:white; box-shadow:0 4px 20px rgba(79,195,247,0.2); }
+  .btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
+  .btn-secondary { background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.12); color:var(--white); }
+  .btn-secondary:hover { background:rgba(255,255,255,0.1); }
+  .sal-info { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+  .sal-pill { background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:20px; padding:4px 12px; font-family:'Space Mono',monospace; font-size:10px; color:var(--gray); }
+  .sal-pill strong { color:#a78bfa; }
+  /* SPINNER */
+  .spinner { display:none; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .dl-btn.loading .spinner { display:inline-block; }
+  .dl-btn.loading .dl-icon { display:none; }
+  footer { border-top:1px solid rgba(255,255,255,0.06); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; margin-top:40px; }
+  .footer-brand { font-family:'Space Mono',monospace; font-size:11px; color:var(--gray2); }
+  .footer-dot { width:6px; height:6px; border-radius:50%; background:var(--grad); box-shadow:0 0 10px rgba(79,195,247,0.8); display:inline-block; margin:0 8px; vertical-align:middle; }
+  .preview-doc::-webkit-scrollbar { width:6px; }
+  .preview-doc::-webkit-scrollbar-track { background:#eee; }
+  .preview-doc::-webkit-scrollbar-thumb { background:#bbb; border-radius:3px; }
+  @media (max-width:560px) {
+    .form-grid { grid-template-columns:1fr; }
+    .field.span2 { grid-column:span 1; }
+    .tipo-grid { grid-template-columns:1fr; }
+    .preview-doc { padding:24px 20px; }
+    .preview-doc .firma-block { grid-template-columns:1fr; }
+    .download-grid { grid-template-columns:1fr; }
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none} }
+  .fade-in { animation:fadeIn 0.3s ease forwards; }
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<header>
+  <div class="brand">
+    <div class="badge-jr">JR</div>
+    <span class="brand-name">jairoromo<span>.ai</span></span>
+  </div>
+  <div class="header-pill">HERRAMIENTA LEGAL · 01 / 06</div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow"><span class="eyebrow-dot"></span>Stack Legal MX · Laboral</div>
+  <h1>Generador de<br><span class="acc">Contratos Laborales</span></h1>
+  <p>Genera contratos de trabajo conformes a la <strong style="color:white">Ley Federal del Trabajo</strong> (LFT) y disposiciones de la STPS vigentes. Selecciona el tipo, llena los datos y descarga en Word, PDF o texto.</p>
+  <div class="disclaimer-banner">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6.5" stroke="#8B5CF6" stroke-width="1"/><path d="M7 4v3.5M7 9.5v.5" stroke="#8B5CF6" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <span>Esta herramienta genera una base contractual informativa. Para contratos con plena eficacia legal se recomienda revisión por abogado laboral. Marco normativo: LFT reformada 2021-2024, STPS, IMSS.</span>
+  </div>
+</section>
+
+<main class="main">
+  <nav class="steps-nav" id="stepsNav">
+    <button class="step-btn active" id="s1btn" onclick="goStep(1)"><span class="step-num" id="s1num">1</span><span>Tipo</span></button>
+    <button class="step-btn" id="s2btn" onclick="goStep(2)"><span class="step-num" id="s2num">2</span><span>Partes</span></button>
+    <button class="step-btn" id="s3btn" onclick="goStep(3)"><span class="step-num" id="s3num">3</span><span>Condiciones</span></button>
+    <button class="step-btn" id="s4btn" onclick="goStep(4)"><span class="step-num" id="s4num">4</span><span>Cláusulas</span></button>
+    <button class="step-btn" id="s5btn" onclick="goStep(5)"><span class="step-num" id="s5num">5</span><span>Contrato</span></button>
+  </nav>
+
+  <!-- PASO 1 -->
+  <div id="step1" class="card fade-in">
+    <div class="card-title"><span class="icon">📋</span> Tipo de contrato</div>
+    <div class="tipo-grid">
+      <div class="tipo-opt selected" id="t-tiempo-indeterminado" onclick="selectTipo('tiempo-indeterminado')">
+        <div class="tipo-label">Tiempo indeterminado</div>
+        <div class="tipo-desc">Relación laboral sin fecha de término. Modalidad estándar (Art. 35 LFT)</div>
+      </div>
+      <div class="tipo-opt" id="t-tiempo-determinado" onclick="selectTipo('tiempo-determinado')">
+        <div class="tipo-label">Tiempo determinado</div>
+        <div class="tipo-desc">Con fecha de vencimiento justificada. Requiere causa específica (Art. 37 LFT)</div>
+      </div>
+      <div class="tipo-opt" id="t-obra-determinada" onclick="selectTipo('obra-determinada')">
+        <div class="tipo-label">Por obra determinada</div>
+        <div class="tipo-desc">Para proyecto o trabajo específico. Termina al concluir la obra (Art. 36 LFT)</div>
+      </div>
+      <div class="tipo-opt" id="t-prestacion-servicios" onclick="selectTipo('prestacion-servicios')">
+        <div class="tipo-label">Prestación de servicios</div>
+        <div class="tipo-desc">Relación civil para freelancers / honorarios. Sin relación laboral subordinada</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;" id="tipo-info-box"></div>
+    <div class="btn-row" style="margin-top:20px;">
+      <button class="btn btn-primary" onclick="goStep(2)">Siguiente → Datos de las partes</button>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div id="step2" class="card" style="display:none;">
+    <div class="card-title"><span class="icon">👥</span> Datos del empleador</div>
+    <div class="form-grid">
+      <div class="field"><label>Razón social / Nombre</label><input type="text" id="emp-nombre" placeholder="Empresa S.A. de C.V."></div>
+      <div class="field"><label>RFC</label><input type="text" id="emp-rfc" placeholder="EMP210101ABC" maxlength="13" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="field span2"><label>Domicilio fiscal</label><input type="text" id="emp-domicilio" placeholder="Av. Reforma 1234, Col. Juárez, CDMX, C.P. 06600"></div>
+      <div class="field"><label>Representante legal</label><input type="text" id="emp-rep" placeholder="Juan Pérez González"></div>
+      <div class="field"><label>Actividad / Giro</label><input type="text" id="emp-giro" placeholder="Desarrollo de software"></div>
+    </div>
+    <div class="card-title" style="margin-top:24px;"><span class="icon">🧑‍💼</span> Datos del trabajador</div>
+    <div class="form-grid">
+      <div class="field"><label>Nombre completo</label><input type="text" id="trab-nombre" placeholder="María García López"></div>
+      <div class="field"><label>CURP</label><input type="text" id="trab-curp" placeholder="GALM900101HDFRZR09" maxlength="18" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="field"><label>NSS (IMSS)</label><input type="text" id="trab-nss" placeholder="12345678901" maxlength="11"></div>
+      <div class="field"><label>RFC</label><input type="text" id="trab-rfc" placeholder="GALM900101ABC" maxlength="13" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="field span2"><label>Domicilio particular</label><input type="text" id="trab-domicilio" placeholder="Calle Álamo 567, Col. Doctores, CDMX"></div>
+    </div>
+    <div class="btn-row" style="margin-top:20px;">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Atrás</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Siguiente → Condiciones de trabajo</button>
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div id="step3" class="card" style="display:none;">
+    <div class="card-title"><span class="icon">⚙️</span> Condiciones de trabajo</div>
+    <div class="form-grid">
+      <div class="field"><label>Puesto / Cargo</label><input type="text" id="puesto" placeholder="Desarrollador Web Senior"></div>
+      <div class="field"><label>Fecha de inicio</label><input type="date" id="fecha-inicio"></div>
+      <div class="field" id="fecha-fin-wrap" style="display:none;"><label>Fecha de término</label><input type="date" id="fecha-fin"></div>
+      <div class="field"><label>Lugar de trabajo</label><input type="text" id="lugar-trabajo" placeholder="CDMX / Remoto / Híbrido"></div>
+      <div class="field"><label>Jornada</label>
+        <select id="jornada">
+          <option value="diurna">Diurna (máx. 8 hrs / Art. 61 LFT)</option>
+          <option value="nocturna">Nocturna (máx. 7 hrs / Art. 61 LFT)</option>
+          <option value="mixta">Mixta (máx. 7.5 hrs / Art. 61 LFT)</option>
+          <option value="especial">Especial / Reducida</option>
+        </select>
+      </div>
+      <div class="field"><label>Horario</label><input type="text" id="horario" placeholder="Lunes a viernes 9:00–18:00 hrs"></div>
+      <div class="field span2" style="margin-top:8px;"><label>Salario diario integrado (MXN)</label>
+        <div class="sal-info">
+          <span class="sal-pill">SM 2024 general: <strong>$248.93</strong> /día</span>
+          <span class="sal-pill">SM zona libre frontera norte: <strong>$374.89</strong> /día</span>
+          <span class="sal-pill">No puede ser menor al SM (Art. 90 LFT)</span>
+        </div>
+      </div>
+      <div class="field"><label>Salario diario (MXN)</label>
+        <div class="sueldo-wrap"><span class="sueldo-prefix">$</span><input type="number" id="salario-diario" placeholder="800.00" min="248.93" step="0.01" oninput="calcMensual()"></div>
+      </div>
+      <div class="field"><label>Salario mensual estimado</label>
+        <div class="sueldo-wrap"><span class="sueldo-prefix">$</span><input type="number" id="salario-mensual" placeholder="24,333.33" readonly style="color:var(--gray);cursor:not-allowed;"></div>
+      </div>
+      <div class="field"><label>Forma de pago</label>
+        <select id="forma-pago"><option value="semanal">Semanal</option><option value="quincenal" selected>Quincenal</option><option value="mensual">Mensual</option></select>
+      </div>
+      <div class="field"><label>Período de prueba</label>
+        <select id="periodo-prueba">
+          <option value="ninguno">Sin período de prueba</option>
+          <option value="30">30 días (Art. 39-A LFT)</option>
+          <option value="90">90 días — puesto de dirección (Art. 39-A LFT)</option>
+          <option value="180">180 días — alta especialización (Art. 39-A LFT)</option>
+        </select>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:16px;">
+      <strong>Prestaciones mínimas de ley (Art. 76-132 LFT):</strong><br>
+      Vacaciones: 12 días año 1 (+ 2 días por año), Prima vacacional 25%, Aguinaldo 15 días, Prima dominical 25% (si aplica), IMSS, INFONAVIT, PTU (10% utilidades).
+    </div>
+    <div class="btn-row" style="margin-top:20px;">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Atrás</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Siguiente → Cláusulas opcionales</button>
+    </div>
+  </div>
+
+  <!-- PASO 4 -->
+  <div id="step4" class="card" style="display:none;">
+    <div class="card-title"><span class="icon">📌</span> Cláusulas opcionales</div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:16px;">Selecciona las cláusulas adicionales que apliquen a la relación laboral:</p>
+    <div class="clausulas-grid">
+      <div class="clausula-item on" id="cl-confidencialidad" onclick="toggleCl('confidencialidad')">
+        <div class="clausula-check">✓</div>
+        <div class="clausula-text"><div class="clausula-name">Confidencialidad y secrecía</div><div class="clausula-desc">El trabajador se obliga a guardar secreto profesional sobre información privilegiada de la empresa.</div></div>
+      </div>
+      <div class="clausula-item on" id="cl-pi" onclick="toggleCl('pi')">
+        <div class="clausula-check">✓</div>
+        <div class="clausula-text"><div class="clausula-name">Propiedad intelectual</div><div class="clausula-desc">Las creaciones e invenciones del trabajador relacionadas con su labor corresponden al patrón (Art. 163 LFT).</div></div>
+      </div>
+      <div class="clausula-item" id="cl-no-competencia" onclick="toggleCl('no-competencia')">
+        <div class="clausula-check"></div>
+        <div class="clausula-text"><div class="clausula-name">No competencia post-contractual</div><div class="clausula-desc">Restricción de 12 meses para trabajar con competidores directos. Debe ser razonable en alcance.</div></div>
+      </div>
+      <div class="clausula-item" id="cl-capacitacion" onclick="toggleCl('capacitacion')">
+        <div class="clausula-check"></div>
+        <div class="clausula-text"><div class="clausula-name">Capacitación y adiestramiento</div><div class="clausula-desc">El patrón se obliga a capacitar al trabajador conforme al Art. 153-A LFT. Plan DC-1 ante STPS.</div></div>
+      </div>
+      <div class="clausula-item" id="cl-home-office" onclick="toggleCl('home-office')">
+        <div class="clausula-check"></div>
+        <div class="clausula-text"><div class="clausula-name">Teletrabajo / Home office</div><div class="clausula-desc">Conforme al Capítulo XII Bis LFT (reforma 2021). Incluye equipamiento, ergonomía y control de jornada.</div></div>
+      </div>
+      <div class="clausula-item" id="cl-rescision" onclick="toggleCl('rescision')">
+        <div class="clausula-check"></div>
+        <div class="clausula-text"><div class="clausula-name">Causas de rescisión específicas</div><div class="clausula-desc">Causas adicionales convenidas para rescisión sin responsabilidad (en marco de Art. 47 LFT).</div></div>
+      </div>
+    </div>
+    <div class="field span2" style="margin-top:18px;">
+      <label>Cláusulas adicionales personalizadas (opcional)</label>
+      <textarea id="clausulas-extra" placeholder="Describe aquí cualquier cláusula específica que necesites incluir..."></textarea>
+    </div>
+    <div class="btn-row" style="margin-top:20px;">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Atrás</button>
+      <button class="btn btn-primary" onclick="generarContrato()">✦ Generar contrato</button>
+    </div>
+  </div>
+
+  <!-- PASO 5: RESULTADO -->
+  <div id="step5" class="card" style="display:none;">
+    <div class="preview-header">
+      <div class="card-title" style="margin-bottom:0;"><span class="icon">📄</span> Contrato generado</div>
+    </div>
+    <div class="preview-doc" id="preview-doc"></div>
+
+    <!-- DESCARGAS -->
+    <div style="margin-top:20px;">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;">Descargar contrato</div>
+      <div class="download-grid">
+        <button class="dl-btn dl-btn-txt" onclick="descargarTxt(this)">
+          <span class="dl-icon">📝</span>
+          <div class="spinner"></div>
+          <span class="dl-label">Texto plano</span>
+          <span class="dl-sub">.txt · Compatible todo</span>
+        </button>
+        <button class="dl-btn dl-btn-docx" onclick="descargarDocx(this)">
+          <span class="dl-icon">📘</span>
+          <div class="spinner"></div>
+          <span class="dl-label">Word</span>
+          <span class="dl-sub">.docx · Editable</span>
+        </button>
+        <button class="dl-btn dl-btn-pdf" onclick="descargarPdf(this)">
+          <span class="dl-icon">📕</span>
+          <div class="spinner"></div>
+          <span class="dl-label">PDF</span>
+          <span class="dl-sub">.pdf · Listo para firmar</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:16px;">
+      <strong>Próximos pasos recomendados:</strong><br>
+      1. Revisa y personaliza las cláusulas con tu abogado laboral.<br>
+      2. Firma en 2 tantos originales (Art. 24 LFT).<br>
+      3. Alta del trabajador en IMSS dentro de los primeros 5 días hábiles.<br>
+      4. Conserva copia en expediente por al menos 1 año post-terminación.
+    </div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-secondary" onclick="goStep(4)">← Editar</button>
+      <button class="btn btn-secondary" onclick="resetForm()">✦ Nuevo contrato</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span class="footer-brand">@jairoromo.ai</span>
+  <span><span class="footer-dot"></span></span>
+  <span class="footer-brand">jairoromo.ai · Stack Legal MX</span>
+</footer>
+
+<script>
+// ── ESTADO ──
+let currentStep = 1;
+let tipoSeleccionado = 'tiempo-indeterminado';
+const clausulasActivas = new Set(['confidencialidad','pi']);
+window._clausulas = [];
+window._datos = {};
+
+// ── TIPO ──
+const tipoInfo = {
+  'tiempo-indeterminado': '✅ <strong>Modalidad recomendada.</strong> La LFT presume que toda relación laboral es por tiempo indeterminado (Art. 35). No requiere justificación especial.',
+  'tiempo-determinado':   '⚠️ <strong>Requiere causa justificada.</strong> Solo procede cuando lo exige la naturaleza del trabajo o es para sustituir temporalmente a otro trabajador (Art. 37 LFT).',
+  'obra-determinada':     '🔨 <strong>Vinculado a proyecto específico.</strong> Termina automáticamente al concluir la obra. Debe describirse claramente el objeto (Art. 36 LFT).',
+  'prestacion-servicios': '📋 <strong>Relación civil (no laboral).</strong> No genera derechos laborales. Riesgo de recaracterización si hay subordinación real.'
+};
+function selectTipo(tipo) {
+  document.querySelectorAll('.tipo-opt').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('t-'+tipo).classList.add('selected');
+  tipoSeleccionado = tipo;
+  document.getElementById('tipo-info-box').innerHTML='<div class="info-box">'+tipoInfo[tipo]+'</div>';
+  document.getElementById('fecha-fin-wrap').style.display = tipo==='tiempo-determinado'?'flex':'none';
+}
+selectTipo('tiempo-indeterminado');
+
+function toggleCl(id) {
+  const el = document.getElementById('cl-'+id);
+  if (clausulasActivas.has(id)) { clausulasActivas.delete(id); el.classList.remove('on'); el.querySelector('.clausula-check').textContent=''; }
+  else { clausulasActivas.add(id); el.classList.add('on'); el.querySelector('.clausula-check').textContent='✓'; }
+}
+function calcMensual() {
+  const d=parseFloat(document.getElementById('salario-diario').value)||0;
+  document.getElementById('salario-mensual').value=d>0?(d*365/12).toFixed(2):'';
+}
+
+// ── NAV ──
+function goStep(n) {
+  document.getElementById('step'+currentStep).style.display='none';
+  if (n>currentStep) {
+    document.getElementById('s'+currentStep+'btn').classList.remove('active');
+    document.getElementById('s'+currentStep+'btn').classList.add('done');
+    document.getElementById('s'+currentStep+'num').textContent='✓';
+  } else {
+    for(let i=n;i<=currentStep;i++){
+      document.getElementById('s'+i+'btn').classList.remove('done','active');
+      document.getElementById('s'+i+'num').textContent=i;
+    }
+  }
+  currentStep=n;
+  const el=document.getElementById('step'+n);
+  el.style.display='block'; el.classList.add('fade-in');
+  document.getElementById('s'+n+'btn').classList.add('active');
+  document.getElementById('s'+n+'btn').classList.remove('done');
+  document.getElementById('s'+n+'num').textContent=n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const g=id=>document.getElementById(id)?.value?.trim()||'';
+const today=()=>new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+
+const tipoNombre={
+  'tiempo-indeterminado':'CONTRATO INDIVIDUAL DE TRABAJO POR TIEMPO INDETERMINADO',
+  'tiempo-determinado':'CONTRATO INDIVIDUAL DE TRABAJO POR TIEMPO DETERMINADO',
+  'obra-determinada':'CONTRATO INDIVIDUAL DE TRABAJO POR OBRA DETERMINADA',
+  'prestacion-servicios':'CONTRATO DE PRESTACIÓN DE SERVICIOS PROFESIONALES'
+};
+const jornadaNombre={diurna:'diurna (máximo 8 horas diarias, 48 horas semanales)',nocturna:'nocturna (máximo 7 horas diarias, 42 horas semanales)',mixta:'mixta (máximo 7 horas y 30 minutos diarias, 45 horas semanales)',especial:'especial'};
+const formaPagoNombre={semanal:'semanal (cada viernes)',quincenal:'quincenal (días 15 y último de cada mes)',mensual:'mensual (último día hábil de cada mes)'};
+const pruebaNombre={ninguno:null,'30':'30 (treinta) días naturales','90':'90 (noventa) días naturales','180':'180 (ciento ochenta) días naturales'};
+
+function generarContrato() {
+  const datos = {
+    empNombre:g('emp-nombre')||'[NOMBRE/RAZÓN SOCIAL DEL EMPLEADOR]',
+    empRfc:g('emp-rfc')||'[RFC DEL EMPLEADOR]',
+    empDom:g('emp-domicilio')||'[DOMICILIO DEL EMPLEADOR]',
+    empRep:g('emp-rep')||'[REPRESENTANTE LEGAL]',
+    empGiro:g('emp-giro')||'[ACTIVIDAD PRINCIPAL]',
+    trabNombre:g('trab-nombre')||'[NOMBRE COMPLETO DEL TRABAJADOR]',
+    trabCurp:g('trab-curp')||'[CURP DEL TRABAJADOR]',
+    trabNss:g('trab-nss')||'[NSS DEL TRABAJADOR]',
+    trabRfc:g('trab-rfc')||'[RFC DEL TRABAJADOR]',
+    trabDom:g('trab-domicilio')||'[DOMICILIO DEL TRABAJADOR]',
+    puesto:g('puesto')||'[PUESTO / CARGO]',
+    fechaInicio:g('fecha-inicio')||'[FECHA DE INICIO]',
+    fechaFin:g('fecha-fin')||'[FECHA DE TÉRMINO]',
+    lugar:g('lugar-trabajo')||'[LUGAR DE TRABAJO]',
+    jornada:jornadaNombre[g('jornada')]||'diurna',
+    horario:g('horario')||'[HORARIO]',
+    salarioDiario:g('salario-diario')||'[SALARIO DIARIO]',
+    salarioMens:g('salario-mensual')||'[SALARIO MENSUAL]',
+    formaPago:formaPagoNombre[g('forma-pago')]||'quincenal',
+    prueba:pruebaNombre[g('periodo-prueba')],
+    extra:g('clausulas-extra')
+  };
+  window._datos = datos;
+  const clausulas = tipoSeleccionado==='prestacion-servicios' ? genPS(datos) : genLaboral(datos);
+  window._clausulas = clausulas;
+  window._titulo = tipoNombre[tipoSeleccionado];
+  document.getElementById('preview-doc').innerHTML = formatHTML(datos, clausulas, window._titulo);
+  goStep(5);
+}
+
+function genLaboral(d) {
+  const list=[];
+  list.push({t:'Objeto del contrato',b:`EL PATRÓN contrata los servicios personales y subordinados de EL TRABAJADOR para desempeñar el puesto de ${d.puesto}, realizando las actividades inherentes al cargo y las que le sean encomendadas por sus superiores, siempre dentro del marco de la Ley Federal del Trabajo.`});
+  if(tipoSeleccionado==='tiempo-determinado'){list.push({t:'Vigencia',b:`El presente contrato inicia el ${d.fechaInicio} y concluye el ${d.fechaFin}. La causa que justifica la temporalidad es: la naturaleza del servicio a prestar, conforme al artículo 37, fracción I de la Ley Federal del Trabajo.`});}
+  else if(tipoSeleccionado==='obra-determinada'){list.push({t:'Vigencia y objeto de la obra',b:`El presente contrato inicia el ${d.fechaInicio} y concluye al término de la obra o proyecto encomendado, conforme al artículo 36 de la Ley Federal del Trabajo.`});}
+  else{list.push({t:'Vigencia',b:`El presente contrato es por tiempo indeterminado y comienza a surtir efectos a partir del ${d.fechaInicio}, de conformidad con el artículo 35 de la Ley Federal del Trabajo.`});}
+  if(d.prueba){list.push({t:'Período de prueba',b:`Las partes convienen que los primeros ${d.prueba} de la relación laboral constituirán el período de prueba a que se refiere el artículo 39-A de la Ley Federal del Trabajo.`});}
+  list.push({t:'Lugar y jornada de trabajo',b:`EL TRABAJADOR prestará sus servicios en ${d.lugar}. La jornada de trabajo será ${d.jornada}, con el horario de ${d.horario}, de conformidad con el artículo 61 de la Ley Federal del Trabajo. Las horas extraordinarias serán pagadas con un 100% adicional (Art. 67 LFT).`});
+  list.push({t:'Salario',b:`EL PATRÓN se obliga a pagar a EL TRABAJADOR un salario diario de $${d.salarioDiario} (${num2words(parseFloat(d.salarioDiario)||0)} pesos 00/100 M.N.), equivalente a $${d.salarioMens} mensuales aproximadamente, pagado de forma ${d.formaPago}, conforme a los artículos 82 y 86 de la Ley Federal del Trabajo.`});
+  list.push({t:'Prestaciones de ley',b:`EL TRABAJADOR tendrá derecho a las prestaciones mínimas establecidas en la LFT:\na) Vacaciones: mínimo 12 días hábiles al primer año, aumentando 2 días por cada año (Art. 76 LFT).\nb) Prima vacacional: 25% sobre los días de vacaciones (Art. 80 LFT).\nc) Aguinaldo: 15 días de salario, antes del 20 de diciembre (Art. 87 LFT).\nd) Participación en las Utilidades (PTU): conforme al artículo 120 LFT.\ne) Seguridad Social: inscripción ante el IMSS e INFONAVIT desde el primer día de la relación laboral.`});
+  if(clausulasActivas.has('confidencialidad')){list.push({t:'Confidencialidad y secrecía',b:`EL TRABAJADOR se obliga a guardar la más estricta confidencialidad sobre toda la información, datos, procesos, estrategias, clientes, proveedores y en general cualquier información privilegiada de EL PATRÓN a la que tenga acceso con motivo de su trabajo. Esta obligación subsistirá durante toda la relación laboral y por un período de 2 (dos) años posteriores a su terminación.`});}
+  if(clausulasActivas.has('pi')){list.push({t:'Propiedad intelectual',b:`Todas las invenciones, creaciones, obras, desarrollos, software, diseños, metodologías o mejoras tecnológicas que EL TRABAJADOR genere con motivo de la prestación de sus servicios pertenecerán exclusivamente a EL PATRÓN, conforme al artículo 163 de la Ley Federal del Trabajo.`});}
+  if(clausulasActivas.has('no-competencia')){list.push({t:'No competencia',b:`EL TRABAJADOR se compromete a no prestar servicios a empresas competidoras directas de EL PATRÓN durante un período de 12 (doce) meses contados a partir de la terminación de la relación laboral. EL PATRÓN otorgará una compensación equivalente a 3 meses de salario por el cumplimiento de esta cláusula.`});}
+  if(clausulasActivas.has('capacitacion')){list.push({t:'Capacitación y adiestramiento',b:`EL PATRÓN se obliga a proporcionar a EL TRABAJADOR capacitación y adiestramiento para el trabajo que desempeña, conforme al artículo 153-A de la Ley Federal del Trabajo. Las partes presentarán el programa ante la STPS (DC-1) dentro de los primeros 60 días hábiles.`});}
+  if(clausulasActivas.has('home-office')){list.push({t:'Teletrabajo (Home Office)',b:`Las partes convienen que EL TRABAJADOR prestará sus servicios bajo la modalidad de teletrabajo, conforme al Capítulo XII Bis de la Ley Federal del Trabajo (adicionado DOF 11-01-2021). EL PATRÓN proporcionará los equipos, herramientas e insumos necesarios y pagará la parte proporcional de electricidad e internet.`});}
+  if(clausulasActivas.has('rescision')){list.push({t:'Causas de rescisión',b:`Además de las causas previstas en el artículo 47 de la LFT, serán causas de rescisión sin responsabilidad para EL PATRÓN: el incumplimiento reiterado de lineamientos internos; la inasistencia injustificada a más de 3 días en un período de 30 días; o actos que afecten la imagen, reputación o patrimonio de EL PATRÓN.`});}
+  if(d.extra){list.push({t:'Disposiciones adicionales',b:d.extra});}
+  list.push({t:'Jurisdicción y competencia',b:`Para la interpretación, cumplimiento y ejecución del presente contrato, las partes se someten a las disposiciones de la Ley Federal del Trabajo y a la jurisdicción de la Junta de Conciliación y Arbitraje competente.`});
+  return list;
+}
+
+function genPS(d) {
+  const list=[];
+  list.push({t:'Objeto del contrato',b:`EL PRESTADOR se obliga a proporcionar a EL CLIENTE los servicios profesionales de ${d.puesto}, de manera independiente, sin subordinación y sin exclusividad. Las partes manifiestan expresamente que este contrato no constituye ni es simulación de una relación laboral.`});
+  list.push({t:'Vigencia',b:`El presente contrato tendrá vigencia del ${d.fechaInicio} al ${d.fechaFin}. Cualquiera de las partes podrá rescindirlo con 15 días naturales de anticipación.`});
+  list.push({t:'Honorarios',b:`EL CLIENTE cubrirá a EL PRESTADOR honorarios por $${d.salarioDiario} diarios (equivalente a $${d.salarioMens} mensuales aproximados), con pago ${d.formaPago}. EL PRESTADOR emitirá CFDI por cada pago recibido.`});
+  list.push({t:'Independencia',b:`EL PRESTADOR prestará sus servicios de manera autónoma, sin horario fijo ni subordinación, pudiendo prestar servicios simultáneamente a terceros.`});
+  if(clausulasActivas.has('confidencialidad')){list.push({t:'Confidencialidad',b:`EL PRESTADOR se obliga a guardar absoluta confidencialidad sobre la información de EL CLIENTE por un período de 2 años posteriores a la terminación del contrato.`});}
+  if(clausulasActivas.has('pi')){list.push({t:'Propiedad intelectual',b:`Los entregables y creaciones derivados de los servicios prestados serán propiedad de EL CLIENTE, cediendo EL PRESTADOR expresamente todos los derechos patrimoniales sobre los mismos.`});}
+  list.push({t:'Jurisdicción',b:`Las controversias derivadas de este contrato se resolverán conforme al Código Civil Federal y Código de Comercio, siendo competentes los tribunales civiles de ${d.lugar||'la Ciudad de México'}.`});
+  return list;
+}
+
+function formatHTML(d, cls, titulo) {
+  const esPS=tipoSeleccionado==='prestacion-servicios';
+  const pA=esPS?'EL CLIENTE':'EL PATRÓN';
+  const pB=esPS?'EL PRESTADOR':'EL TRABAJADOR';
+  return `<h2>${titulo}</h2>
+<div class="doc-subtitle">Ciudad de México, ${today()}</div>
+<p>Que celebran, por una parte, <strong>${d.empNombre}</strong> (en adelante "${pA}"), representada por <strong>${d.empRep}</strong>, con domicilio en ${d.empDom}, RFC ${d.empRfc}, dedicada a ${d.empGiro}; y por otra parte, <strong>${d.trabNombre}</strong> (en adelante "${pB}"), con domicilio en ${d.trabDom}, CURP ${d.trabCurp}, NSS ${d.trabNss}, RFC ${d.trabRfc}; al tenor de las siguientes:</p>
+${cls.map((c,i)=>`<div class="section-title">CLÁUSULA ${i+1}a. — ${c.t.toUpperCase()}</div><p>${c.b.replace(/\n/g,'<br>')}</p>`).join('')}
+<div class="firma-block"><div class="firma-col"><div class="firma-line"></div><strong>${d.empRep}</strong><br><span class="firma-label">En representación de ${d.empNombre}</span></div><div class="firma-col"><div class="firma-line"></div><strong>${d.trabNombre}</strong><br><span class="firma-label">CURP: ${d.trabCurp}</span></div></div>
+<div class="watermark">GENERADO POR JAIROROMO.AI · STACK LEGAL MX · SOLO INFORMATIVO</div>`;
+}
+
+// ── TXT ──
+function descargarTxt(btn) {
+  btn.classList.add('loading');
+  const d=window._datos; const cls=window._clausulas;
+  const esPS=tipoSeleccionado==='prestacion-servicios';
+  const pA=esPS?'EL CLIENTE':'EL PATRÓN'; const pB=esPS?'EL PRESTADOR':'EL TRABAJADOR';
+  const txt=`${window._titulo}\n${'='.repeat(60)}\n\nQue celebran, por una parte, ${d.empNombre} (en adelante "${pA}"), representada por ${d.empRep}, con domicilio en ${d.empDom}, RFC ${d.empRfc}; y por otra parte, ${d.trabNombre} (en adelante "${pB}"), CURP ${d.trabCurp}, NSS ${d.trabNss}, RFC ${d.trabRfc}.\n\n${cls.map((c,i)=>`CLÁUSULA ${i+1}a. — ${c.t.toUpperCase()}\n${c.b}`).join('\n\n')}\n\n${'─'.repeat(50)}\nLeído el presente contrato, las partes lo suscriben en la Ciudad de México el ${today()}.\n\nEL PATRÓN:                    EL TRABAJADOR:\n________________________      ________________________\n${d.empRep}                  ${d.trabNombre}\n\n—\nGenerado con jairoromo.ai · Stack Legal MX · Documento informativo`;
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='contrato-laboral-jairoromo.txt'; a.click();
+  URL.revokeObjectURL(url);
+  setTimeout(()=>btn.classList.remove('loading'),800);
+}
+
+// ── DOCX ──
+async function descargarDocx(btn) {
+  btn.classList.add('loading');
+  try {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, Table, TableRow, TableCell, WidthType, PageBreak } = docx;
+    const d=window._datos; const cls=window._clausulas;
+    const esPS=tipoSeleccionado==='prestacion-servicios';
+    const pA=esPS?'EL CLIENTE':'EL PATRÓN'; const pB=esPS?'EL PRESTADOR':'EL TRABAJADOR';
+
+    const children = [
+      new Paragraph({ text: window._titulo, heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER,
+        spacing:{after:200}, run:{bold:true,size:28} }),
+      new Paragraph({ text:`Ciudad de México, ${today()}`, alignment:AlignmentType.CENTER,
+        spacing:{after:400}, run:{italics:true,size:20,color:'666666'} }),
+      new Paragraph({ children:[
+        new TextRun({text:`Que celebran, por una parte, `,size:22}),
+        new TextRun({text:d.empNombre,bold:true,size:22}),
+        new TextRun({text:` (en adelante "${pA}"), representada por `,size:22}),
+        new TextRun({text:d.empRep,bold:true,size:22}),
+        new TextRun({text:`, con domicilio en ${d.empDom}, RFC ${d.empRfc}, dedicada a ${d.empGiro}; y por otra parte, `,size:22}),
+        new TextRun({text:d.trabNombre,bold:true,size:22}),
+        new TextRun({text:` (en adelante "${pB}"), con domicilio en ${d.trabDom}, CURP ${d.trabCurp}, NSS ${d.trabNss}, RFC ${d.trabRfc}; al tenor de las siguientes:`,size:22}),
+      ], spacing:{after:300}, alignment:AlignmentType.JUSTIFIED }),
+    ];
+
+    cls.forEach((c,i) => {
+      children.push(new Paragraph({
+        text:`CLÁUSULA ${i+1}a. — ${c.t.toUpperCase()}`,
+        spacing:{before:300,after:100},
+        border:{bottom:{style:BorderStyle.SINGLE,size:6,color:'333333'}},
+        run:{bold:true,size:22}
+      }));
+      c.b.split('\n').forEach(line => {
+        children.push(new Paragraph({text:line,spacing:{after:100},alignment:AlignmentType.JUSTIFIED,run:{size:22}}));
+      });
+    });
+
+    children.push(new Paragraph({text:'',spacing:{before:600}}));
+    children.push(new Paragraph({
+      children:[
+        new TextRun({text:'EL PATRÓN / CLIENTE',bold:true,size:20}),
+        new TextRun({text:'\t\t\t\t\t',size:20}),
+        new TextRun({text:'EL TRABAJADOR / PRESTADOR',bold:true,size:20}),
+      ],spacing:{after:800}
+    }));
+    children.push(new Paragraph({
+      children:[
+        new TextRun({text:'________________________',size:20}),
+        new TextRun({text:'\t\t\t\t',size:20}),
+        new TextRun({text:'________________________',size:20}),
+      ],spacing:{after:100}
+    }));
+    children.push(new Paragraph({
+      children:[
+        new TextRun({text:d.empRep,size:18,color:'555555'}),
+        new TextRun({text:'\t\t\t\t\t',size:18}),
+        new TextRun({text:d.trabNombre,size:18,color:'555555'}),
+      ]
+    }));
+    children.push(new Paragraph({text:'',spacing:{before:600}}));
+    children.push(new Paragraph({
+      text:'Documento generado con jairoromo.ai · Stack Legal MX · Herramienta informativa. Se recomienda revisión por abogado.',
+      alignment:AlignmentType.CENTER, run:{size:16,color:'aaaaaa',italics:true}
+    }));
+
+    const doc = new Document({
+      creator:'jairoromo.ai',
+      title: window._titulo,
+      description:'Generado con Stack Legal MX — jairoromo.ai',
+      sections:[{
+        properties:{page:{margin:{top:1440,right:1440,bottom:1440,left:1440}}},
+        children
+      }]
+    });
+
+    const buffer = await Packer.toBlob(doc);
+    const url=URL.createObjectURL(buffer);
+    const a=document.createElement('a'); a.href=url; a.download='contrato-laboral-jairoromo.docx'; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Error generando Word: '+e.message);
+    console.error(e);
+  }
+  btn.classList.remove('loading');
+}
+
+// ── PDF (via print) ──
+function descargarPdf(btn) {
+  btn.classList.add('loading');
+  const d=window._datos; const cls=window._clausulas;
+  const esPS=tipoSeleccionado==='prestacion-servicios';
+  const pA=esPS?'EL CLIENTE':'EL PATRÓN'; const pB=esPS?'EL PRESTADOR':'EL TRABAJADOR';
+
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>${window._titulo}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;700;900&display=swap');
+  @page { margin: 2.5cm; }
+  body { font-family:'Georgia',serif; font-size:11pt; line-height:1.8; color:#1a1a1a; }
+  h1 { font-family:'Sora',sans-serif; font-size:14pt; font-weight:900; text-align:center; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .subtitle { text-align:center; font-style:italic; font-size:10pt; color:#555; margin-bottom:24px; }
+  .intro { text-align:justify; margin-bottom:16px; }
+  .clausula-title { font-size:10pt; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1.5px solid #1a1a1a; padding-bottom:3px; margin:16px 0 8px; }
+  p { text-align:justify; margin-bottom:8px; }
+  .firmas { display:flex; justify-content:space-between; margin-top:60px; }
+  .firma-col { text-align:center; width:45%; }
+  .firma-line { border-top:1.5px solid #333; margin-bottom:6px; margin-top:50px; }
+  .firma-name { font-size:10pt; font-weight:bold; }
+  .firma-sub { font-size:9pt; color:#555; }
+  .watermark { text-align:center; margin-top:30px; font-size:8pt; color:#aaa; font-family:monospace; letter-spacing:1px; }
+</style></head><body>
+<h1>${window._titulo}</h1>
+<div class="subtitle">Ciudad de México, ${today()}</div>
+<p class="intro">Que celebran, por una parte, <strong>${d.empNombre}</strong> (en adelante "${pA}"), representada por <strong>${d.empRep}</strong>, con domicilio en ${d.empDom}, RFC ${d.empRfc}, dedicada a ${d.empGiro}; y por otra parte, <strong>${d.trabNombre}</strong> (en adelante "${pB}"), con domicilio en ${d.trabDom}, CURP ${d.trabCurp}, NSS ${d.trabNss}, RFC ${d.trabRfc}; al tenor de las siguientes:</p>
+${cls.map((c,i)=>`<div class="clausula-title">CLÁUSULA ${i+1}a. — ${c.t.toUpperCase()}</div><p>${c.b.replace(/\n/g,'<br>')}</p>`).join('')}
+<div class="firmas">
+  <div class="firma-col"><div class="firma-line"></div><div class="firma-name">${d.empRep}</div><div class="firma-sub">En representación de ${d.empNombre}</div></div>
+  <div class="firma-col"><div class="firma-line"></div><div class="firma-name">${d.trabNombre}</div><div class="firma-sub">CURP: ${d.trabCurp}</div></div>
+</div>
+<div class="watermark">GENERADO CON JAIROROMO.AI · STACK LEGAL MX · DOCUMENTO INFORMATIVO</div>
+</body></html>`;
+
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.onload=()=>{
+    win.focus();
+    setTimeout(()=>{ win.print(); btn.classList.remove('loading'); },400);
+  };
+}
+
+function resetForm() { location.reload(); }
+
+function num2words(n) {
+  if(isNaN(n)||n===0)return'CERO';
+  const u=['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+  const t=['','','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const h=['','CIEN','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+  n=Math.floor(n);
+  if(n<20)return u[n];
+  if(n<100)return t[Math.floor(n/10)]+(n%10?' Y '+u[n%10]:'');
+  if(n<1000)return(n===100?'CIEN':h[Math.floor(n/100)])+(n%100?' '+num2words(n%100):'');
+  if(n<10000)return(Math.floor(n/1000)===1?'MIL':num2words(Math.floor(n/1000))+' MIL')+(n%1000?' '+num2words(n%1000):'');
+  return n.toLocaleString('es-MX');
+}
+</script>
+</body>
+</html>
