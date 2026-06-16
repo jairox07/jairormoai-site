@@ -5,6 +5,7 @@ import { EyebrowPill } from '@/components/ui/EyebrowPill'
 import { Button } from '@/components/ui/Button'
 import { ProgressBar } from '@/components/courses/ProgressBar'
 import { BuyCourseButton } from '@/components/courses/BuyCourseButton'
+import { CourseFreeCountdown } from '@/components/courses/CourseFreeCountdown'
 import type { Course, Lesson, Enrollment } from '@/lib/types'
 
 interface Props {
@@ -78,16 +79,29 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
           {enrollment ? (
             <ProgressBar completed={completedCount} total={totalLessons} className="max-w-md" />
           ) : (
-            <div className="flex items-center gap-4 flex-wrap">
-              <span className="font-sora font-black text-3xl">
-                ${(typedCourse.price_cents / 100).toFixed(0)} USD
-              </span>
-              <BuyCourseButton
-                courseSlug={typedCourse.slug}
-                stripePriceId={typedCourse.stripe_price_id}
-                isLoggedIn={!!user}
-              />
-            </div>
+            <>
+              {typedCourse.free_until && new Date(typedCourse.free_until) > new Date() && (
+                <CourseFreeCountdown
+                  freeUntil={typedCourse.free_until}
+                  normalPriceCents={typedCourse.price_cents}
+                />
+              )}
+              <div className="flex items-center gap-4 flex-wrap">
+                {typedCourse.free_until && new Date(typedCourse.free_until) > new Date() ? (
+                  <span className="font-sora font-black text-3xl text-green-400">GRATIS</span>
+                ) : (
+                  <span className="font-sora font-black text-3xl">
+                    ${(typedCourse.price_cents / 100).toFixed(0)} USD
+                  </span>
+                )}
+                <BuyCourseButton
+                  courseSlug={typedCourse.slug}
+                  stripePriceId={typedCourse.stripe_price_id}
+                  isLoggedIn={!!user}
+                  freeUntil={typedCourse.free_until ?? undefined}
+                />
+              </div>
+            </>
           )}
         </div>
 
