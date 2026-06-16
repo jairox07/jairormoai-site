@@ -37,20 +37,12 @@ export default async function LessonPage({ params }: Props) {
 
   const { data: lessons } = await supabase
     .from('lessons')
-    .select('id, title, order_index, mux_playback_id, duration_seconds, downloadable_url')
+    .select('id, title, order_index, mux_playback_id, duration_seconds, downloadable_url, content')
     .eq('course_id', course.id)
     .order('order_index')
 
   const currentLesson = lessons?.find((l) => l.id === lessonId)
   if (!currentLesson) notFound()
-
-  if (!currentLesson.mux_playback_id) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="font-sora text-gray">Esta lección no tiene video todavía.</p>
-      </div>
-    )
-  }
 
   const currentIndex = lessons?.findIndex((l) => l.id === lessonId) ?? 0
   const nextLesson = lessons?.[currentIndex + 1]
@@ -75,6 +67,7 @@ export default async function LessonPage({ params }: Props) {
           <LessonPlayer
             lessonId={lessonId}
             playbackId={currentLesson.mux_playback_id}
+            content={currentLesson.content}
             enrollmentId={enrollment.id}
             isCompleted={completedIds.includes(lessonId)}
             downloadableUrl={currentLesson.downloadable_url}

@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 
 interface LessonPlayerProps {
   lessonId: string
-  playbackId: string
+  playbackId?: string | null
+  content?: string | null
   enrollmentId: string
   isCompleted: boolean
   downloadableUrl?: string | null
@@ -16,6 +17,7 @@ interface LessonPlayerProps {
 export function LessonPlayer({
   lessonId,
   playbackId,
+  content,
   enrollmentId,
   isCompleted,
   downloadableUrl,
@@ -50,16 +52,23 @@ export function LessonPlayer({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Mux iframe embed — no server-only dependencies */}
-      <div className="rounded-xl overflow-hidden bg-black aspect-video">
-        <iframe
-          src={`https://stream.mux.com/${playbackId}`}
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
-          style={{ width: '100%', height: '100%', border: 0 }}
-          title="Lesson video"
-        />
-      </div>
+      {playbackId ? (
+        <div className="rounded-xl overflow-hidden bg-black aspect-video">
+          <iframe
+            src={`https://stream.mux.com/${playbackId}`}
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            style={{ width: '100%', height: '100%', border: 0 }}
+            title="Lesson video"
+          />
+        </div>
+      ) : content ? (
+        <div className="prose prose-invert prose-sm max-w-none rounded-xl border border-white/[0.07] bg-bg2/60 p-8">
+          <div className="font-sora text-sm leading-relaxed whitespace-pre-wrap text-gray-200">
+            {content}
+          </div>
+        </div>
+      ) : null}
 
       {/* Controls */}
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -75,7 +84,7 @@ export function LessonPlayer({
           </Button>
 
           {downloadableUrl && (
-            <a href={downloadableUrl} download target="_blank" rel="noopener noreferrer">
+            <a href={downloadableUrl} target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="sm">
                 Descargar material
               </Button>

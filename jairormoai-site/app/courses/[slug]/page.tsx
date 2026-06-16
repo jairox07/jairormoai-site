@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
@@ -28,6 +28,8 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
 
   const typedCourse = course as Course
   const user = authData?.user ?? null
+
+  if (!user) redirect(`/login?redirect=/courses/${slug}`)
 
   const { data: lessons } = await supabase
     .from('lessons')
@@ -77,7 +79,17 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
           )}
 
           {enrollment ? (
-            <ProgressBar completed={completedCount} total={totalLessons} className="max-w-md" />
+            <div className="flex flex-col gap-4">
+              <ProgressBar completed={completedCount} total={totalLessons} className="max-w-md" />
+              <a
+                href="https://drive.google.com/file/d/1Tq5oPFh8JexuQMVy6wU7UWnBt3rX0VID/view?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[2px] text-cyan border border-cyan/30 rounded-xl px-4 py-2 hover:bg-cyan/10 transition-colors w-fit"
+              >
+                Descargar curso completo (PDF)
+              </a>
+            </div>
           ) : (
             <>
               {typedCourse.free_until && new Date(typedCourse.free_until) > new Date() && (
