@@ -8,7 +8,7 @@ export const metadata = {
   alternates: { canonical: 'https://jairoromo.ai/vault' },
   openGraph: {
     title: 'Bóveda IA — Prompts, Skills y Proyectos con IA en Español',
-    description: 'Prompts, templates, skills por industria y proyectos reales con IA. Gratis y de pago. Regístrate para acceder.',
+    description: 'Prompts, templates, skills por industria y proyectos reales con IA. Gratis y de pago.',
     url: 'https://jairoromo.ai/vault',
     type: 'website',
   },
@@ -25,14 +25,12 @@ export default async function VaultPage() {
     isLoggedIn = !!user
     userId = user?.id ?? null
 
-    if (isLoggedIn) {
-      const { data } = await supabase
-        .from('projects')
-        .select('*')
-        .order('featured', { ascending: false })
-        .order('created_at', { ascending: false })
-      projects = data || []
-    }
+    const { data } = await supabase
+      .from('projects')
+      .select('*')
+      .order('featured', { ascending: false })
+      .order('created_at', { ascending: false })
+    projects = data || []
   } catch {
     projects = []
   }

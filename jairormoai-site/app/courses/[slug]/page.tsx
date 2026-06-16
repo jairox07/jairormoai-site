@@ -29,7 +29,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
   const typedCourse = course as Course
   const user = authData?.user ?? null
 
-  if (!user) redirect(`/login?redirect=/courses/${slug}`)
+  if (!user && typedCourse.free_until) redirect(`/login?redirect=/courses/${slug}`)
 
   const { data: lessons } = await supabase
     .from('lessons')

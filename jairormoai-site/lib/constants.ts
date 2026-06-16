@@ -72,6 +72,7 @@ export const VAULT_CATEGORIES = [
   { id: 'legal', label: '⚖️ Abogados' },
   { id: 'inmobiliaria', label: '🏡 Inmobiliaria' },
   { id: 'comunidad', label: 'Proyectos Comunidad' },
+  { id: 'proyectos', label: '🚀 Proyectos' },
 ] as const
 
 // Color per industry/category for vault cards

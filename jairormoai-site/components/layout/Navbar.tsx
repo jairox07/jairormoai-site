@@ -153,30 +153,25 @@ export function Navbar() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => {
-            if (link.label === 'Bóveda IA') {
-              return <VaultMenu key={link.href} />
-            }
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'font-sora text-sm font-medium transition-colors duration-200',
-                  link.highlight
-                    ? 'text-cyan font-bold'
-                    : pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
-                )}
-              >
-                {link.label}
-                {link.highlight && (
-                  <span className="ml-1.5 font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                    nuevo
-                  </span>
-                )}
-              </Link>
-            )
-          })}
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'font-sora text-sm font-medium transition-colors duration-200',
+                link.highlight
+                  ? 'text-cyan font-bold'
+                  : pathname === link.href ? 'text-white' : 'text-gray hover:text-white'
+              )}
+            >
+              {link.label}
+              {link.highlight && (
+                <span className="ml-1.5 font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                  nuevo
+                </span>
+              )}
+            </Link>
+          ))}
         </div>
 
         {/* CTA */}
