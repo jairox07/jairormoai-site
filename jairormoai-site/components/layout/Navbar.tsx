@@ -23,6 +23,7 @@ const ADMIN_SECTIONS = [
   { tab: 'newsletter', label: 'Newsletter', icon: '📧' },
   { tab: 'purchases', label: 'Compras', icon: '💳' },
   { tab: 'activity', label: 'Actividad', icon: '⚡' },
+  { tab: 'courses', label: 'Cursos', icon: '🎓' },
   { tab: 'profile', label: 'Perfil', icon: '⚙️' },
 ]
 
