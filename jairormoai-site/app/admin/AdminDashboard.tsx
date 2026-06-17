@@ -31,6 +31,7 @@ function timeAgo(iso: string) {
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
 }
+
 function Pagination({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
   const pages = Math.ceil(total / PAGE_SIZE)
   if (pages <= 1) return null
@@ -40,19 +41,13 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
         {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} de {total}
       </span>
       <div className="flex gap-2">
-        <button
-          disabled={page === 1}
-          onClick={() => onChange(page - 1)}
-          className="font-mono text-[10px] px-3 py-1.5 rounded-lg border border-white/[0.08] text-gray2 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
+        <button disabled={page === 1} onClick={() => onChange(page - 1)}
+          className="font-mono text-[10px] px-3 py-1.5 rounded-lg border border-white/[0.08] text-gray2 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
           ← Anterior
         </button>
         <span className="font-mono text-[10px] px-3 py-1.5 text-gray2">{page}/{pages}</span>
-        <button
-          disabled={page === pages}
-          onClick={() => onChange(page + 1)}
-          className="font-mono text-[10px] px-3 py-1.5 rounded-lg border border-white/[0.08] text-gray2 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
+        <button disabled={page === pages} onClick={() => onChange(page + 1)}
+          className="font-mono text-[10px] px-3 py-1.5 rounded-lg border border-white/[0.08] text-gray2 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
           Siguiente →
         </button>
       </div>
@@ -60,39 +55,252 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
   )
 }
 
-interface CourseRow {
+// ─── Modals ───────────────────────────────────────────────────────────────────
+
+interface UserRow {
   id: string
-  slug: string
-  title: string
-  price_cents: number
-  free_until: string | null
-  published: boolean
+  full_name: string | null
+  email: string | null
+  created_at: string
+  last_sign_in_at: string | null
+  is_admin?: boolean | null
+  purchases: string[]
+  interactions: Record<string, number>
 }
+
+function ModalOverlay({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="w-full max-w-md rounded-2xl border border-white/[0.1] bg-[#0d1117] p-8 shadow-2xl">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FieldInput({ label, value, onChange, type = 'text', placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="font-mono text-[10px] uppercase tracking-[2px] text-gray-400">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sora text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/50"
+      />
+    </div>
+  )
+}
+
+function EditUserModal({ user, onClose, onSaved }: {
+  user: UserRow; onClose: () => void; onSaved: (u: Partial<UserRow>) => void
+}) {
+  const [name, setName] = useState(user.full_name || '')
+  const [email, setEmail] = useState(user.email || '')
+  const [password, setPassword] = useState('')
+  const [isAdmin, setIsAdmin] = useState(!!user.is_admin)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const save = async () => {
+    setLoading(true); setError('')
+    const body: Record<string, unknown> = {}
+    if (name !== (user.full_name || '')) body.full_name = name
+    if (email !== (user.email || '')) body.email = email
+    if (password) body.password = password
+    if (isAdmin !== !!user.is_admin) body.is_admin = isAdmin
+
+    const res = await fetch(`/api/admin/users/${user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error || 'Error'); return }
+    onSaved({ full_name: name, email, is_admin: isAdmin })
+    onClose()
+  }
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div className="mb-6">
+        <div className="font-mono text-[10px] uppercase tracking-[3px] text-cyan-400 mb-1">Editar usuario</div>
+        <h2 className="font-sora font-bold text-xl">{user.full_name || user.email}</h2>
+      </div>
+      <div className="flex flex-col gap-4">
+        <FieldInput label="Nombre" value={name} onChange={setName} placeholder="Nombre completo" />
+        <FieldInput label="Email" type="email" value={email} onChange={setEmail} placeholder="correo@ejemplo.com" />
+        <FieldInput label="Nueva contraseña (opcional)" type="password" value={password} onChange={setPassword} placeholder="Dejar vacío para no cambiar" />
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => setIsAdmin(v => !v)}
+            className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${isAdmin ? 'bg-cyan-500' : 'bg-white/10'}`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${isAdmin ? 'translate-x-4' : 'translate-x-0'}`} />
+          </div>
+          <span className="font-sora text-sm">Permisos de Admin</span>
+        </label>
+        {error && <p className="font-mono text-[11px] text-red-400">{error}</p>}
+        <div className="flex gap-3 pt-2">
+          <button onClick={onClose}
+            className="flex-1 font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl border border-white/[0.08] text-gray-400 hover:text-white transition-colors">
+            Cancelar
+          </button>
+          <button onClick={save} disabled={loading}
+            className="flex-1 font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-50">
+            {loading ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  )
+}
+
+function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const create = async () => {
+    if (!email || !password) { setError('Email y contraseña requeridos'); return }
+    setLoading(true); setError('')
+    const res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name: name, email, password, is_admin: isAdmin }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error || 'Error'); return }
+    onCreated()
+    onClose()
+  }
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div className="mb-6">
+        <div className="font-mono text-[10px] uppercase tracking-[3px] text-cyan-400 mb-1">Nuevo usuario</div>
+        <h2 className="font-sora font-bold text-xl">Crear cuenta</h2>
+      </div>
+      <div className="flex flex-col gap-4">
+        <FieldInput label="Nombre completo" value={name} onChange={setName} placeholder="Nombre" />
+        <FieldInput label="Email" type="email" value={email} onChange={setEmail} placeholder="correo@ejemplo.com" />
+        <FieldInput label="Contraseña" type="password" value={password} onChange={setPassword} placeholder="Mínimo 6 caracteres" />
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => setIsAdmin(v => !v)}
+            className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${isAdmin ? 'bg-cyan-500' : 'bg-white/10'}`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${isAdmin ? 'translate-x-4' : 'translate-x-0'}`} />
+          </div>
+          <span className="font-sora text-sm">Permisos de Admin</span>
+        </label>
+        {error && <p className="font-mono text-[11px] text-red-400">{error}</p>}
+        <div className="flex gap-3 pt-2">
+          <button onClick={onClose}
+            className="flex-1 font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl border border-white/[0.08] text-gray-400 hover:text-white transition-colors">
+            Cancelar
+          </button>
+          <button onClick={create} disabled={loading}
+            className="flex-1 font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-50">
+            {loading ? 'Creando…' : 'Crear usuario'}
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  )
+}
+
+function DeleteUserModal({ user, onClose, onDeleted }: {
+  user: UserRow; onClose: () => void; onDeleted: () => void
+}) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const del = async () => {
+    setLoading(true); setError('')
+    const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error || 'Error'); return }
+    onDeleted()
+    onClose()
+  }
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div className="mb-6">
+        <div className="font-mono text-[10px] uppercase tracking-[3px] text-red-400 mb-1">Eliminar usuario</div>
+        <h2 className="font-sora font-bold text-xl">¿Confirmar eliminación?</h2>
+      </div>
+      <p className="font-sora text-sm text-gray-400 mb-6">
+        Esta acción eliminará permanentemente la cuenta de <strong className="text-white">{user.full_name || user.email}</strong> y todos sus datos. No se puede deshacer.
+      </p>
+      {error && <p className="font-mono text-[11px] text-red-400 mb-4">{error}</p>}
+      <div className="flex gap-3">
+        <button onClick={onClose}
+          className="flex-1 font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl border border-white/[0.08] text-gray-400 hover:text-white transition-colors">
+          Cancelar
+        </button>
+        <button onClick={del} disabled={loading}
+          className="flex-1 font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50">
+          {loading ? 'Eliminando…' : 'Eliminar'}
+        </button>
+      </div>
+    </ModalOverlay>
+  )
+}
+
+// ─── Courses ──────────────────────────────────────────────────────────────────
+
+interface CourseRow {
+  id: string; slug: string; title: string; price_cents: number; free_until: string | null; published: boolean
+}
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
   adminEmail: string
   stats: { totalUsers: number; newsletterCount: number; enrollmentCount: number; commentCount: number; pageViewCount: number; pageViewTodayCount: number }
   recentActivity: ActivityLog[]
-  recentUsers: Array<{ id: string; full_name: string | null; email: string | null; created_at: string; last_sign_in_at: string | null; is_admin?: boolean | null; purchases: string[]; interactions: Record<string, number> }>
+  recentUsers: UserRow[]
   newsletterSubs: Array<{ email: string; created_at: string; isRegistered: boolean; purchases: string[] }>
   enrollments: Array<{ user_id: string; course_id: string; enrolled_at: string; stripe_session_id: string | null; courses: unknown }>
   topPages: Array<{ path: string; count: number }>
 }
 
-export function AdminDashboard({ adminEmail, stats, recentActivity: initialActivity, recentUsers, newsletterSubs, enrollments, topPages }: Props) {
+export function AdminDashboard({ adminEmail, stats, recentActivity: initialActivity, recentUsers: initialUsers, newsletterSubs, enrollments, topPages }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activity, setActivity] = useState<ActivityLog[]>(initialActivity)
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [liveCount, setLiveCount] = useState(0)
 
-  // Pagination state
+  // Users state (mutable locally)
+  const [users, setUsers] = useState<UserRow[]>(initialUsers)
+
+  // Pagination
   const [usersPage, setUsersPage] = useState(1)
   const [newsletterPage, setNewsletterPage] = useState(1)
   const [purchasesPage, setPurchasesPage] = useState(1)
   const [activityPage, setActivityPage] = useState(1)
 
-  // Courses state
+  // User modals
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null)
+  const [deletingUser, setDeletingUser] = useState<UserRow | null>(null)
+  const [showCreateUser, setShowCreateUser] = useState(false)
+
+  // Courses
   const [courses, setCourses] = useState<CourseRow[]>([])
   const [savingCourse, setSavingCourse] = useState<string | null>(null)
   const [freeDays, setFreeDays] = useState<Record<string, string>>({})
@@ -150,6 +358,14 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
     setSavingCourse(null)
   }
 
+  // Local user mutations (optimistic)
+  const applyUserEdit = (id: string, patch: Partial<UserRow>) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u))
+  }
+  const removeUser = (id: string) => {
+    setUsers(prev => prev.filter(u => u.id !== id))
+  }
+
   const STAT_CARDS = [
     { label: 'Usuarios registrados', value: stats.totalUsers, icon: '👥', color: 'cyan' },
     { label: 'Visitas totales', value: stats.pageViewCount, icon: '👁', color: 'purp' },
@@ -160,7 +376,7 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
   ]
   const QUICK_ACCESS = [
     { id: 'overview', label: 'Resumen', icon: '📊' },
-    { id: 'users', label: `Usuarios (${recentUsers.length})`, icon: '👥' },
+    { id: 'users', label: `Usuarios (${users.length})`, icon: '👥' },
     { id: 'newsletter', label: `Newsletter (${newsletterSubs.length})`, icon: '📧' },
     { id: 'purchases', label: `Compras (${enrollments.length})`, icon: '💳' },
     { id: 'activity', label: 'Actividad', icon: '⚡' },
@@ -168,14 +384,35 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
     { id: 'profile', label: 'Perfil', icon: '⚙️' },
   ] as const
 
-  // Paginated slices
-  const usersSlice = recentUsers.slice((usersPage - 1) * PAGE_SIZE, usersPage * PAGE_SIZE)
+  const usersSlice = users.slice((usersPage - 1) * PAGE_SIZE, usersPage * PAGE_SIZE)
   const newsletterSlice = newsletterSubs.slice((newsletterPage - 1) * PAGE_SIZE, newsletterPage * PAGE_SIZE)
   const enrollmentsSlice = enrollments.slice((purchasesPage - 1) * PAGE_SIZE, purchasesPage * PAGE_SIZE)
   const activitySlice = activity.slice((activityPage - 1) * PAGE_SIZE, activityPage * PAGE_SIZE)
 
   return (
     <div className="min-h-screen py-24 px-6 md:px-12">
+      {/* Modals */}
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSaved={(patch) => applyUserEdit(editingUser.id, patch)}
+        />
+      )}
+      {deletingUser && (
+        <DeleteUserModal
+          user={deletingUser}
+          onClose={() => setDeletingUser(null)}
+          onDeleted={() => removeUser(deletingUser.id)}
+        />
+      )}
+      {showCreateUser && (
+        <CreateUserModal
+          onClose={() => setShowCreateUser(false)}
+          onCreated={() => router.refresh()}
+        />
+      )}
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
@@ -227,7 +464,7 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
             <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 p-6">
               <h3 className="font-sora font-bold mb-5">Registros recientes</h3>
               <div className="space-y-3">
-                {recentUsers.slice(0, 8).map((u) => (
+                {users.slice(0, 8).map((u) => (
                   <div key={u.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-cyan/10 border border-cyan/20 flex items-center justify-center font-mono text-[11px] text-cyan font-bold">
@@ -238,7 +475,7 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
                     <span className="font-mono text-[10px] text-gray2">{formatDate(u.created_at)}</span>
                   </div>
                 ))}
-                {recentUsers.length === 0 && <p className="font-sora text-gray text-sm text-center py-6">Sin registros todavía.</p>}
+                {users.length === 0 && <p className="font-sora text-gray text-sm text-center py-6">Sin registros todavía.</p>}
               </div>
             </div>
             <div className="rounded-2xl border border-cyan/15 bg-bg2/40 p-6">
@@ -282,50 +519,70 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
         {activeTab === 'users' && (
           <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 overflow-hidden">
             <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
-              <span className="font-mono text-[11px] text-gray2">{recentUsers.length} usuarios totales</span>
+              <span className="font-mono text-[11px] text-gray2">{users.length} usuarios totales</span>
+              <button
+                onClick={() => setShowCreateUser(true)}
+                className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-3 py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan hover:bg-cyan/20 transition-colors"
+              >
+                + Crear usuario
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.07]">
-                    {['Usuario', 'Email', 'Registro', 'Último login', 'Compras', 'Interacciones'].map(h => (
+                    {['Usuario', 'Email', 'Rol', 'Registro', 'Compras', 'Acciones'].map(h => (
                       <th key={h} className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-gray2 text-left px-6 py-4">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {usersSlice.map((u, i) => {
-                    const total = Object.values(u.interactions).reduce((a, b) => a + b, 0)
-                    const detail = Object.entries(u.interactions).map(([k, v]) => `${EVENT_LABELS[k] || k}: ${v}`).join(', ')
-                    return (
-                      <tr key={u.id} className={i % 2 === 0 ? 'bg-white/[0.01]' : ''}>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-purp/10 border border-purp/20 flex items-center justify-center font-mono text-[11px] text-purp font-bold">
-                              {(u.full_name || u.email || 'U')[0].toUpperCase()}
-                            </div>
-                            <span className="font-sora text-sm">{u.full_name || '—'}</span>
-                            {u.is_admin && <span className="font-mono text-[9px] bg-cyan/10 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase">admin</span>}
+                  {usersSlice.map((u, i) => (
+                    <tr key={u.id} className={i % 2 === 0 ? 'bg-white/[0.01]' : ''}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-purp/10 border border-purp/20 flex items-center justify-center font-mono text-[11px] text-purp font-bold">
+                            {(u.full_name || u.email || 'U')[0].toUpperCase()}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 font-mono text-[11px] text-gray2">{u.email || '—'}</td>
-                        <td className="px-6 py-4 font-mono text-[11px] text-gray2">{formatDate(u.created_at)}</td>
-                        <td className="px-6 py-4 font-mono text-[11px] text-gray2">{u.last_sign_in_at ? formatDate(u.last_sign_in_at) : '—'}</td>
-                        <td className="px-6 py-4 font-mono text-[11px] text-gray2">
-                          {u.purchases.length > 0 ? (
-                            <span className="font-mono text-[10px] bg-cyan/10 border border-cyan/30 text-cyan px-2 py-0.5 rounded-full" title={u.purchases.join(', ')}>
-                              {u.purchases.length} compra{u.purchases.length > 1 ? 's' : ''}
-                            </span>
-                          ) : '—'}
-                        </td>
-                        <td className="px-6 py-4 font-mono text-[11px] text-gray2" title={detail}>{total > 0 ? total : '—'}</td>
-                      </tr>
-                    )
-                  })}
+                          <span className="font-sora text-sm">{u.full_name || '—'}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">{u.email || '—'}</td>
+                      <td className="px-6 py-4">
+                        {u.is_admin
+                          ? <span className="font-mono text-[9px] bg-cyan/10 border border-cyan/30 text-cyan px-2 py-0.5 rounded-full uppercase">Admin</span>
+                          : <span className="font-mono text-[9px] bg-white/[0.04] border border-white/[0.08] text-gray2 px-2 py-0.5 rounded-full uppercase">Usuario</span>
+                        }
+                      </td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">{formatDate(u.created_at)}</td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-gray2">
+                        {u.purchases.length > 0
+                          ? <span className="font-mono text-[10px] bg-cyan/10 border border-cyan/30 text-cyan px-2 py-0.5 rounded-full" title={u.purchases.join(', ')}>{u.purchases.length}</span>
+                          : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingUser(u)}
+                            className="font-mono text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-gray2 hover:text-white hover:border-white/20 transition-colors"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => setDeletingUser(u)}
+                            disabled={u.email === adminEmail}
+                            className="font-mono text-[10px] px-2.5 py-1 rounded-lg bg-red-500/[0.06] border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-            <Pagination page={usersPage} total={recentUsers.length} onChange={setUsersPage} />
+            <Pagination page={usersPage} total={users.length} onChange={setUsersPage} />
           </div>
         )}
 
@@ -334,11 +591,8 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
           <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 overflow-hidden">
             <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
               <span className="font-mono text-[11px] text-gray2">{newsletterSubs.length} suscriptores</span>
-              <a
-                href="https://app.brevo.com/contact/list"
-                target="_blank" rel="noopener noreferrer"
-                className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-3 py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan hover:bg-cyan/20 transition-colors"
-              >
+              <a href="https://app.brevo.com/contact/list" target="_blank" rel="noopener noreferrer"
+                className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-3 py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan hover:bg-cyan/20 transition-colors">
                 Enviar campaña en Brevo →
               </a>
             </div>
@@ -438,12 +692,8 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
         {/* === COURSES === */}
         {activeTab === 'courses' && (
           <div className="space-y-4">
-            <div className="font-mono text-[11px] text-gray2 uppercase tracking-[2px] mb-6">
-              Gestión de cursos — acceso gratuito
-            </div>
-            {courses.length === 0 && (
-              <p className="font-sora text-gray text-sm text-center py-12">Cargando cursos…</p>
-            )}
+            <div className="font-mono text-[11px] text-gray2 uppercase tracking-[2px] mb-6">Gestión de cursos — acceso gratuito</div>
+            {courses.length === 0 && <p className="font-sora text-gray text-sm text-center py-12">Cargando cursos…</p>}
             {courses.map((c) => {
               const isFreeNow = !!c.free_until && new Date(c.free_until) > new Date()
               const freeUntilDate = c.free_until ? new Date(c.free_until) : null
@@ -459,50 +709,34 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="font-mono text-[11px] text-gray2">${(c.price_cents / 100).toFixed(0)} USD</span>
-                      {isFreeNow ? (
-                        <span className="font-mono text-[10px] bg-green-500/10 border border-green-500/30 text-green-400 px-2 py-0.5 rounded-full uppercase">
-                          GRATIS hasta {freeUntilDate?.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
-                        </span>
-                      ) : (
-                        <span className="font-mono text-[10px] bg-white/[0.04] border border-white/[0.08] text-gray2 px-2 py-0.5 rounded-full uppercase">
-                          Precio normal
-                        </span>
-                      )}
+                      {isFreeNow
+                        ? <span className="font-mono text-[10px] bg-green-500/10 border border-green-500/30 text-green-400 px-2 py-0.5 rounded-full uppercase">GRATIS hasta {freeUntilDate?.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>
+                        : <span className="font-mono text-[10px] bg-white/[0.04] border border-white/[0.08] text-gray2 px-2 py-0.5 rounded-full uppercase">Precio normal</span>
+                      }
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0 flex-wrap">
                     {isFreeNow ? (
-                      <button
-                        onClick={() => setCoursePaid(c.id)}
-                        disabled={saving}
-                        className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
-                      >
+                      <button onClick={() => setCoursePaid(c.id)} disabled={saving}
+                        className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50">
                         {saving ? '…' : 'Quitar acceso gratis'}
                       </button>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <select
-                          value={freeDays[c.id] || '7'}
-                          onChange={(e) => setFreeDays(prev => ({ ...prev, [c.id]: e.target.value }))}
-                          className="font-mono text-[11px] px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-cyan/40"
-                        >
+                        <select value={freeDays[c.id] || '7'} onChange={(e) => setFreeDays(prev => ({ ...prev, [c.id]: e.target.value }))}
+                          className="font-mono text-[11px] px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:outline-none focus:border-cyan/40">
                           {[1,2,3,5,7,14,30].map(d => (
                             <option key={d} value={String(d)}>{d} día{d > 1 ? 's' : ''}</option>
                           ))}
                         </select>
-                        <button
-                          onClick={() => setCourseFree(c.id, parseInt(freeDays[c.id] || '7'))}
-                          disabled={saving}
-                          className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50"
-                        >
+                        <button onClick={() => setCourseFree(c.id, parseInt(freeDays[c.id] || '7'))} disabled={saving}
+                          className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50">
                           {saving ? '…' : 'Poner gratis'}
                         </button>
                       </div>
                     )}
                     <Link href={`/courses/${c.slug}`} target="_blank">
-                      <button className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-gray2 hover:text-white transition-colors">
-                        Ver →
-                      </button>
+                      <button className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-gray2 hover:text-white transition-colors">Ver →</button>
                     </Link>
                   </div>
                 </div>
