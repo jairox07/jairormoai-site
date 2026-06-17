@@ -68,57 +68,10 @@ function AdminMenu() {
   )
 }
 
-function VaultMenu() {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [])
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="font-sora text-sm font-medium text-gray hover:text-white transition-colors flex items-center gap-1"
-      >
-        Bóveda IA
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={cn('transition-transform', open && 'rotate-180')}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute left-0 mt-2 w-56 rounded-xl border border-white/[0.08] bg-bg2/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.4)] overflow-hidden z-50">
-          <Link
-            href="/vault"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-3 font-sora text-sm text-gray hover:text-white hover:bg-white/[0.04] transition-colors border-b border-white/[0.05]"
-          >
-            Todos los recursos
-          </Link>
-          <Link
-            href="/vault/proyectos"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-3 font-sora text-sm text-gray hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            <span className="flex items-center justify-between">
-              Proyectos
-              <span className="font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full">nuevo</span>
-            </span>
-          </Link>
-        </div>
-      )}
-    </div>
-  )
-}
-
 export function Navbar() {
   const pathname = usePathname()
   const [isAdmin, setIsAdmin] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -130,6 +83,9 @@ export function Navbar() {
     })
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -151,7 +107,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Nav links */}
+        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => (
             <Link
@@ -174,14 +130,70 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="flex items-center gap-3">
+        {/* Desktop CTA */}
+        <div className="hidden md:flex items-center gap-3">
           {isAdmin && <AdminMenu />}
           <Link href="/login">
             <Button variant="primary" size="sm">Iniciar sesión</Button>
           </Link>
         </div>
+
+        {/* Mobile: hamburger */}
+        <button
+          className="md:hidden flex flex-col gap-[5px] p-2 rounded-lg hover:bg-white/[0.05] transition-colors"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Menú"
+        >
+          <span
+            className={cn('block w-5 h-[2px] bg-white transition-all duration-200', mobileOpen && 'rotate-45 translate-y-[7px]')}
+          />
+          <span
+            className={cn('block w-5 h-[2px] bg-white transition-all duration-200', mobileOpen && 'opacity-0')}
+          />
+          <span
+            className={cn('block w-5 h-[2px] bg-white transition-all duration-200', mobileOpen && '-rotate-45 -translate-y-[7px]')}
+          />
+        </button>
       </nav>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="md:hidden bg-bg/95 backdrop-blur-xl border-b border-white/[0.05] px-6 py-6 flex flex-col gap-1">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'flex items-center justify-between font-sora text-base font-medium py-3 border-b border-white/[0.05] transition-colors',
+                pathname === link.href ? 'text-white' : 'text-gray'
+              )}
+            >
+              <span>
+                {link.label}
+                {link.highlight && (
+                  <span className="ml-2 font-mono text-[9px] bg-cyan/15 border border-cyan/30 text-cyan px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                    nuevo
+                  </span>
+                )}
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </Link>
+          ))}
+
+          <div className="mt-4 flex flex-col gap-3">
+            {isAdmin && (
+              <Link href="/admin" className="font-mono text-[11px] font-bold uppercase tracking-[2px] px-4 py-3 rounded-xl bg-cyan/10 border border-cyan/30 text-cyan text-center">
+                Admin Dashboard
+              </Link>
+            )}
+            <Link href="/login">
+              <Button variant="primary" className="w-full">Iniciar sesión</Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
