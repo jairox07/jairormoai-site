@@ -167,6 +167,27 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
             Lecciones próximamente
           </div>
         )}
+
+        {/* Second CTA — bottom of temario, only for non-enrolled */}
+        {!enrollment && totalLessons > 0 && (
+          <div className="mt-10 rounded-2xl border border-cyan/20 bg-cyan/[0.04] p-8 text-center">
+            {typedCourse.free_until && new Date(typedCourse.free_until) > new Date() && (
+              <p className="font-mono text-[10px] uppercase tracking-[3px] text-cyan mb-3">
+                ⚡ Acceso gratuito por tiempo limitado
+              </p>
+            )}
+            <p className="font-sora text-white font-bold text-lg mb-6">
+              ¿Listo para empezar? El acceso es gratis hoy.
+            </p>
+            <BuyCourseButton
+              courseSlug={typedCourse.slug}
+              stripePriceId={typedCourse.stripe_price_id}
+              isLoggedIn={!!user}
+              freeUntil={typedCourse.free_until ?? undefined}
+              firstLessonId={firstLessonId}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
