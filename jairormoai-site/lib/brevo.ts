@@ -6,11 +6,11 @@ interface SendEmailParams {
   htmlContent: string
 }
 
-export async function sendEmail({ to, subject, htmlContent }: SendEmailParams) {
+export async function sendEmail({ to, subject, htmlContent }: SendEmailParams): Promise<{ error?: string } | undefined> {
   const apiKey = process.env.BREVO_API_KEY
-  if (!apiKey) return
+  if (!apiKey) return { error: 'BREVO_API_KEY no configurada' }
 
-  await fetch(BREVO_API, {
+  const res = await fetch(BREVO_API, {
     method: 'POST',
     headers: {
       'accept': 'application/json',
@@ -24,6 +24,11 @@ export async function sendEmail({ to, subject, htmlContent }: SendEmailParams) {
       htmlContent,
     }),
   })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    return { error: body.message || `Brevo error ${res.status}` }
+  }
 }
 
 export function welcomeCourseEmail(name: string, courseTitle: string, courseSlug: string): string {

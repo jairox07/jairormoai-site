@@ -55,6 +55,42 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
   )
 }
 
+// ─── Test Email ───────────────────────────────────────────────────────────────
+
+function TestEmailButton() {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle')
+  const [msg, setMsg] = useState('')
+
+  const send = async () => {
+    setStatus('sending'); setMsg('')
+    const res = await fetch('/api/admin/test-email', { method: 'POST' })
+    const data = await res.json()
+    if (res.ok) { setStatus('ok'); setMsg('Correo enviado — revisa tu inbox') }
+    else { setStatus('error'); setMsg(data.error || 'Error') }
+  }
+
+  return (
+    <div className="mb-8 p-4 rounded-xl border border-white/[0.07] bg-white/[0.02] flex items-center justify-between gap-4">
+      <div>
+        <div className="font-mono text-[10px] uppercase tracking-[2px] text-gray2 mb-1">Brevo</div>
+        <div className="font-sora text-sm">
+          {status === 'ok' && <span className="text-green-400">{msg}</span>}
+          {status === 'error' && <span className="text-red-400">{msg}</span>}
+          {status === 'idle' && <span className="text-gray-400">Enviar correo de prueba a tu email</span>}
+          {status === 'sending' && <span className="text-gray-400">Enviando…</span>}
+        </div>
+      </div>
+      <button
+        onClick={send}
+        disabled={status === 'sending'}
+        className="flex-shrink-0 font-mono text-[10px] font-bold uppercase tracking-[1px] px-4 py-2 rounded-xl bg-cyan/10 border border-cyan/30 text-cyan hover:bg-cyan/20 transition-colors disabled:opacity-50"
+      >
+        {status === 'sending' ? '…' : 'Probar email'}
+      </button>
+    </div>
+  )
+}
+
 // ─── Modals ───────────────────────────────────────────────────────────────────
 
 interface UserRow {
@@ -748,6 +784,7 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
         {/* === PROFILE === */}
         {activeTab === 'profile' && (
           <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 p-8 max-w-lg">
+            <TestEmailButton />
             <div className="flex items-center gap-4 mb-8">
               <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] flex items-center justify-center font-sora font-black text-xl text-bg flex-shrink-0">
                 {adminEmail[0].toUpperCase()}
