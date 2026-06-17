@@ -54,10 +54,12 @@ function LoginForm() {
           <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <Input
               id="email" label="Email" type="email" placeholder="tu@correo.com"
+              required
               value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
             />
             <Input
               id="password" label="Contraseña" type="password" placeholder="••••••••"
+              required
               value={form.password} onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
             />
             {error && <p className="font-mono text-[11px] text-red-400">{error}</p>}

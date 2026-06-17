@@ -76,16 +76,19 @@ function SignupForm() {
           <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <Input
               id="name" label="Nombre completo" placeholder="Tu nombre"
+              required
               value={form.full_name}
               onChange={(e) => setForm(f => ({ ...f, full_name: e.target.value }))}
             />
             <Input
               id="email" label="Email" type="email" placeholder="tu@correo.com"
+              required
               value={form.email}
               onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
             />
             <Input
               id="password" label="Contraseña" type="password" placeholder="Mínimo 6 caracteres"
+              required minLength={6}
               value={form.password}
               onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
             />
