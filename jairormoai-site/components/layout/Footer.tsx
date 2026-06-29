@@ -23,12 +23,12 @@ export function Footer() {
                 width={32}
                 height={32}
               />
-              <span className="font-sora font-black text-sm">
-                jairo<span className="text-cyan">romo.ai</span>
+              <span className="font-sora font-bold text-sm uppercase tracking-[3px]">
+                jairoromo<span className="text-cyan">.ai</span>
               </span>
             </Link>
-            <p className="font-mono text-[11px] text-gray2 tracking-wider uppercase">
-              IA sin fricción.
+            <p className="font-mono text-[11px] font-bold tracking-wider uppercase bg-[linear-gradient(90deg,#00A3FF_0%,#FF00FF_100%)] bg-clip-text text-transparent">
+              IA SIN FRICCIÓN
             </p>
           </div>
 

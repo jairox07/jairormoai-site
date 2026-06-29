@@ -1,21 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;1,300;1,400&family=Space+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-bg:    #080B14;
-  --color-bg2:   #0C1120;
-  --color-bg3:   #0F1628;
-  --color-cyan:  #4FC3F7;
-  --color-purp:  #8B5CF6;
-  --color-mid:   #6B8EF5;
-  --color-gray:  #94A3B8;
-  --color-gray2: #3D4F63;
+  --color-bg:    #080610;
+  --color-bg2:   #0A0816;
+  --color-bg3:   #0D0A1C;
+  --color-cyan:  #00A3FF;
+  --color-purp:  #FF00FF;
+  --color-mid:   #6B21A8;
+  --color-gray:  rgba(255,255,255,0.6);
+  --color-gray2: rgba(255,255,255,0.22);
 
-  --font-sora: 'Sora', sans-serif;
+  --font-sora: 'Exo 2', sans-serif;
   --font-mono: 'Space Mono', monospace;
 
-  --background-image-brand-grad: linear-gradient(135deg, #4FC3F7 0%, #6B8EF5 50%, #8B5CF6 100%);
-  --background-image-brand-grad-r: linear-gradient(135deg, #8B5CF6 0%, #6B8EF5 50%, #4FC3F7 100%);
+  --background-image-brand-grad: linear-gradient(135deg, #00A3FF 0%, #6B21A8 55%, #FF00FF 100%);
+  --background-image-brand-grad-r: linear-gradient(135deg, #FF00FF 0%, #6B21A8 55%, #00A3FF 100%);
 
   --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
   --animate-float: float 6s ease-in-out infinite;
@@ -61,14 +61,14 @@
 /* Raw CSS custom properties for use in non-Tailwind CSS rules */
 /* Tailwind utilities use the @theme block above */
 :root {
-  --bg: #080B14;
-  --bg2: #0C1120;
-  --bg3: #0F1628;
-  --cyan: #4FC3F7;
-  --purp: #8B5CF6;
-  --mid: #6B8EF5;
-  --gray: #94A3B8;
-  --gray2: #3D4F63;
+  --bg: #080610;
+  --bg2: #0A0816;
+  --bg3: #0D0A1C;
+  --cyan: #00A3FF;
+  --purp: #FF00FF;
+  --mid: #6B21A8;
+  --gray: rgba(255,255,255,0.6);
+  --gray2: rgba(255,255,255,0.22);
 }
 
 * { box-sizing: border-box; }
@@ -80,14 +80,29 @@ html {
 body {
   background: var(--bg);
   color: #ffffff;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Ambient glow blobs — diagonal dark overlay always reads dark */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 0% 0%, rgba(0,163,255,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255,0,255,0.14) 0%, transparent 60%),
+    linear-gradient(155deg, rgba(8,0,25,0.8) 0%, rgba(0,8,30,0.7) 50%, rgba(5,0,20,0.85) 100%),
+    var(--bg);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
-::-webkit-scrollbar-thumb { background: var(--gray2); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
 
 /* Focus ring */
