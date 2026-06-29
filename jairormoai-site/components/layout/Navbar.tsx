@@ -103,8 +103,8 @@ export function Navbar() {
             height={36}
             priority
           />
-          <span className="font-sora font-bold text-[0.9rem] uppercase tracking-[3px]">
-            jairoromo<span className="text-cyan">.ai</span>
+          <span className="font-sora font-black text-[1rem] tracking-tight">
+            jairo<span className="text-cyan">romo.ai</span>
           </span>
         </Link>
 

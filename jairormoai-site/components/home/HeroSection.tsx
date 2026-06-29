@@ -28,9 +28,9 @@ export function HeroSection() {
             IA Aplicada al Mundo Real
           </EyebrowPill>
 
-          <h1 className="font-sora font-black text-[clamp(2.8rem,5vw,4.5rem)] leading-[1.05] tracking-tight mb-5 uppercase">
+          <h1 className="font-sora font-black text-[clamp(2.8rem,5vw,4.5rem)] leading-[1.05] tracking-tight mb-5">
             Inteligencia Artificial<br />
-            Aplicada, <span className="bg-brand-grad bg-clip-text text-transparent">IA SIN FRICCIÓN</span>
+            Aplicada, <span className="text-cyan">sin fricción.</span>
           </h1>
 
           <p className="font-sora font-light text-lg text-gray leading-relaxed max-w-[520px] mb-7">
