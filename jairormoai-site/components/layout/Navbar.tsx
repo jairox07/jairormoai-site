@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
+import { DarkModeToggle } from '@/components/ui/DarkModeToggle'
 
 const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/', label: 'Inicio' },
@@ -133,6 +134,7 @@ export function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
+          <DarkModeToggle />
           {isAdmin && <AdminMenu />}
           <Link href="/login">
             <Button variant="primary" size="sm">Iniciar sesión</Button>
@@ -184,6 +186,10 @@ export function Navbar() {
           ))}
 
           <div className="mt-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] text-gray2 uppercase tracking-wider">Modo claro/oscuro</span>
+              <DarkModeToggle />
+            </div>
             {isAdmin && (
               <Link href="/admin" className="font-mono text-[11px] font-bold uppercase tracking-[2px] px-4 py-3 rounded-xl bg-cyan/10 border border-cyan/30 text-cyan text-center">
                 Admin Dashboard

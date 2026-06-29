@@ -120,6 +120,31 @@ body {
   --gray2: rgba(255,255,255,0.22);
 }
 
+/* ─── Light mode (toggle en Navbar) ──────────────────────────────────── */
+[data-mode="light"] {
+  --color-bg:    #F7F9FC;
+  --color-bg2:   #FFFFFF;
+  --color-bg3:   #EEF1F6;
+  --color-gray:  #475569;
+  --color-gray2: #64748B;
+
+  --bg: #F7F9FC;
+  --bg2: #FFFFFF;
+  --bg3: #EEF1F6;
+  --gray: #475569;
+  --gray2: #64748B;
+}
+
+[data-mode="light"] body {
+  color: #0B0E14;
+}
+
+[data-mode="light"] body::before {
+  opacity: 0.35;
+}
+
+[data-mode="light"] ::-webkit-scrollbar-track { background: var(--bg2); }
+
 [data-theme="v2"] body::before {
   content: '';
   position: fixed;
