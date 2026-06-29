@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;700;900&family=Exo+2:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;1,300;1,400&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -106,7 +106,6 @@ body {
   --color-mid:   #6B21A8;
   --color-gray:  rgba(255,255,255,0.6);
   --color-gray2: rgba(255,255,255,0.22);
-  --font-sora: 'Exo 2', sans-serif;
   --background-image-brand-grad: linear-gradient(135deg, #00A3FF 0%, #6B21A8 55%, #FF00FF 100%);
   --background-image-brand-grad-r: linear-gradient(135deg, #FF00FF 0%, #6B21A8 55%, #00A3FF 100%);
 
