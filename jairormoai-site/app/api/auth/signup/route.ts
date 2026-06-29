@@ -34,6 +34,15 @@ export async function POST(req: NextRequest) {
     htmlContent: welcomeEmail(full_name),
   }).catch(() => {})
 
+  sendEmail({
+    to: [
+      { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },
+      { email: 'contacto@novotech.mx', name: 'Contacto Novotech' },
+    ],
+    subject: `Nuevo registro: ${full_name} (${email})`,
+    htmlContent: `<p>Nuevo usuario registrado en jairoromo.ai:</p><ul><li><b>Nombre:</b> ${full_name}</li><li><b>Email:</b> ${email}</li></ul>`,
+  }).catch(() => {})
+
   return NextResponse.json({ ok: true, userId: data.user?.id })
 }
 

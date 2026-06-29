@@ -37,9 +37,9 @@ function testEmailHtml(): string {
   </td></tr>
   <tr><td style="background:#0D1220;border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:48px 40px;">
     <p style="margin:0 0 8px;font-family:monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#4FC3F7;">Email de prueba</p>
-    <h1 style="margin:0 0 16px;font-size:28px;font-weight:900;color:#FFFFFF;">✅ Brevo funciona</h1>
+    <h1 style="margin:0 0 16px;font-size:28px;font-weight:900;color:#FFFFFF;">✅ Resend funciona</h1>
     <p style="margin:0;font-size:16px;color:#94A3B8;line-height:1.6;">
-      Si estás leyendo esto, la integración con Brevo está activa y los correos de bienvenida se enviarán correctamente a todos los nuevos registros.
+      Si estás leyendo esto, la integración con Resend está activa y los correos de bienvenida se enviarán correctamente a todos los nuevos registros.
     </p>
   </td></tr>
   <tr><td style="padding-top:32px;text-align:center;">

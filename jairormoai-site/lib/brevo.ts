@@ -1,4 +1,4 @@
-const BREVO_API = 'https://api.brevo.com/v3/smtp/email'
+import { Resend } from 'resend'
 
 interface SendEmailParams {
   to: { email: string; name?: string }[]
@@ -7,28 +7,18 @@ interface SendEmailParams {
 }
 
 export async function sendEmail({ to, subject, htmlContent }: SendEmailParams): Promise<{ error?: string } | undefined> {
-  const apiKey = process.env.BREVO_API_KEY
-  if (!apiKey) return { error: 'BREVO_API_KEY no configurada' }
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return { error: 'RESEND_API_KEY no configurada' }
 
-  const res = await fetch(BREVO_API, {
-    method: 'POST',
-    headers: {
-      'accept': 'application/json',
-      'api-key': apiKey,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      sender: { name: 'Jairo Romo', email: 'hola@jairoromo.ai' },
-      to,
-      subject,
-      htmlContent,
-    }),
+  const resend = new Resend(apiKey)
+  const { error } = await resend.emails.send({
+    from: 'Jairo Romo <hola@jairoromo.ai>',
+    to: to.map(r => r.name ? `${r.name} <${r.email}>` : r.email),
+    subject,
+    html: htmlContent,
   })
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    return { error: body.message || `Brevo error ${res.status}` }
-  }
+  if (error) return { error: error.message }
 }
 
 export function welcomeCourseEmail(name: string, courseTitle: string, courseSlug: string): string {
@@ -69,10 +59,8 @@ export function welcomeCourseEmail(name: string, courseTitle: string, courseSlug
       </td></tr>
     </table>
 
-    <!-- Divider -->
     <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0 0 40px;">
 
-    <!-- Upsell: Guía Claude -->
     <p style="margin:0 0 16px;font-family:monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#8B5CF6;">También te puede interesar</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:14px;margin-bottom:16px;">
       <tr><td style="padding:24px;">
@@ -84,14 +72,11 @@ export function welcomeCourseEmail(name: string, courseTitle: string, courseSlug
       </td></tr>
     </table>
 
-    <!-- Divider -->
     <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:24px 0;">
 
-    <!-- Sessions -->
     <p style="margin:0 0 16px;font-family:monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#4FC3F7;">Sesiones 1:1 conmigo</p>
     <p style="margin:0 0 20px;font-size:14px;color:#94A3B8;line-height:1.6;">¿Tienes un proyecto atascado? ¿Quieres una estrategia de IA para tu empresa? Trabajamos juntos directamente.</p>
 
-    <!-- Session cards -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
       <tr>
         <td width="32%" style="padding:4px;">
