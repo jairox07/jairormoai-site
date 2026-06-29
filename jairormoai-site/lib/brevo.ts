@@ -12,7 +12,7 @@ export async function sendEmail({ to, subject, htmlContent }: SendEmailParams): 
 
   const resend = new Resend(apiKey)
   const { error } = await resend.emails.send({
-    from: 'Jairo Romo <hola@jairoromo.ai>',
+    from: 'Jairo Romo <contacto@novotech.mx>',
     to: to.map(r => r.name ? `${r.name} <${r.email}>` : r.email),
     subject,
     html: htmlContent,
