@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/brevo'
+
+const ADMIN_EMAILS = [
+  { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },
+  { email: 'contacto@novotech.mx', name: 'Contacto Novotech' },
+]
 
 function getServiceClient() {
   return createServiceClient(
@@ -23,6 +29,17 @@ export async function POST(request: Request) {
       event_type,
       metadata: metadata || {},
     })
+
+    if (event_type === 'skill_download' || event_type === 'download') {
+      const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
+      const userEmail = user?.email ?? 'desconocido'
+      const item = metadata?.title ?? metadata?.file ?? metadata?.slug ?? 'sin nombre'
+      sendEmail({
+        to: ADMIN_EMAILS,
+        subject: `Descarga: ${item} — ${userEmail}`,
+        htmlContent: `<p>Un usuario descargó un recurso:</p><ul><li><b>Usuario:</b> ${userEmail}</li><li><b>Recurso:</b> ${item}</li><li><b>Fecha:</b> ${fecha}</li></ul>`,
+      }).catch(() => {})
+    }
 
     return NextResponse.json({ ok: true })
   } catch {

@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendEmail } from '@/lib/brevo'
+
+const ADMIN_EMAILS = [
+  { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },
+  { email: 'contacto@novotech.mx', name: 'Contacto Novotech' },
+]
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -35,6 +41,12 @@ export async function POST(request: Request) {
       }
       throw error
     }
+
+    sendEmail({
+      to: ADMIN_EMAILS,
+      subject: `Newsletter: nuevo suscriptor — ${email}`,
+      htmlContent: `<p>Nuevo suscriptor al newsletter:</p><ul><li><b>Email:</b> ${email}</li><li><b>Fecha:</b> ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}</li></ul>`,
+    }).catch(() => {})
 
     return NextResponse.json({ ok: true })
   } catch (err) {

@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
+import { sendEmail } from '@/lib/brevo'
+
+const ADMIN_EMAILS = [
+  { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },
+  { email: 'contacto@novotech.mx', name: 'Contacto Novotech' },
+]
 
 function createServiceClient() {
   return createClient(
@@ -52,6 +58,16 @@ export async function POST(request: Request) {
         }, { onConflict: 'user_id,course_id' })
       }
     }
+
+    const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
+    const customerEmail = session.customer_details?.email ?? session.metadata?.userEmail ?? 'desconocido'
+    const monto = session.amount_total ? `$${(session.amount_total / 100).toFixed(2)} ${(session.currency ?? 'usd').toUpperCase()}` : 'desconocido'
+    const producto = session.metadata?.courseSlug ?? session.metadata?.productName ?? 'producto'
+    sendEmail({
+      to: ADMIN_EMAILS,
+      subject: `💰 Compra: ${producto} — ${customerEmail}`,
+      htmlContent: `<p>Nueva compra completada:</p><ul><li><b>Usuario:</b> ${customerEmail}</li><li><b>Producto:</b> ${producto}</li><li><b>Monto:</b> ${monto}</li><li><b>Fecha:</b> ${fecha}</li><li><b>Sesión Stripe:</b> ${session.id}</li></ul>`,
+    }).catch(() => {})
   }
 
   return NextResponse.json({ received: true })
