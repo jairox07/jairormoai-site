@@ -11,6 +11,45 @@ interface VaultClientProps {
   userId: string | null
 }
 
+function InstallGuideBox() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-10 rounded-2xl border border-cyan/15 bg-cyan/[0.03] overflow-hidden">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left"
+      >
+        <span className="font-mono text-[11px] font-bold uppercase tracking-[2px] text-cyan">
+          📦 ¿Cómo instalo un skill descargado?
+        </span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`text-cyan transition-transform ${open ? 'rotate-180' : ''}`}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="px-6 pb-6 grid md:grid-cols-2 gap-6">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[2px] text-gray2 mb-2">Claude Desktop / App</div>
+            <ol className="font-sora text-sm text-gray space-y-1.5 list-decimal list-inside">
+              <li>Abre Configuración → Capacidades → Skills</li>
+              <li>Sube el archivo .md descargado, o pégalo en las instrucciones de un Proyecto</li>
+              <li>Pide la tarea en el chat — Claude activa el skill solo</li>
+            </ol>
+          </div>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[2px] text-gray2 mb-2">Terminal (Claude Code / CLI)</div>
+            <ol className="font-sora text-sm text-gray space-y-1.5 list-decimal list-inside">
+              <li>Guarda el archivo en <code className="text-cyan">~/.claude/skills/&lt;nombre&gt;/SKILL.md</code></li>
+              <li>Reinicia Claude Code</li>
+              <li>Invócalo con <code className="text-cyan">/&lt;nombre-skill&gt;</code> o describe la tarea</li>
+            </ol>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function VaultClient({ projects, isLoggedIn, userId }: VaultClientProps) {
   const [activeFilter, setActiveFilter] = useState('all')
   const [expandedComments, setExpandedComments] = useState<string | null>(null)
@@ -30,6 +69,8 @@ export function VaultClient({ projects, isLoggedIn, userId }: VaultClientProps) 
 
   return (
     <>
+      <InstallGuideBox />
+
       {/* Search */}
       <div className="relative mb-4 max-w-lg">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

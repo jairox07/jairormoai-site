@@ -10,6 +10,20 @@ description: >
  demanda?", "¿qué excepciones tiene el demandado?", "reconvención", o cualquier
  duda sobre qué oponer frente a una demanda en Civil, Familiar, Mercantil o Laboral.
 ---
+## 📦 Cómo instalar este skill
+
+**Claude Desktop / App:**
+1. Abre Configuración → Capacidades (Settings → Capabilities) → Skills
+2. Sube este archivo .md como skill personalizado, o crea un Proyecto y pega este contenido en sus instrucciones personalizadas
+3. Activa el skill en la conversación donde lo necesites — Claude lo detecta por la descripción
+
+**Terminal (Claude Code / CLI):**
+1. Guarda este archivo en `~/.claude/skills/<nombre-skill>/SKILL.md` (usa el valor de `name:` del frontmatter como carpeta)
+2. Reinicia Claude Code, o corre tu comando de recarga de skills si tu versión lo soporta
+3. Invócalo escribiendo `/<nombre-skill>` o simplemente describe la tarea — se activa automáticamente según la descripción
+
+---
+
 
 # Analizador de Excepciones y Defensas — Derecho Mexicano
 
