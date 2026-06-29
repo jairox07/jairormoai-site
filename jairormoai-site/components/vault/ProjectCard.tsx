@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { CATEGORY_COLORS } from '@/lib/constants'
 import type { Project } from '@/lib/types'
 
@@ -24,8 +25,9 @@ const DEFAULT_COLOR = {
   accent: '#94A3B8',
 }
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project, isLoggedIn }: { project: Project; isLoggedIn: boolean }) {
   const [copied, setCopied] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const colors = CATEGORY_COLORS[project.category] ?? DEFAULT_COLOR
 
   const onShare = async () => {
@@ -100,7 +102,10 @@ export function ProjectCard({ project }: { project: Project }) {
             href={project.download_url}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => fetch('/api/activity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'download', metadata: { project_id: project.id, title: project.title } }) })}
+            onClick={(e) => {
+              if (!isLoggedIn) { e.preventDefault(); setShowLoginPrompt(true); return }
+              fetch('/api/activity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'download', metadata: { project_id: project.id, title: project.title } }) })
+            }}
             className="ml-auto flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider border px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
             style={{ color: colors.accent, borderColor: `${colors.accent}40`, background: `${colors.accent}12` }}
           >
@@ -116,6 +121,36 @@ export function ProjectCard({ project }: { project: Project }) {
           </span>
         ) : null}
       </div>
+
+      {showLoginPrompt && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLoginPrompt(false) }}
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-white/[0.1] bg-bg2 p-8 text-center">
+            <div className="text-3xl mb-3">🔒</div>
+            <h3 className="font-sora font-bold text-lg mb-2">Regístrate gratis para descargar</h3>
+            <p className="font-sora text-sm text-gray mb-6">
+              Crea tu cuenta en segundos y descarga &quot;{project.title}&quot; sin costo.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Link href="/signup?redirect=/vault">
+                <button className="w-full font-mono text-[11px] font-bold uppercase tracking-[1px] px-4 py-3 rounded-xl bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 transition-colors">
+                  Crear cuenta gratis
+                </button>
+              </Link>
+              <Link href="/login?redirect=/vault">
+                <button className="w-full font-mono text-[11px] uppercase tracking-[1px] px-4 py-3 rounded-xl border border-white/[0.08] text-gray2 hover:text-white transition-colors">
+                  Ya tengo cuenta
+                </button>
+              </Link>
+              <button onClick={() => setShowLoginPrompt(false)} className="font-mono text-[10px] text-gray2 hover:text-white">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   )
 }
