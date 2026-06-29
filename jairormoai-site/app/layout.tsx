@@ -7,6 +7,16 @@ import { ConstellationCanvas } from '@/components/constellation/ConstellationCan
 import { SpaceWaves } from '@/components/constellation/SpaceWaves'
 import { ClickRipple } from '@/components/ui/ClickRipple'
 import { PageViewTracker } from '@/components/analytics/PageViewTracker'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+
+async function getSiteTheme(): Promise<string> {
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data } = await service.from('site_settings').select('value').eq('key', 'theme').single()
+  return data?.value === 'v2' ? 'v2' : 'v1'
+}
 
 const OG_IMAGE = 'https://aufounpvgprzciqcswyi.supabase.co/storage/v1/object/sign/jairoromo.ai%20bucket/aragonai-7984aeb5-3408-4714-bbc3-f21c8bb0dd2f.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wY2EyZWRmZC03MzZiLTRkNWItOGY5OS1jNjNiMzFmMjQzMmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJqYWlyb3JvbW8uYWkgYnVja2V0L2FyYWdvbmFpLTc5ODRhZWI1LTM0MDgtNDcxNC1iYmMzLWYyMWM4YmIwZGQyZi5qcGVnIiwiaWF0IjoxNzgwNjEwNzAxLCJleHAiOjE4MTIxNDY3MDF9.tIzFipsnTXhr4EvUFkW3_a8Qh6byTAkwBnS20ZfhvmY'
 
@@ -132,9 +142,10 @@ const websiteSchema = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getSiteTheme()
   return (
-    <html lang="es" className="scroll-smooth">
+    <html lang="es" className="scroll-smooth" data-theme={theme}>
       <head>
         <script
           type="application/ld+json"

@@ -22,6 +22,9 @@ export default async function AdminPage() {
 
   const service = getServiceClient()
 
+  const { data: themeRow } = await service.from('site_settings').select('value').eq('key', 'theme').single()
+  const currentTheme = themeRow?.value === 'v2' ? 'v2' : 'v1'
+
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
 
@@ -126,6 +129,7 @@ export default async function AdminPage() {
   return (
     <AdminDashboard
       adminEmail={user.email!}
+      currentTheme={currentTheme}
       stats={{
         totalUsers: totalUsers ?? 0,
         newsletterCount: newsletterCount ?? 0,

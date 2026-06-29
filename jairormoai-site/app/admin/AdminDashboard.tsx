@@ -55,6 +55,56 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
   )
 }
 
+// ─── Theme Selector ────────────────────────────────────────────────────────────
+
+const THEMES = [
+  { id: 'v1', label: 'Original', desc: 'Cyan / Púrpura · Sora', swatch: ['#4FC3F7', '#8B5CF6'] },
+  { id: 'v2', label: 'Neón v2', desc: 'Azul / Magenta · Exo 2', swatch: ['#00A3FF', '#FF00FF'] },
+]
+
+function ThemeSelector({ currentTheme }: { currentTheme: string }) {
+  const [active, setActive] = useState(currentTheme)
+  const [saving, setSaving] = useState(false)
+
+  const setTheme = async (id: string) => {
+    setSaving(true)
+    const res = await fetch('/api/admin/theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme: id }),
+    })
+    setSaving(false)
+    if (res.ok) { setActive(id); window.location.reload() }
+  }
+
+  return (
+    <div className="mb-8 p-4 rounded-xl border border-white/[0.07] bg-white/[0.02]">
+      <div className="font-mono text-[10px] uppercase tracking-[2px] text-gray2 mb-3">Diseño del sitio</div>
+      <div className="grid grid-cols-2 gap-3">
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTheme(t.id)}
+            disabled={saving}
+            className={`p-4 rounded-xl border text-left transition-colors disabled:opacity-50 ${active === t.id ? 'border-cyan/50 bg-cyan/[0.06]' : 'border-white/[0.08] hover:border-white/20'}`}
+          >
+            <div className="flex gap-1.5 mb-3">
+              {t.swatch.map((c) => (
+                <div key={c} className="w-5 h-5 rounded-full" style={{ background: c }} />
+              ))}
+            </div>
+            <div className="font-sora text-sm font-bold flex items-center gap-2">
+              {t.label}
+              {active === t.id && <span className="font-mono text-[9px] text-cyan uppercase">Activo</span>}
+            </div>
+            <div className="font-mono text-[10px] text-gray2 mt-1">{t.desc}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Test Email ───────────────────────────────────────────────────────────────
 
 function TestEmailButton() {
@@ -307,6 +357,7 @@ interface CourseRow {
 
 interface Props {
   adminEmail: string
+  currentTheme: string
   stats: { totalUsers: number; newsletterCount: number; enrollmentCount: number; commentCount: number; pageViewCount: number; pageViewTodayCount: number }
   recentActivity: ActivityLog[]
   recentUsers: UserRow[]
@@ -315,7 +366,7 @@ interface Props {
   topPages: Array<{ path: string; count: number }>
 }
 
-export function AdminDashboard({ adminEmail, stats, recentActivity: initialActivity, recentUsers: initialUsers, newsletterSubs, enrollments, topPages }: Props) {
+export function AdminDashboard({ adminEmail, currentTheme, stats, recentActivity: initialActivity, recentUsers: initialUsers, newsletterSubs, enrollments, topPages }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activity, setActivity] = useState<ActivityLog[]>(initialActivity)
@@ -784,6 +835,7 @@ export function AdminDashboard({ adminEmail, stats, recentActivity: initialActiv
         {/* === PROFILE === */}
         {activeTab === 'profile' && (
           <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 p-8 max-w-lg">
+            <ThemeSelector currentTheme={currentTheme} />
             <TestEmailButton />
             <div className="flex items-center gap-4 mb-8">
               <div className="w-14 h-14 rounded-full bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] flex items-center justify-center font-sora font-black text-xl text-bg flex-shrink-0">
