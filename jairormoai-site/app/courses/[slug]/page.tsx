@@ -77,6 +77,60 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
             </p>
           )}
 
+          {/* Landing content — only for non-enrolled */}
+          {!enrollment && (typedCourse as any).long_description && (() => {
+            const ld = (typedCourse as any).long_description
+            return (
+              <div className="mb-10 space-y-10">
+                {ld.tagline && (
+                  <p className="font-sora font-bold text-xl text-cyan">{ld.tagline}</p>
+                )}
+                <div className="grid md:grid-cols-2 gap-8">
+                  {ld.for_who?.length > 0 && (
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-3">¿Para quién es?</p>
+                      <ul className="space-y-2">
+                        {ld.for_who.map((item: string, i: number) => (
+                          <li key={i} className="flex gap-2 font-sora text-sm text-gray">
+                            <span className="text-cyan mt-0.5">→</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {ld.what_you_learn?.length > 0 && (
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-3">Qué aprenderás</p>
+                      <ul className="space-y-2">
+                        {ld.what_you_learn.map((item: string, i: number) => (
+                          <li key={i} className="flex gap-2 font-sora text-sm text-gray">
+                            <span className="text-cyan mt-0.5">✓</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {ld.modules?.length > 0 && (
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-4">Contenido del curso</p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {ld.modules.map((m: {num: number; title: string; desc: string}) => (
+                        <div key={m.num} className="flex gap-3 p-4 rounded-xl bg-bg2 border border-white/[0.06]">
+                          <span className="font-mono text-[11px] text-cyan font-bold w-6 shrink-0">{m.num}</span>
+                          <div>
+                            <p className="font-sora text-sm font-bold">{m.title}</p>
+                            <p className="font-sora text-xs text-gray mt-0.5">{m.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
           {enrollment ? (
             <div className="flex flex-col gap-4">
               <ProgressBar completed={completedCount} total={totalLessons} className="max-w-md" />
@@ -97,7 +151,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
                   normalPriceCents={typedCourse.price_cents}
                 />
               )}
-              <div className="flex items-center gap-4 flex-wrap">
+              <div id="comprar" className="flex items-center gap-4 flex-wrap">
                 {typedCourse.free_until && new Date(typedCourse.free_until) > new Date() ? (
                   <span className="font-sora font-black text-3xl text-green-400">GRATIS</span>
                 ) : (

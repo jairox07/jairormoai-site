@@ -97,7 +97,7 @@ export function CourseCard({ course, lessonCount, enrolled = false }: CourseCard
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-auto">
+        <div className="flex items-center justify-between mt-auto gap-2 flex-wrap">
           <span className={`font-sora font-black text-2xl ${isFreeNow ? 'text-green-400' : ''}`}>
             {isFreeNow ? 'GRATIS' : formatPrice(course.price_cents)}
           </span>
@@ -106,9 +106,14 @@ export function CourseCard({ course, lessonCount, enrolled = false }: CourseCard
               <Button variant="outline" size="sm">Continuar →</Button>
             </Link>
           ) : (
-            <Link href={`/courses/${course.slug}`}>
-              <Button variant="primary" size="sm">Ver curso</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href={`/courses/${course.slug}`}>
+                <Button variant="outline" size="sm">Ver curso</Button>
+              </Link>
+              <Link href={`/courses/${course.slug}#comprar`}>
+                <Button variant="primary" size="sm">Comprar</Button>
+              </Link>
+            </div>
           )}
         </div>
       </div>
