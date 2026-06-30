@@ -106,14 +106,9 @@ export function CourseCard({ course, lessonCount, enrolled = false }: CourseCard
               <Button variant="outline" size="sm">Continuar →</Button>
             </Link>
           ) : (
-            <div className="flex gap-2">
-              <Link href={`/courses/${course.slug}`}>
-                <Button variant="outline" size="sm">Ver curso</Button>
-              </Link>
-              <Link href={`/courses/${course.slug}#comprar`}>
-                <Button variant="primary" size="sm">Comprar</Button>
-              </Link>
-            </div>
+            <Link href={`/courses/${course.slug}#comprar`}>
+              <Button variant="primary" size="sm">Comprar</Button>
+            </Link>
           )}
         </div>
       </div>
