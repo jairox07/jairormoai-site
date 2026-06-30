@@ -73,14 +73,17 @@ function AdminMenu() {
 export function Navbar() {
   const pathname = usePathname()
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user)
       setIsAdmin(data.user?.email === ADMIN_EMAIL)
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user)
       setIsAdmin(session?.user?.email === ADMIN_EMAIL)
     })
     return () => sub.subscription.unsubscribe()
@@ -136,9 +139,15 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <DarkModeToggle />
           {isAdmin && <AdminMenu />}
-          <Link href="/login">
-            <Button variant="primary" size="sm">Iniciar sesión</Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/profile">
+              <Button variant="primary" size="sm">Mi perfil</Button>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <Button variant="primary" size="sm">Iniciar sesión</Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile: hamburger */}
@@ -195,9 +204,15 @@ export function Navbar() {
                 Admin Dashboard
               </Link>
             )}
-            <Link href="/login">
-              <Button variant="primary" className="w-full">Iniciar sesión</Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/profile">
+                <Button variant="primary" className="w-full">Mi perfil</Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="primary" className="w-full">Iniciar sesión</Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
