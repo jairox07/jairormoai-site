@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
+import { sendEmail } from '@/lib/brevo'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const CONTACT_RECIPIENT = 'jairo.romo@novotech.mx'
 
-function createServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
+const ADMIN_EMAILS = [
+  { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },
+  { email: 'contacto@novotech.mx', name: 'Contacto Novotech' },
+]
 
 export async function POST(request: Request) {
   try {
@@ -30,26 +26,16 @@ export async function POST(request: Request) {
       whatsapp: typeof whatsapp === 'string' ? whatsapp.trim() : '',
     }
 
-    const supabase = createServiceClient()
-    const { error } = await supabase.from('contact_submissions').insert([form])
-    if (error) throw error
+    const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
 
-    if (process.env.RESEND_API_KEY) {
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
-        from: 'jairoromo.ai <onboarding@resend.dev>',
-        to: CONTACT_RECIPIENT,
-        replyTo: form.email,
-        subject: `Nuevo contacto desde jairoromo.ai — ${form.name}`,
-        text: [
-          `Nombre: ${form.name}`,
-          `Email: ${form.email}`,
-          `Empresa: ${form.company || '—'}`,
-          `WhatsApp/Teléfono: ${form.whatsapp || '—'}`,
-        ].join('\n'),
-      })
-    } else {
-      console.warn('RESEND_API_KEY no configurada — omitiendo envío de correo de contacto')
+    const result = await sendEmail({
+      to: ADMIN_EMAILS,
+      subject: `Contacto: ${form.name} — ${form.email}`,
+      htmlContent: `<p>Nuevo mensaje desde el formulario "Hablemos" de jairoromo.ai:</p><ul><li><b>Nombre:</b> ${form.name}</li><li><b>Email:</b> <a href="mailto:${form.email}">${form.email}</a></li><li><b>Empresa:</b> ${form.company || '—'}</li><li><b>WhatsApp/Teléfono:</b> ${form.whatsapp || '—'}</li><li><b>Fecha:</b> ${fecha}</li></ul>`,
+    })
+
+    if (result?.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
