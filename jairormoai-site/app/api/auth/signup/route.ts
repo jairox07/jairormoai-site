@@ -88,7 +88,7 @@ function welcomeEmail(name: string): string {
             <tr><td style="padding:16px;text-align:center;">
               <p style="margin:0 0 2px;font-size:18px;font-weight:900;color:#FFFFFF;">$15</p>
               <p style="margin:0 0 12px;font-size:11px;color:#64748B;">20 min</p>
-              <a href="https://buy.stripe.com/aFa28s7tH51Xa1H5Cx6wE09" style="display:block;padding:8px;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.2);border-radius:6px;font-family:monospace;font-size:10px;color:#4FC3F7;text-decoration:none;">AGENDAR</a>
+              <a href="https://cal.com/jairo-romo-76rckd/enfoque-rapido-jairoromo.ai" style="display:block;padding:8px;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.2);border-radius:6px;font-family:monospace;font-size:10px;color:#4FC3F7;text-decoration:none;">AGENDAR</a>
             </td></tr>
           </table>
         </td>
@@ -98,7 +98,7 @@ function welcomeEmail(name: string): string {
               <p style="margin:0 0 2px;font-size:11px;color:#4FC3F7;font-family:monospace;">⭐ Popular</p>
               <p style="margin:0 0 2px;font-size:18px;font-weight:900;color:#FFFFFF;">$79</p>
               <p style="margin:0 0 12px;font-size:11px;color:#64748B;">45 min</p>
-              <a href="https://buy.stripe.com/14A7sM6pD9id4HnaWR6wE0d" style="display:block;padding:8px;background:rgba(79,195,247,0.15);border:1px solid rgba(79,195,247,0.3);border-radius:6px;font-family:monospace;font-size:10px;color:#4FC3F7;text-decoration:none;">AGENDAR</a>
+              <a href="https://cal.com/jairo-romo-76rckd/sesion-de-trabajo-jairoromo.ai" style="display:block;padding:8px;background:rgba(79,195,247,0.15);border:1px solid rgba(79,195,247,0.3);border-radius:6px;font-family:monospace;font-size:10px;color:#4FC3F7;text-decoration:none;">AGENDAR</a>
             </td></tr>
           </table>
         </td>
@@ -107,7 +107,7 @@ function welcomeEmail(name: string): string {
             <tr><td style="padding:16px;text-align:center;">
               <p style="margin:0 0 2px;font-size:18px;font-weight:900;color:#FFFFFF;">$297</p>
               <p style="margin:0 0 12px;font-size:11px;color:#64748B;">90 min</p>
-              <a href="https://buy.stripe.com/eVqcN6cO1fGB7Tzc0V6wE0e" style="display:block;padding:8px;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.2);border-radius:6px;font-family:monospace;font-size:10px;color:#4FC3F7;text-decoration:none;">AGENDAR</a>
+              <a href="https://cal.com/jairo-romo-76rckd/consultoria-profunda-jairoromo.ai" style="display:block;padding:8px;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.2);border-radius:6px;font-family:monospace;font-size:10px;color:#4FC3F7;text-decoration:none;">AGENDAR</a>
             </td></tr>
           </table>
         </td>

@@ -25,7 +25,7 @@ export const SESSION_PACKAGES = [
     notFor: 'No apta para estrategia compleja ni múltiples temas.',
     stripePriceId: '',
     stripeLink: 'https://buy.stripe.com/aFa28s7tH51Xa1H5Cx6wE09',
-    calLink: 'https://cal.com/jairoromo/20min',
+    calLink: 'https://cal.com/jairo-romo-76rckd/enfoque-rapido-jairoromo.ai',
     popular: false,
   },
   {
@@ -39,7 +39,7 @@ export const SESSION_PACKAGES = [
     notFor: 'No apta para rediseños completos de arquitectura.',
     stripePriceId: '',
     stripeLink: 'https://buy.stripe.com/14A7sM6pD9id4HnaWR6wE0d',
-    calLink: 'https://cal.com/jairoromo/45min',
+    calLink: 'https://cal.com/jairo-romo-76rckd/sesion-de-trabajo-jairoromo.ai',
     popular: true,
   },
   {
@@ -53,7 +53,7 @@ export const SESSION_PACKAGES = [
     notFor: 'No apta para preguntas simples.',
     stripePriceId: '',
     stripeLink: 'https://buy.stripe.com/eVqcN6cO1fGB7Tzc0V6wE0e',
-    calLink: 'https://cal.com/jairoromo/90min',
+    calLink: 'https://cal.com/jairo-romo-76rckd/consultoria-profunda-jairoromo.ai',
     popular: false,
   },
 ] as const
