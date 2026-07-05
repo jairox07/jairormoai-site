@@ -428,22 +428,28 @@ export function AdminDashboard({ adminEmail, currentTheme, stats, recentActivity
     router.push('/')
   }
 
-  const setCourseFree = async (courseId: string, days: number) => {
+  const updateCourseFreeUntil = async (courseId: string, freeUntil: string | null) => {
     setSavingCourse(courseId)
-    const supabase = createClient()
-    const freeUntil = new Date(Date.now() + days * 86400000).toISOString()
-    await supabase.from('courses').update({ free_until: freeUntil }).eq('id', courseId)
-    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, free_until: freeUntil } : c))
+    const res = await fetch(`/api/admin/courses/${courseId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ free_until: freeUntil }),
+    })
+    if (res.ok) {
+      setCourses(prev => prev.map(c => c.id === courseId ? { ...c, free_until: freeUntil } : c))
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'Error al actualizar el curso')
+    }
     setSavingCourse(null)
   }
 
-  const setCoursePaid = async (courseId: string) => {
-    setSavingCourse(courseId)
-    const supabase = createClient()
-    await supabase.from('courses').update({ free_until: null }).eq('id', courseId)
-    setCourses(prev => prev.map(c => c.id === courseId ? { ...c, free_until: null } : c))
-    setSavingCourse(null)
+  const setCourseFree = (courseId: string, days: number) => {
+    const freeUntil = new Date(Date.now() + days * 86400000).toISOString()
+    return updateCourseFreeUntil(courseId, freeUntil)
   }
+
+  const setCoursePaid = (courseId: string) => updateCourseFreeUntil(courseId, null)
 
   // Local user mutations (optimistic)
   const applyUserEdit = (id: string, patch: Partial<UserRow>) => {
