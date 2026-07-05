@@ -122,7 +122,7 @@ function TestEmailButton() {
   return (
     <div className="mb-8 p-4 rounded-xl border border-white/[0.07] bg-white/[0.02] flex items-center justify-between gap-4">
       <div>
-        <div className="font-mono text-[10px] uppercase tracking-[2px] text-gray2 mb-1">Brevo</div>
+        <div className="font-mono text-[10px] uppercase tracking-[2px] text-gray2 mb-1">Resend</div>
         <div className="font-sora text-sm">
           {status === 'ok' && <span className="text-green-400">{msg}</span>}
           {status === 'error' && <span className="text-red-400">{msg}</span>}
@@ -678,9 +678,9 @@ export function AdminDashboard({ adminEmail, currentTheme, stats, recentActivity
           <div className="rounded-2xl border border-white/[0.07] bg-bg2/40 overflow-hidden">
             <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
               <span className="font-mono text-[11px] text-gray2">{newsletterSubs.length} suscriptores</span>
-              <a href="https://app.brevo.com/contact/list" target="_blank" rel="noopener noreferrer"
+              <a href="https://resend.com/emails" target="_blank" rel="noopener noreferrer"
                 className="font-mono text-[10px] font-bold uppercase tracking-[1px] px-3 py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan hover:bg-cyan/20 transition-colors">
-                Enviar campaña en Brevo →
+                Ver correos en Resend →
               </a>
             </div>
             <div className="divide-y divide-white/[0.04]">

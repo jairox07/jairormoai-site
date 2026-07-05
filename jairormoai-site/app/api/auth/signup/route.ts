@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { sendEmail } from '@/lib/brevo'
+import { sendEmail } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   const { email, password, full_name } = await req.json()

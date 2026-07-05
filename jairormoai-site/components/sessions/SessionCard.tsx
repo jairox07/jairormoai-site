@@ -7,7 +7,7 @@ type Package = typeof SESSION_PACKAGES[number]
 
 export function SessionCard({ pkg }: { pkg: Package }) {
   const onBuy = () => {
-    if (pkg.stripeLink) window.open(pkg.stripeLink, '_blank')
+    if (pkg.calLink) window.open(pkg.calLink, '_blank')
   }
 
   return (

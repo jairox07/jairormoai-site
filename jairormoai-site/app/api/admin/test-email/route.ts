@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { sendEmail } from '@/lib/brevo'
+import { sendEmail } from '@/lib/resend'
 import { NextResponse } from 'next/server'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'jairoromo@gmail.com'

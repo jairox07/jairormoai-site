@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendEmail } from '@/lib/brevo'
+import { sendEmail } from '@/lib/resend'
 
 const ADMIN_EMAILS = [
   { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },

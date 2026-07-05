@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { sendEmail } from '@/lib/brevo'
+import { sendEmail } from '@/lib/resend'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
