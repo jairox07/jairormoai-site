@@ -9,7 +9,7 @@
   --color-purp:  #8B5CF6;
   --color-mid:   #6B8EF5;
   --color-gray:  #94A3B8;
-  --color-gray2: #3D4F63;
+  --color-gray2: #6B7F99;
 
   --font-sora: 'Sora', sans-serif;
   --font-mono: 'Space Mono', monospace;
@@ -68,7 +68,7 @@
   --purp: #8B5CF6;
   --mid: #6B8EF5;
   --gray: #94A3B8;
-  --gray2: #3D4F63;
+  --gray2: #6B7F99;
 }
 
 * { box-sizing: border-box; }
