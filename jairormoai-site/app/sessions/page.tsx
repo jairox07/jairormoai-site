@@ -1,5 +1,6 @@
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 import { SessionCard } from '@/components/sessions/SessionCard'
+import { FriendCodeForm } from '@/components/sessions/FriendCodeForm'
 import { SESSION_PACKAGES } from '@/lib/constants'
 
 export const metadata = {
@@ -85,6 +86,7 @@ export default function SessionsPage() {
           <p className="font-mono text-[11px] text-gray2 uppercase tracking-wider">
             Pago seguro con Stripe · Sin suscripción · Factura disponible
           </p>
+          <FriendCodeForm />
         </div>
       </div>
       </div>
