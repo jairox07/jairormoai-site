@@ -1,6 +1,11 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { GUIA_CLAUDE_STRIPE_LINK } from '@/lib/constants'
+import { createClient } from '@/lib/supabase/client'
+import { CourseFreeCountdown } from '@/components/courses/CourseFreeCountdown'
+
+const COURSE_SLUG = 'claude-cero-cien'
 
 const TABS = [
   {
@@ -66,8 +71,12 @@ const FAQS = [
 const STRIPE_BUY_LINK = GUIA_CLAUDE_STRIPE_LINK
 
 export default function GuiaClaudePage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState(0)
   const [openFaqs, setOpenFaqs] = useState<number[]>([])
+  const [freeUntil, setFreeUntil] = useState<string | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [enrolling, setEnrolling] = useState(false)
   const fadeRefs = useRef<HTMLDivElement[]>([])
 
   useEffect(() => {
@@ -78,6 +87,32 @@ export default function GuiaClaudePage() {
     fadeRefs.current.forEach((el) => { if (el) obs.observe(el) })
     return () => obs.disconnect()
   }, [])
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('courses').select('free_until').eq('slug', COURSE_SLUG).single().then(({ data }) => {
+      if (data) setFreeUntil(data.free_until)
+    })
+    supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user))
+  }, [])
+
+  const isFreeNow = !!freeUntil && new Date(freeUntil) > new Date()
+
+  const onFreeCta = async () => {
+    if (!isLoggedIn) {
+      router.push(`/signup?redirect=/courses/${COURSE_SLUG}`)
+      return
+    }
+    setEnrolling(true)
+    const res = await fetch('/api/courses/enroll-free', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseSlug: COURSE_SLUG }),
+    })
+    const data = await res.json()
+    if (data.ok) router.push(`/courses/${COURSE_SLUG}?enrolled=true`)
+    else setEnrolling(false)
+  }
 
   const addFadeRef = (el: HTMLDivElement | null) => {
     if (el && !fadeRefs.current.includes(el)) fadeRefs.current.push(el)
@@ -173,20 +208,40 @@ export default function GuiaClaudePage() {
             Desde tu primera conversación hasta automatizar flujos completos con agentes.
           </p>
           <div className="flex flex-col items-center gap-4 mb-4">
+            {isFreeNow && freeUntil && (
+              <div className="mb-2 inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[2px] bg-green-500 text-white px-5 py-2 rounded-full animate-pulse">
+                ⚡ GRATIS por 24 horas
+              </div>
+            )}
             <div className="flex items-center gap-4">
-              <span className="font-sora font-black text-5xl bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] bg-clip-text text-transparent">
-                $25 USD
+              <span className={`font-sora font-black text-5xl ${isFreeNow ? 'text-green-400' : 'bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] bg-clip-text text-transparent'}`}>
+                {isFreeNow ? 'GRATIS' : '$25 USD'}
               </span>
             </div>
-            <span className="font-mono text-[11px] text-cyan uppercase tracking-[2px]">Pago único · Sin suscripción</span>
-            <a
-              href={STRIPE_BUY_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] text-white font-black text-lg px-12 py-5 rounded-full shadow-[0_8px_40px_rgba(79,195,247,0.35)] hover:shadow-[0_12px_50px_rgba(79,195,247,0.45)] hover:-translate-y-0.5 transition-all duration-200"
-            >
-              Quiero este curso →
-            </a>
+            {isFreeNow && freeUntil && (
+              <CourseFreeCountdown freeUntil={freeUntil} normalPriceCents={2500} />
+            )}
+            <span className="font-mono text-[11px] text-cyan uppercase tracking-[2px]">
+              {isFreeNow ? 'Acceso gratis por tiempo limitado' : 'Pago único · Sin suscripción'}
+            </span>
+            {isFreeNow ? (
+              <button
+                onClick={onFreeCta}
+                disabled={enrolling}
+                className="inline-flex items-center gap-2 bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] text-white font-black text-lg px-12 py-5 rounded-full shadow-[0_8px_40px_rgba(79,195,247,0.35)] hover:shadow-[0_12px_50px_rgba(79,195,247,0.45)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60"
+              >
+                {enrolling ? 'Procesando…' : isLoggedIn ? 'Obtener acceso gratis →' : 'Regístrate — es gratis →'}
+              </button>
+            ) : (
+              <a
+                href={STRIPE_BUY_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] text-white font-black text-lg px-12 py-5 rounded-full shadow-[0_8px_40px_rgba(79,195,247,0.35)] hover:shadow-[0_12px_50px_rgba(79,195,247,0.45)] hover:-translate-y-0.5 transition-all duration-200"
+              >
+                Quiero este curso →
+              </a>
+            )}
             <span className="font-mono text-[11px] text-gray2 uppercase tracking-wider">
               ✓ Acceso inmediato &nbsp;·&nbsp; ✓ Pago seguro &nbsp;·&nbsp; ✓ Garantía 7 días
             </span>
@@ -458,16 +513,22 @@ export default function GuiaClaudePage() {
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)]" />
 
               <div className="inline-block font-mono text-[10px] font-bold uppercase tracking-[2px] text-purp bg-purp/[0.08] border border-purp/25 px-4 py-2 rounded-full mb-7">
-                Acceso completo · Un solo pago
+                {isFreeNow ? '⚡ Gratis por 24 horas' : 'Acceso completo · Un solo pago'}
               </div>
               <h2 className="font-sora font-black text-[clamp(32px,5vw,52px)] tracking-tight mb-3">Claude de Cero a Cien</h2>
               <p className="text-gray mb-10">La guía más completa en español sobre Claude AI</p>
 
-              <div className="font-sora font-black text-[72px] bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] bg-clip-text text-transparent leading-none mb-2">
-                $25 USD
+              <div className={`font-sora font-black text-[72px] leading-none mb-2 ${isFreeNow ? 'text-green-400' : 'bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] bg-clip-text text-transparent'}`}>
+                {isFreeNow ? 'GRATIS' : '$25 USD'}
               </div>
-              <div className="text-gray2 mb-2 text-[16px]">~$510 MXN · Precio de lanzamiento</div>
-              <div className="font-mono text-[12px] text-cyan uppercase tracking-[2px] mb-10">Pago único · Sin suscripción</div>
+              {isFreeNow && freeUntil ? (
+                <CourseFreeCountdown freeUntil={freeUntil} normalPriceCents={2500} />
+              ) : (
+                <>
+                  <div className="text-gray2 mb-2 text-[16px]">~$510 MXN · Precio de lanzamiento</div>
+                  <div className="font-mono text-[12px] text-cyan uppercase tracking-[2px] mb-10">Pago único · Sin suscripción</div>
+                </>
+              )}
 
               <div className="flex flex-col gap-2.5 text-left max-w-md mx-auto mb-11">
                 {[
@@ -488,14 +549,24 @@ export default function GuiaClaudePage() {
                 ))}
               </div>
 
-              <a
-                href={STRIPE_BUY_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] text-white font-black text-[20px] px-14 py-5 rounded-full shadow-[0_8px_48px_rgba(79,195,247,0.4)] hover:shadow-[0_14px_60px_rgba(79,195,247,0.5)] hover:-translate-y-0.5 transition-all duration-200"
-              >
-                Obtener el curso ahora →
-              </a>
+              {isFreeNow ? (
+                <button
+                  onClick={onFreeCta}
+                  disabled={enrolling}
+                  className="inline-flex items-center gap-3 bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] text-white font-black text-[20px] px-14 py-5 rounded-full shadow-[0_8px_48px_rgba(79,195,247,0.4)] hover:shadow-[0_14px_60px_rgba(79,195,247,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60"
+                >
+                  {enrolling ? 'Procesando…' : isLoggedIn ? 'Obtener acceso gratis →' : 'Regístrate — es gratis →'}
+                </button>
+              ) : (
+                <a
+                  href={STRIPE_BUY_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 bg-[linear-gradient(135deg,#4FC3F7,#6B8EF5,#8B5CF6)] text-white font-black text-[20px] px-14 py-5 rounded-full shadow-[0_8px_48px_rgba(79,195,247,0.4)] hover:shadow-[0_14px_60px_rgba(79,195,247,0.5)] hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  Obtener el curso ahora →
+                </a>
+              )}
 
               <div className="font-mono text-[10px] text-gray2 uppercase tracking-[1.5px] mt-5">
                 🔒 Pago seguro con Stripe · SSL cifrado
