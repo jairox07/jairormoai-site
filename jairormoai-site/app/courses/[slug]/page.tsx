@@ -135,7 +135,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
             <div className="flex flex-col gap-4">
               <ProgressBar completed={completedCount} total={totalLessons} className="max-w-md" />
               <a
-                href="https://drive.google.com/file/d/1Tq5oPFh8JexuQMVy6wU7UWnBt3rX0VID/view?usp=sharing"
+                href="https://drive.google.com/file/d/1wf_5LRfY78qIj7kN6doR5J7qNVlzy91h/view?usp=drive_link"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[2px] text-cyan border border-cyan/30 rounded-xl px-4 py-2 hover:bg-cyan/10 transition-colors w-fit"
