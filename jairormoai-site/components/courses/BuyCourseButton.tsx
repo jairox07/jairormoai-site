@@ -74,7 +74,7 @@ export function BuyCourseButton({
 
   const label = isFreeNow
     ? isLoggedIn ? 'Inscribirme gratis' : 'Regístrate — es gratis'
-    : customCheckoutLink ? 'Comprar curso'
+    : customCheckoutLink ? 'Inscribirme ya'
     : isLoggedIn ? 'Comprar curso' : 'Acceder para comprar'
 
   return (
