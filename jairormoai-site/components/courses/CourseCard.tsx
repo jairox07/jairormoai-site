@@ -11,8 +11,10 @@ interface CourseCardProps {
   enrolled?: boolean
 }
 
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(0)} USD`
+function formatPrice(cents: number, currency: string = 'USD'): string {
+  const amount = (cents / 100).toFixed(0)
+  if (currency === 'MXN') return `$${amount} MXN`
+  return `$${amount} USD`
 }
 
 function useCountdown(freeUntil: string | null) {
@@ -90,7 +92,7 @@ export function CourseCard({ course, lessonCount, enrolled = false }: CourseCard
         {/* Countdown when free period active */}
         {isFreeNow && !enrolled && secsLeft !== null && (
           <div className="mb-4 rounded-xl bg-red-500/10 border border-red-500/25 px-4 py-3">
-            <div className="font-mono text-[9px] text-red-400 uppercase tracking-[2px] mb-1">⚡ Precio regresa a {formatPrice(course.price_cents)} en:</div>
+            <div className="font-mono text-[9px] text-red-400 uppercase tracking-[2px] mb-1">⚡ Precio regresa a {formatPrice(course.price_cents, (course as any).long_description?.currency)} en:</div>
             <div className="font-mono text-2xl font-bold text-red-400 tabular-nums tracking-tighter">
               {formatCountdown(secsLeft)}
             </div>
@@ -99,7 +101,7 @@ export function CourseCard({ course, lessonCount, enrolled = false }: CourseCard
 
         <div className="flex items-center justify-between mt-auto gap-2 flex-wrap">
           <span className={`font-sora font-black text-2xl ${isFreeNow ? 'text-green-400' : ''}`}>
-            {isFreeNow ? 'GRATIS' : formatPrice(course.price_cents)}
+            {isFreeNow ? 'GRATIS' : formatPrice(course.price_cents, (course as any).long_description?.currency)}
           </span>
           {enrolled ? (
             <Link href={`/courses/${course.slug}`}>

@@ -156,7 +156,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
                   <span className="font-sora font-black text-3xl text-green-400">GRATIS</span>
                 ) : (
                   <span className="font-sora font-black text-3xl">
-                    ${(typedCourse.price_cents / 100).toFixed(0)} USD
+                    ${(typedCourse.price_cents / 100).toFixed(0)} {(typedCourse as any).long_description?.currency || 'USD'}
                   </span>
                 )}
                 <BuyCourseButton
