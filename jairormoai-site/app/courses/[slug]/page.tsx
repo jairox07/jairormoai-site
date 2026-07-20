@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 import { Button } from '@/components/ui/Button'
@@ -82,32 +83,44 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
             const ld = (typedCourse as any).long_description
             return (
               <div className="mb-10 space-y-10">
-                {ld.tagline && (
-                  <p className="font-sora font-bold text-xl text-cyan">{ld.tagline}</p>
-                )}
-                <div className="grid md:grid-cols-2 gap-8">
-                  {ld.for_who?.length > 0 && (
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-3">¿Para quién es?</p>
-                      <ul className="space-y-2">
-                        {ld.for_who.map((item: string, i: number) => (
-                          <li key={i} className="flex gap-2 font-sora text-sm text-gray">
-                            <span className="text-cyan mt-0.5">→</span>{item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {ld.what_you_learn?.length > 0 && (
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-3">Qué aprenderás</p>
-                      <ul className="space-y-2">
-                        {ld.what_you_learn.map((item: string, i: number) => (
-                          <li key={i} className="flex gap-2 font-sora text-sm text-gray">
-                            <span className="text-cyan mt-0.5">✓</span>{item}
-                          </li>
-                        ))}
-                      </ul>
+                <div className="grid md:grid-cols-[1.3fr_1fr] gap-8 items-start">
+                  <div className="space-y-8">
+                    {ld.tagline && (
+                      <p className="font-sora font-bold text-xl text-cyan">{ld.tagline}</p>
+                    )}
+                    {ld.for_who?.length > 0 && (
+                      <div>
+                        <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-3">¿Para quién es?</p>
+                        <ul className="space-y-2">
+                          {ld.for_who.map((item: string, i: number) => (
+                            <li key={i} className="flex gap-2 font-sora text-sm text-gray">
+                              <span className="text-cyan mt-0.5">→</span>{item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {ld.what_you_get?.length > 0 && (
+                      <div>
+                        <p className="font-mono text-[10px] uppercase tracking-[3px] text-gray2 mb-3">Qué obtienes al terminar</p>
+                        <ul className="space-y-2">
+                          {ld.what_you_get.map((item: string, i: number) => (
+                            <li key={i} className="flex gap-2 font-sora text-sm text-gray">
+                              <span className="text-cyan mt-0.5">✓</span>{item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  {typedCourse.thumbnail_url && (
+                    <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-white/[0.08]">
+                      <Image
+                        src={typedCourse.thumbnail_url}
+                        alt={typedCourse.title}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                   )}
                 </div>
