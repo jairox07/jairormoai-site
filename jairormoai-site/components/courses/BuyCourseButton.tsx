@@ -27,6 +27,11 @@ export function BuyCourseButton({
   const isFreeNow = !!freeUntil && new Date(freeUntil) > new Date()
 
   const onClick = async () => {
+    if (customCheckoutLink) {
+      window.location.href = customCheckoutLink
+      return
+    }
+
     if (!isLoggedIn) {
       router.push(`/signup?redirect=/courses/${courseSlug}`)
       return
@@ -51,11 +56,6 @@ export function BuyCourseButton({
       return
     }
 
-    if (customCheckoutLink) {
-      window.location.href = customCheckoutLink
-      return
-    }
-
     if (!stripePriceId) {
       window.location.href = GUIA_CLAUDE_STRIPE_LINK
       return
@@ -74,6 +74,7 @@ export function BuyCourseButton({
 
   const label = isFreeNow
     ? isLoggedIn ? 'Inscribirme gratis' : 'Regístrate — es gratis'
+    : customCheckoutLink ? 'Comprar curso'
     : isLoggedIn ? 'Comprar curso' : 'Acceder para comprar'
 
   return (
