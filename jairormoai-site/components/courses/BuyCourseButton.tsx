@@ -10,6 +10,7 @@ interface BuyCourseButtonProps {
   isLoggedIn: boolean
   freeUntil?: string
   firstLessonId?: string
+  customCheckoutLink?: string
 }
 
 export function BuyCourseButton({
@@ -18,6 +19,7 @@ export function BuyCourseButton({
   isLoggedIn,
   freeUntil,
   firstLessonId,
+  customCheckoutLink,
 }: BuyCourseButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -46,6 +48,11 @@ export function BuyCourseButton({
       } else {
         setLoading(false)
       }
+      return
+    }
+
+    if (customCheckoutLink) {
+      window.location.href = customCheckoutLink
       return
     }
 

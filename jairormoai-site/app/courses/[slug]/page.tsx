@@ -165,6 +165,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
                   isLoggedIn={!!user}
                   freeUntil={typedCourse.free_until ?? undefined}
                   firstLessonId={firstLessonId}
+                  customCheckoutLink={(typedCourse as any).long_description?.stripe_checkout_link}
                 />
               </div>
             </>
@@ -239,6 +240,7 @@ export default async function CourseDetailPage({ params, searchParams }: Props) 
               isLoggedIn={!!user}
               freeUntil={typedCourse.free_until ?? undefined}
               firstLessonId={firstLessonId}
+              customCheckoutLink={(typedCourse as any).long_description?.stripe_checkout_link}
             />
           </div>
         )}
