@@ -3,9 +3,18 @@ export interface AgentStep {
   desc: string
 }
 
+export interface AgentDocument {
+  kind: 'invoice' | 'receipt' | 'payment' | 'photo'
+  title: string
+  lines: string[]
+  status?: { label: string; tone: 'ok' | 'pending' | 'warn' }
+}
+
 export interface AgentChatMessage {
   from: 'bot' | 'user'
-  text: string
+  text?: string
+  document?: AgentDocument
+  time?: string
   delayMs?: number
 }
 
@@ -38,11 +47,34 @@ export const AGENTS: Agent[] = [
       { title: 'Resultados', desc: 'Registra promesas de pago, agenda seguimientos y te notifica cuando un cliente necesita atención humana.' },
     ],
     chatDemo: [
-      { from: 'bot', text: 'Hola Carlos 👋 Soy el asistente de Constructora del Valle. Vi que la factura #4021 por $18,500 venció hace 3 días. ¿Todo bien por allá?' },
-      { from: 'user', text: 'Ah sí, disculpa, se me pasó. La pago mañana' },
-      { from: 'bot', text: 'Perfecto, gracias por avisarme 🙌 Te dejo el link de pago para que sea más fácil: pay.novotech.mx/4021. ¿Te aviso mañana en la tarde para confirmar?' },
-      { from: 'user', text: 'Sí, va' },
-      { from: 'bot', text: 'Anotado ✅ Quedo pendiente. ¡Que tengas buen día, Carlos!' },
+      { from: 'bot', text: 'Hola Carlos 👋 Soy el asistente de cobranza de Constructora del Valle.', time: '9:02' },
+      {
+        from: 'bot',
+        time: '9:02',
+        document: {
+          kind: 'invoice',
+          title: 'Factura #4021',
+          lines: ['Cliente: Grupo Hidalgo SA', 'Monto: $18,500 MXN', 'Vencida hace 3 días'],
+          status: { label: 'Vencida', tone: 'warn' },
+        },
+      },
+      { from: 'bot', text: 'La vi vencida desde el lunes. ¿Todo bien por allá?', time: '9:02' },
+      { from: 'user', text: 'Ah discúlpame, se me pasó por completo. La pago mañana sin falta', time: '9:14' },
+      { from: 'bot', text: 'No hay problema Carlos 🙌 te dejo el link para que sea más fácil:', time: '9:15' },
+      { from: 'bot', text: 'pay.novotech.mx/4021', time: '9:15' },
+      { from: 'bot', text: '¿Te marco mañana como a las 5pm nada más para confirmar que ya quedó?', time: '9:15' },
+      { from: 'user', text: 'va, así queda', time: '9:16' },
+      {
+        from: 'bot',
+        time: 'vie 5:02',
+        document: {
+          kind: 'payment',
+          title: 'Pago recibido',
+          lines: ['Factura #4021', '$18,500 MXN', 'Confirmado por Stripe'],
+          status: { label: 'Pagada', tone: 'ok' },
+        },
+      },
+      { from: 'bot', text: '¡Recibido, Carlos! Gracias por la puntualidad 🙌 Nos vemos en la próxima.', time: 'vie 5:03' },
     ],
   },
   {
@@ -60,9 +92,20 @@ export const AGENTS: Agent[] = [
       { title: 'Resultados', desc: 'Confirma la nueva cita automáticamente y actualiza tu calendario sin que muevas un dedo.' },
     ],
     chatDemo: [
-      { from: 'bot', text: 'Hola Andrea 😊 Se liberó un espacio HOY a las 4:30pm con la Dra. Fernanda. Sé que querías adelantar tu cita, ¿te sirve este horario?' },
-      { from: 'user', text: 'Sí!! Me sirve perfecto' },
-      { from: 'bot', text: 'Genial, quedas confirmada para hoy 4:30pm 🎉 Te mando la ubicación y un recordatorio 1 hora antes.' },
+      { from: 'bot', text: 'Hola Andrea 😊 Se acaba de liberar un espacio HOY a las 4:30pm con la Dra. Fernanda.', time: '11:20' },
+      { from: 'bot', text: 'Sé que habías preguntado si podías adelantar tu cita, ¿te sirve este horario?', time: '11:20' },
+      { from: 'user', text: 'Uy sí!! Me sirve perfecto, gracias por avisarme', time: '11:24' },
+      {
+        from: 'bot',
+        time: '11:24',
+        document: {
+          kind: 'receipt',
+          title: 'Cita confirmada',
+          lines: ['Dra. Fernanda Ruiz', 'Hoy · 4:30pm', 'Consultorio 3, Piso 2'],
+          status: { label: 'Confirmada', tone: 'ok' },
+        },
+      },
+      { from: 'bot', text: 'Quedaste agendada. Te mando recordatorio 1 hora antes 🎉', time: '11:24' },
     ],
   },
   {
@@ -80,9 +123,30 @@ export const AGENTS: Agent[] = [
       { title: 'Resultados', desc: 'Organiza todo en una carpeta mensual lista para tu contador, con reporte de gastos por categoría.' },
     ],
     chatDemo: [
-      { from: 'bot', text: '📎 Factura recibida. Detecté: Office Depot, folio A-4471, $2,340 MXN + IVA. Categoría sugerida: Papelería y oficina. ¿Correcto?' },
-      { from: 'user', text: 'Sí, correcto' },
-      { from: 'bot', text: 'Guardada ✅ Llevas 14 facturas este mes por $38,900. Le mando el corte a tu contador cada día 28.' },
+      { from: 'user', text: '📷 [foto de ticket]', time: '2:41' },
+      {
+        from: 'bot',
+        time: '2:42',
+        document: {
+          kind: 'photo',
+          title: 'Ticket detectado',
+          lines: ['Office Depot', 'Folio A-4471', '$2,340 MXN + IVA'],
+          status: { label: 'Procesando', tone: 'pending' },
+        },
+      },
+      { from: 'bot', text: 'Lo leí: Office Depot, folio A-4471, $2,340 + IVA. Categoría sugerida: Papelería y oficina. ¿Va así?', time: '2:42' },
+      { from: 'user', text: 'sí correcto', time: '2:43' },
+      {
+        from: 'bot',
+        time: '2:43',
+        document: {
+          kind: 'receipt',
+          title: 'Gasto clasificado',
+          lines: ['Papelería y oficina', '14 facturas este mes', 'Total: $38,900 MXN'],
+          status: { label: 'Guardado', tone: 'ok' },
+        },
+      },
+      { from: 'bot', text: 'Guardado ✅ Le mando el corte completo a tu contador el día 28.', time: '2:43' },
     ],
   },
   {
@@ -100,11 +164,22 @@ export const AGENTS: Agent[] = [
       { title: 'Resultados', desc: 'Envía a tu vendedor solo los leads calificados con toda la información, agendando la primera llamada.' },
     ],
     chatDemo: [
-      { from: 'bot', text: '¡Hola! Vi que te interesó el depa en Polanco 🏙️ ¿Buscas para vivir o inversión?' },
-      { from: 'user', text: 'Para vivir, con mi familia' },
-      { from: 'bot', text: 'Perfecto. ¿Tienes un presupuesto aproximado y en cuánto tiempo te gustaría mudarte?' },
-      { from: 'user', text: 'Como 4.5 millones, en los próximos 2 meses' },
-      { from: 'bot', text: '¡Excelente! Ya tengo tu perfil. Te conecto con Mariana, nuestra asesora de la zona — te contacta hoy mismo 📲' },
+      { from: 'bot', text: '¡Hola! Vi que te interesó el depa en Polanco 🏙️', time: '6:10' },
+      { from: 'bot', text: '¿Lo buscas para vivir o como inversión?', time: '6:10' },
+      { from: 'user', text: 'para vivir, con mi familia', time: '6:15' },
+      { from: 'bot', text: 'Qué bien. ¿Tienes un presupuesto aproximado y en cuánto tiempo te gustaría mudarte?', time: '6:16' },
+      { from: 'user', text: 'como 4.5 millones, en los próximos 2 meses', time: '6:19' },
+      {
+        from: 'bot',
+        time: '6:19',
+        document: {
+          kind: 'receipt',
+          title: 'Lead calificado',
+          lines: ['Depa Polanco · Uso: Vivienda', 'Presupuesto: $4.5M MXN', 'Cierre estimado: 2 meses'],
+          status: { label: 'Calificado', tone: 'ok' },
+        },
+      },
+      { from: 'bot', text: '¡Perfecto! Ya tengo tu perfil listo. Te conecto con Mariana, asesora de la zona — te contacta hoy mismo 📲', time: '6:20' },
     ],
   },
   {
@@ -122,9 +197,20 @@ export const AGENTS: Agent[] = [
       { title: 'Resultados', desc: 'Genera el link de recompra directo y te avisa cuando el cliente reactiva su compra.' },
     ],
     chatDemo: [
-      { from: 'bot', text: 'Hola María 👋 Notamos que ya se te está por acabar tu suministro de café (última compra hace 45 días). ¿Te mando tu pedido de siempre?' },
-      { from: 'user', text: 'Uy sí, se me había olvidado jaja' },
-      { from: 'bot', text: 'Jaja pasa mucho 😄 Te dejo el link con tu combo favorito + 10% de descuento por ser cliente frecuente: tienda.mx/re-14' },
+      { from: 'bot', text: 'Hola María 👋 Notamos que ya se te debe estar por acabar tu café (tu última compra fue hace 45 días)', time: '10:05' },
+      { from: 'bot', text: '¿Te mando tu pedido de siempre?', time: '10:05' },
+      { from: 'user', text: 'uy sí, se me había olvidado jaja', time: '10:22' },
+      {
+        from: 'bot',
+        time: '10:23',
+        document: {
+          kind: 'receipt',
+          title: 'Combo favorito',
+          lines: ['2x Café molido 500g', '1x Filtros #4', '10% dto. cliente frecuente'],
+          status: { label: 'Listo para pagar', tone: 'pending' },
+        },
+      },
+      { from: 'bot', text: 'Jaja pasa mucho 😄 Te dejo el link: tienda.mx/re-14', time: '10:23' },
     ],
   },
 ]
