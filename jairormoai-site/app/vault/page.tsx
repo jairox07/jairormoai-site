@@ -3,12 +3,12 @@ import { VaultClient } from './VaultClient'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 
 export const metadata = {
-  title: 'Bóveda IA — Prompts, Skills y Proyectos con IA en Español',
-  description: 'Biblioteca de recursos de IA en español. Prompts para Claude y Gemini, skills para abogados e inmobiliaria, proyectos descargables y automatizaciones reales. Comunidad jairoromo.ai.',
+  title: 'Bóveda IA — Skills Legales Descargables para Abogados en Español',
+  description: 'Biblioteca de skills de IA para abogados en México. Plazos procesales, escritos, amparo, laboral y más — listos para usar con Claude, gratis y descargables.',
   alternates: { canonical: 'https://jairoromo.ai/vault' },
   openGraph: {
-    title: 'Bóveda IA — Prompts, Skills y Proyectos con IA en Español',
-    description: 'Prompts, templates, skills por industria y proyectos reales con IA. Gratis y de pago.',
+    title: 'Bóveda IA — Skills Legales Descargables para Abogados',
+    description: 'Skills de IA especializados en derecho mexicano: plazos, escritos, amparo, laboral. Gratis y descargables.',
     url: 'https://jairoromo.ai/vault',
     type: 'website',
   },
@@ -41,12 +41,12 @@ export default async function VaultPage() {
         <div className="mb-14">
           <EyebrowPill className="mb-6">Bóveda IA</EyebrowPill>
           <h1 className="font-sora font-black text-4xl md:text-5xl mb-5 leading-tight">
-            Recursos, prompts<br />
-            <span className="text-cyan">y proyectos reales.</span>
+            Skills legales<br />
+            <span className="text-cyan">listos para usar.</span>
           </h1>
           <p className="font-sora text-gray text-lg max-w-2xl">
-            Herramientas, skills y recursos de Claude, Gemini y más.
-            Generado por la comunidad jairoromo.ai.
+            Herramientas de IA especializadas en derecho mexicano: plazos, escritos, amparo, laboral y más.
+            Descargables y gratis para abogados.
           </p>
         </div>
 

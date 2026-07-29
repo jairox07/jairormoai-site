@@ -64,15 +64,7 @@ export const HERO_TAGS = ['LLMs', 'RAG', 'Automatización', 'Agentes IA', 'Fine-
 
 export const VAULT_CATEGORIES = [
   { id: 'all', label: 'Todos' },
-  { id: 'general', label: 'General' },
-  { id: 'claude', label: 'Claude' },
-  { id: 'gemini', label: 'Gemini' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'recursos', label: 'Recursos' },
   { id: 'legal', label: '⚖️ Abogados' },
-  { id: 'inmobiliaria', label: '🏡 Inmobiliaria' },
-  { id: 'comunidad', label: 'Proyectos Comunidad' },
-  { id: 'proyectos', label: '🚀 Proyectos' },
 ] as const
 
 // Color per industry/category for vault cards
