@@ -63,6 +63,15 @@ export default async function PostPage({ params }: PageProps) {
           Todas las notas
         </Link>
 
+        {typedPost.cover_image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={typedPost.cover_image_url}
+            alt=""
+            className="w-full h-56 md:h-72 object-cover rounded-2xl border border-white/[0.07] mb-8"
+          />
+        )}
+
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {typedPost.newsletter_number && (
             <EyebrowPill>Newsletter Nº {String(typedPost.newsletter_number).padStart(3, '0')}</EyebrowPill>
