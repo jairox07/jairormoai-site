@@ -15,6 +15,7 @@ function SignupForm() {
   const redirectTo = searchParams.get('redirect') || '/courses'
 
   const [form, setForm] = useState({ full_name: '', email: '', password: '' })
+  const [consent, setConsent] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -25,13 +26,14 @@ function SignupForm() {
     if (!form.full_name.trim()) { setError('Tu nombre es requerido'); return }
     if (!EMAIL_REGEX.test(form.email)) { setError('Email inválido'); return }
     if (form.password.length < 6) { setError('Contraseña mínimo 6 caracteres'); return }
+    if (!consent) { setError('Debes aceptar el tratamiento de tus datos para continuar'); return }
 
     setLoading(true)
 
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, consent }),
     })
     const data = await res.json()
 
@@ -92,19 +94,27 @@ function SignupForm() {
               value={form.password}
               onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
             />
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                required
+                className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/[0.04] accent-cyan cursor-pointer flex-shrink-0"
+              />
+              <span className="font-sora text-xs text-gray leading-relaxed">
+                Acepto el tratamiento de mis datos personales conforme al{' '}
+                <Link href="/privacy" className="text-cyan hover:underline" target="_blank">Aviso de Privacidad</Link>
+                {' '}y los{' '}
+                <Link href="/terms" className="text-cyan hover:underline" target="_blank">Términos de uso</Link>.
+              </span>
+            </label>
             {error && <p className="font-mono text-[11px] text-red-400">{error}</p>}
             <Button type="submit" variant="primary" loading={loading} className="w-full">
               Crear cuenta gratis
             </Button>
           </form>
         </div>
-
-        <p className="mt-6 font-mono text-[10px] text-gray2 text-center leading-relaxed">
-          Al registrarte aceptas los{' '}
-          <Link href="/terms" className="text-cyan hover:underline">Términos de uso</Link>
-          {' '}y la{' '}
-          <Link href="/privacy" className="text-cyan hover:underline">Política de privacidad</Link>
-        </p>
       </div>
     </div>
   )

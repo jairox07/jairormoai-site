@@ -14,6 +14,7 @@ const PERKS = [
 
 export function NewsletterSection() {
   const [email, setEmail] = useState('')
+  const [consent, setConsent] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -28,13 +29,14 @@ export function NewsletterSection() {
     e.preventDefault()
     const err = validate(email)
     if (err) { setEmailError(err); return }
+    if (!consent) { setEmailError('Acepta el tratamiento de tus datos para continuar'); return }
     setEmailError('')
     setLoading(true)
     try {
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, consent }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Error')
@@ -109,6 +111,21 @@ export function NewsletterSection() {
                       <p className="font-mono text-[11px] text-red-400 mt-1.5">{emailError}</p>
                     )}
                   </div>
+
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) => { setConsent(e.target.checked); setEmailError('') }}
+                      required
+                      className="mt-0.5 w-3.5 h-3.5 rounded border-white/20 bg-white/[0.04] accent-cyan cursor-pointer flex-shrink-0"
+                    />
+                    <span className="font-mono text-[10px] text-gray2 leading-relaxed">
+                      Acepto el{' '}
+                      <a href="/privacy" target="_blank" className="text-cyan hover:underline">Aviso de Privacidad</a>
+                      {' '}para recibir este newsletter
+                    </span>
+                  </label>
 
                   <Button type="submit" variant="primary" loading={loading} className="w-full">
                     Suscribirme gratis →

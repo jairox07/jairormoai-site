@@ -114,8 +114,14 @@ export function welcomeCourseEmail(name: string, courseTitle: string, courseSlug
 
   </td></tr>
 
+  <!-- Redes -->
+  <tr><td style="padding-top:24px;text-align:center;">
+    <a href="https://tiktok.com/@jairoromo.ai" style="display:inline-block;margin:0 4px;padding:8px 16px;background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.25);border-radius:100px;font-family:monospace;font-size:11px;font-weight:700;color:#4FC3F7;text-decoration:none;">🎵 TikTok</a>
+    <a href="https://instagram.com/jairoromo.ai" style="display:inline-block;margin:0 4px;padding:8px 16px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:100px;font-family:monospace;font-size:11px;font-weight:700;color:#8B5CF6;text-decoration:none;">📸 Instagram</a>
+  </td></tr>
+
   <!-- Footer -->
-  <tr><td style="padding-top:32px;text-align:center;">
+  <tr><td style="padding-top:20px;text-align:center;">
     <p style="margin:0;font-family:monospace;font-size:10px;color:#334155;letter-spacing:1px;">
       jairoromo.ai · México
     </p>

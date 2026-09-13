@@ -74,3 +74,22 @@ export interface Profile {
   is_admin: boolean
   created_at: string
 }
+
+export interface Post {
+  id: string
+  slug: string
+  title: string
+  excerpt: string
+  cover_image_url: string | null
+  tags: string[]
+  newsletter_number: number | null
+  session_focus: string
+  published: boolean
+  published_at: string
+  created_at: string
+}
+
+export interface PostContent {
+  post_id: string
+  body_html: string
+}

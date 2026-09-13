@@ -10,6 +10,7 @@ import { DarkModeToggle } from '@/components/ui/DarkModeToggle'
 
 const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/', label: 'Inicio' },
+  { href: '/blog', label: 'Blog' },
   { href: '/sessions', label: 'Sesiones 1:1' },
   { href: '/guia-claude', label: 'Guía Claude', highlight: true },
   { href: '/vault', label: 'Bóveda IA' },
