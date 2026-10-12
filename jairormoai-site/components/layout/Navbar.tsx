@@ -16,6 +16,7 @@ const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/vault', label: 'Bóveda IA' },
   { href: '/courses', label: 'Cursos' },
   { href: '/automatizaciones-y-agentes', label: 'Agentes IA' },
+  { href: '/herramientas/auditoria-seo-geo', label: 'Auditoría IA' },
 ]
 
 const ADMIN_EMAIL = 'jairoromo@gmail.com'
