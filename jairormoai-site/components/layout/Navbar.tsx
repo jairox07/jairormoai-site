@@ -15,7 +15,7 @@ const NAV_LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: '/guia-claude', label: 'Guía Claude', highlight: true },
   { href: '/vault', label: 'Bóveda IA' },
   { href: '/courses', label: 'Cursos' },
-  { href: '/automatizaciones-y-agentes', label: 'Agentes IA' },
+  { href: '/proyectos', label: 'Proyectos' },
   { href: '/herramientas/auditoria-seo-geo', label: 'Auditoría IA' },
 ]
 
