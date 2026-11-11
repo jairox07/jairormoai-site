@@ -19,12 +19,14 @@ export const KIT_EDITOR_DIR = path.join(process.cwd(), 'private', 'skills', 'kit
 export type KitFile = keyof typeof KIT_EDITOR.files
 
 /** Devuelve el correo del comprador si la sesión de Stripe es un pago confirmado del Kit Editor IA. */
-export async function verifyKitPurchase(sessionId: string | null | undefined): Promise<{ ok: true; email: string | null } | { ok: false }> {
+export async function verifyKitPurchase(sessionId: string | null | undefined): Promise<{ ok: true; email: string | null; amount: number } | { ok: false }> {
   if (!sessionId || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return { ok: false }
   try {
     const session = await getStripe().checkout.sessions.retrieve(sessionId)
-    if (session.payment_status === 'paid' && session.metadata?.product === KIT_EDITOR.id) {
-      return { ok: true, email: session.customer_details?.email ?? null }
+    // 'no_payment_required' = sesión completada con un cupón de 100 % (pruebas con amigos); 'unpaid' nunca entra
+    const settled = session.payment_status === 'paid' || session.payment_status === 'no_payment_required'
+    if (session.status === 'complete' && settled && session.metadata?.product === KIT_EDITOR.id) {
+      return { ok: true, email: session.customer_details?.email ?? null, amount: session.amount_total ?? 0 }
     }
   } catch {
     // sesión inexistente o error de Stripe
