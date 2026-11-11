@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '@/lib/resend'
+import { KIT_EDITOR, kitPurchaseEmail } from '@/lib/kit-editor-ia'
 
 const ADMIN_EMAILS = [
   { email: 'jairo.romo@novotech.mx', name: 'Jairo Romo' },
@@ -57,6 +58,16 @@ export async function POST(request: Request) {
           progress: {},
         }, { onConflict: 'user_id,course_id' })
       }
+    }
+
+    // Kit Editor IA: correo al comprador con sus enlaces de descarga
+    if (session.metadata?.product === KIT_EDITOR.id && session.customer_details?.email) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin
+      await sendEmail({
+        to: [{ email: session.customer_details.email, name: session.customer_details.name ?? undefined }],
+        subject: 'Tu Kit Editor IA está listo para descargar',
+        htmlContent: kitPurchaseEmail(siteUrl, session.id),
+      }).catch(() => {})
     }
 
     const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
