@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080610">
+<link rel="canonical" href="https://jairoromo.ai/kit-editor-ia">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kit Editor IA · Tú grabas. Claude edita.">
+<meta property="og:description" content="11 skills que convierten a Claude en tu editor de video. Grabas, se lo mandas y te lo regresa cortado, con subtítulos y gancho. US$19, pago único.">
+<meta property="og:image" content="/kit-editor-ia/poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<title>Kit Editor IA</title>
+<meta name="description" content="Kit Editor IA de jairoromo.ai: 11 skills que convierten a Claude en tu editor de video. Grabas, se lo mandas y te lo devuelve editado. US$19, pago único.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap">
+<style>
+html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px)}img{max-width:100%}[hidden]{display:none!important}
+
+/* Layout: columna central oscura de marca; el video blanco del anuncio es el contraste del hero. Una sola apariencia (oscura). */
+:root{
+  --bg:#080610; --bg2:#0E0B1A; --ink:#F3F1FA; --ink2:#C9C6D8; --gray:#A6A3B8; --gray2:#5E5A73;
+  --blue:#00A3FF; --purp:#6B21A8; --mag:#FF00FF; --purp2:#9B4DFF; --ok:#3DDC97;
+  --line:rgba(255,255,255,.09); --panel:rgba(255,255,255,.035);
+  --gBrand:linear-gradient(135deg,#00A3FF 0%,#6B21A8 55%,#FF00FF 100%);
+  --gHoriz:linear-gradient(90deg,#00A3FF 0%,#FF00FF 100%);
+  --triple:linear-gradient(90deg,#00A3FF 0%,#6B21A8 50%,#FF00FF 100%);
+  --display:'Exo 2',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Space Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);font-size:18px;line-height:1.55;margin:0;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orbs i{position:absolute;border-radius:50%;filter:blur(110px)}
+main,nav,footer{position:relative;z-index:1}
+.gt{background:var(--gHoriz);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--blue);display:inline-flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mag);box-shadow:0 0 12px var(--mag)}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.02em}
+h1{font-weight:900;font-size:clamp(40px,6.4vw,76px);line-height:1.02}
+h2{font-weight:900;font-size:clamp(32px,4.4vw,52px);line-height:1.08}
+h3{font-weight:800;font-size:22px;line-height:1.25}
+p{margin:0}
+.lead{color:var(--ink2);font-size:clamp(18px,2vw,21px);max-width:58ch}
+section{padding-block:clamp(64px,9vw,112px)}
+.sec-head{display:flex;flex-direction:column;gap:14px;margin-bottom:40px;max-width:720px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:900;font-size:18px;border-radius:22px;padding:18px 28px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.btn:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.btn-p{background:var(--gBrand);color:#fff;box-shadow:0 10px 40px rgba(255,0,255,.28)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 14px 50px rgba(255,0,255,.4)}
+.btn-s{background:#fff;color:#0b0716}
+.btn-s:hover{transform:translateY(-2px)}
+.btn-g{background:transparent;color:var(--ink);border:1.5px solid rgba(255,0,255,.45)}
+.fine{font-family:var(--mono);font-size:13px;letter-spacing:1px;color:var(--gray)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px}
+.chip{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;border-radius:12px;padding:7px 12px;border:1.5px solid rgba(0,163,255,.45);background:rgba(0,163,255,.08);color:#9fd8ff;align-self:flex-start}
+.chip.m{border-color:rgba(255,0,255,.45);background:rgba(255,0,255,.08);color:#ffb3ff}
+
+/* NAV */
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(8,6,16,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--triple)}
+.navin{display:flex;align-items:center;gap:14px;padding-block:14px}
+.jr{width:40px;height:40px;border-radius:11px;background:var(--gBrand);color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(255,0,255,.35);flex:none}
+.logo{font-weight:800;font-size:20px;text-decoration:none;display:flex;align-items:center;gap:10px}
+.navlinks{margin-left:auto;display:flex;gap:22px;align-items:center}
+.navlinks a.l{font-family:var(--mono);font-size:13px;letter-spacing:1px;text-decoration:none;color:var(--ink2)}
+.navlinks a.l:hover{color:#fff}
+.navlinks .btn{padding:11px 18px;font-size:15px;border-radius:14px}
+@media(max-width:760px){.navlinks a.l{display:none}}
+
+/* HERO */
+.hero{padding-block:clamp(40px,6vw,80px) clamp(48px,7vw,96px)}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(28px,5vw,64px);align-items:center}
+.hero-copy{display:flex;flex-direction:column;gap:22px;min-width:0}
+.hero h1 .strike{position:relative;color:var(--gray2)}
+.hero h1 .strike::after{content:"";position:absolute;left:-2%;right:-2%;top:54%;height:.09em;background:var(--mag);transform:rotate(-2deg)}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.phone{position:relative;justify-self:center;width:min(360px,100%);aspect-ratio:9/16;border-radius:34px;padding:10px;background:var(--gBrand);box-shadow:0 30px 90px rgba(255,0,255,.22),0 0 0 1px rgba(255,255,255,.08)}
+.phone video{width:100%;height:100%;object-fit:cover;border-radius:26px;display:block;background:#fff}
+.sound{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;background:#0b0716;color:#fff;border:1.5px solid rgba(255,255,255,.25);border-radius:999px;padding:9px 14px;cursor:pointer;white-space:nowrap}
+.sound:focus-visible{outline:3px solid var(--blue)}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr}.phone{width:min(320px,86vw)}}
+
+/* PROOF BAR */
+.proof{border-block:1px solid var(--line);background:rgba(255,255,255,.02)}
+.proof .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.proof div.it{padding:26px 18px;display:flex;flex-direction:column;gap:4px;border-left:1px solid var(--line)}
+.proof div.it:first-child{border-left:0}
+.proof b{font-weight:900;font-size:clamp(26px,3vw,36px);line-height:1}
+.proof span{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray)}
+@media(max-width:760px){.proof .wrap{grid-template-columns:1fr 1fr}.proof div.it:nth-child(3){border-left:0}.proof div.it:nth-child(n+3){border-top:1px solid var(--line)}}
+
+/* DEMO */
+.demo{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:stretch}
+.steps{display:flex;flex-direction:column;gap:10px;min-width:0}
+.step{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:var(--panel);transition:border-color .3s,background .3s,opacity .3s;opacity:.55}
+.step.on{opacity:1;border-color:rgba(255,0,255,.5);background:rgba(255,0,255,.06)}
+.step.done{opacity:1}
+.step .n{font-family:var(--mono);font-size:13px;color:var(--gray);width:26px;flex:none;padding-top:3px}
+.step.done .n{color:var(--ok)}
+.tlbox{padding:26px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.tl-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.dur{font-weight:900;font-size:clamp(48px,7vw,84px);line-height:1;font-variant-numeric:tabular-nums}
+.track-l{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;color:var(--gray);margin-bottom:6px;text-transform:uppercase}
+.track{display:flex;height:46px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0d0a18}
+.seg{height:100%;transition:flex-grow .9s cubic-bezier(.2,.8,.2,1),opacity .6s;position:relative}
+.seg.k{background:linear-gradient(180deg,rgba(0,163,255,.55),rgba(107,33,168,.55))}
+.seg.x{background:repeating-linear-gradient(45deg,rgba(255,0,255,.38) 0 8px,rgba(255,0,255,.12) 8px 16px)}
+.seg.x.gone{flex-grow:0!important;opacity:0}
+.wave{display:flex;align-items:center;gap:3px;height:46px;padding:0 6px}
+.wave b{flex:1;border-radius:2px;background:var(--ink2);opacity:.75}
+.subs{display:flex;flex-wrap:wrap;gap:8px;min-height:44px}
+.subs span{font-weight:900;font-size:18px;padding:7px 12px;border-radius:10px;background:rgba(255,255,255,.06);opacity:0;transform:translateY(6px);transition:all .35s}
+.subs span.in{opacity:1;transform:none}
+.subs span.hot{background:var(--gBrand);color:#fff}
+.legend{display:flex;gap:16px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+@media(max-width:860px){.demo{grid-template-columns:1fr}}
+
+/* CHAT */
+.chat-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:28px;align-items:start}
+.howlist{display:flex;flex-direction:column;gap:16px;min-width:0;counter-reset:s}
+.howlist li{list-style:none;display:flex;gap:14px;align-items:flex-start}
+.howlist li::before{counter-increment:s;content:counter(s);flex:none;width:38px;height:38px;border-radius:11px;background:var(--gBrand);display:flex;align-items:center;justify-content:center;font-weight:900}
+.howlist{padding:0;margin:0}
+.chat{padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.chat-top{display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--gray)}
+.chat-top i{width:11px;height:11px;border-radius:50%}
+.msgs{display:flex;flex-direction:column;gap:10px;min-height:320px}
+.msg{max-width:86%;padding:12px 15px;border-radius:16px;font-size:16px;line-height:1.45;animation:pop .35s ease both}
+.msg.u{align-self:flex-end;background:rgba(0,163,255,.14);border:1px solid rgba(0,163,255,.35);border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.a b{color:#fff}
+.msg .file{font-family:var(--mono);font-size:13px;display:flex;gap:8px;align-items:center}
+.msg .file::before{content:"ZIP";font-size:10px;background:var(--gBrand);color:#fff;padding:3px 6px;border-radius:5px}
+.msg .vid::before{content:"MOV"}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.asks{display:flex;flex-wrap:wrap;gap:8px}
+.ask{font-family:var(--display);font-weight:700;font-size:14px;color:var(--ink);background:rgba(255,0,255,.08);border:1.5px solid rgba(255,0,255,.4);border-radius:999px;padding:8px 14px;cursor:pointer}
+.ask:hover,.ask[aria-pressed="true"]{background:rgba(255,0,255,.2)}
+.ask:focus-visible{outline:2px solid var(--blue)}
+@media(max-width:860px){.chat-grid{grid-template-columns:1fr}}
+
+/* COMMANDS */
+.cmds{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cmd{padding:22px;display:flex;flex-direction:column;gap:10px;border-radius:20px;border:1px solid var(--line);background:var(--panel);min-width:0}
+.cmd code{font-family:var(--mono);font-weight:700;font-size:17px;color:#fff}
+.cmd p{color:var(--ink2);font-size:16px}
+.cmd .ask-ex{font-family:var(--mono);font-size:12.5px;color:#ffb3ff;background:rgba(255,0,255,.08);border-radius:8px;padding:6px 9px;align-self:flex-start}
+.cmd.main{grid-column:span 3;flex-direction:row;align-items:center;gap:22px;background:linear-gradient(135deg,rgba(0,163,255,.14),rgba(107,33,168,.16) 55%,rgba(255,0,255,.14));border-color:rgba(255,0,255,.35)}
+.cmd.main .jr{width:56px;height:56px;font-size:22px;border-radius:14px}
+@media(max-width:860px){.cmds{grid-template-columns:1fr 1fr}.cmd.main{grid-column:span 2}}
+@media(max-width:520px){.cmds{grid-template-columns:1fr}.cmd.main{grid-column:auto;flex-direction:column;align-items:flex-start}}
+
+/* SLIDER */
+.cmp{padding:28px;display:flex;flex-direction:column;gap:22px}
+.cmp-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cmp-row .big{font-weight:900;font-size:clamp(44px,7vw,80px);line-height:1;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#FF00FF;height:28px}
+.bar2{height:18px;border-radius:9px;background:#0d0a18;border:1px solid var(--line);overflow:hidden}
+.bar2 i{display:block;height:100%;background:var(--gBrand);transition:width .15s}
+
+/* RECEIVE */
+.recv{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.recv .panel{padding:24px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.recv .ic{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--blue)}
+.recv p{color:var(--ink2);font-size:16px}
+@media(max-width:860px){.recv{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.recv{grid-template-columns:1fr}}
+
+/* WHO */
+.who{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.who .card{padding:24px;border-left:5px solid var(--blue);background:rgba(0,163,255,.06);border-radius:0 20px 20px 0;display:flex;flex-direction:column;gap:10px;min-width:0}
+.who .card:nth-child(2){border-color:var(--mag);background:rgba(255,0,255,.06)}
+.who .card:nth-child(3){border-color:var(--purp2);background:rgba(155,77,255,.07)}
+.who .card:nth-child(4){border-color:var(--ok);background:rgba(61,220,151,.06)}
+.who p{color:var(--ink2);font-size:16px}
+@media(max-width:860px){.who{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.who{grid-template-columns:1fr}}
+
+/* SESSIONS (gancho) */
+.sess{position:relative;overflow:hidden;border-radius:30px;padding:clamp(28px,5vw,56px);background:linear-gradient(135deg,rgba(0,163,255,.16),rgba(107,33,168,.22) 50%,rgba(255,0,255,.16));border:1px solid rgba(255,0,255,.35)}
+.sess-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,48px);align-items:center}
+.sess-copy{display:flex;flex-direction:column;gap:18px;min-width:0}
+.sess-opts{display:flex;flex-direction:column;gap:12px}
+.opt{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:18px;background:rgba(8,6,16,.6);border:1px solid var(--line);text-decoration:none;transition:border-color .2s,transform .2s}
+.opt:hover{border-color:rgba(255,0,255,.6);transform:translateX(4px)}
+.opt .min{font-weight:900;font-size:30px;line-height:1;width:76px;flex:none}
+.opt .min small{font-family:var(--mono);font-size:11px;letter-spacing:1px;display:block;color:var(--gray);font-weight:400;margin-top:4px}
+.opt div{min-width:0}
+.opt b{display:block;font-weight:800}
+.opt span.d{color:var(--ink2);font-size:15px}
+.opt .arr{margin-left:auto;font-weight:900;color:var(--mag)}
+@media(max-width:860px){.sess-grid{grid-template-columns:1fr}}
+
+/* ABOUT */
+.about{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding:30px}
+.about .jr{width:96px;height:96px;font-size:38px;border-radius:24px}
+@media(max-width:600px){.about{grid-template-columns:1fr}}
+
+/* PRICE */
+.price-wrap{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
+.price{padding:clamp(26px,4vw,40px);display:flex;flex-direction:column;gap:18px;border-radius:28px;background:var(--bg2);border:1px solid rgba(255,0,255,.35);box-shadow:0 20px 80px rgba(255,0,255,.12)}
+.amount{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.amount b{font-weight:900;font-size:clamp(64px,9vw,104px);line-height:.95;letter-spacing:-.03em}
+.inc{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+.inc li{display:flex;gap:12px;align-items:flex-start;color:var(--ink2)}
+.inc li::before{content:"✓";color:var(--ok);font-weight:900;flex:none}
+.inc li b{color:var(--ink)}
+.req{padding:clamp(24px,4vw,36px);display:flex;flex-direction:column;gap:16px}
+.req dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 18px}
+.req dt{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);padding-top:3px}
+.req dd{margin:0;color:var(--ink2)}
+@media(max-width:860px){.price-wrap{grid-template-columns:1fr}}
+
+/* FAQ */
+.faq{display:flex;flex-direction:column;gap:10px;max-width:820px}
+details{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:0 22px}
+summary{cursor:pointer;list-style:none;padding:20px 0;font-weight:800;font-size:18px;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--mono);color:var(--mag);font-size:22px;line-height:1}
+details[open] summary::after{content:"–"}
+summary:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:6px}
+details .a{padding:0 0 20px;color:var(--ink2);display:flex;flex-direction:column;gap:10px}
+
+/* FINAL */
+.final{text-align:center;display:flex;flex-direction:column;align-items:center;gap:22px}
+.final h2{font-size:clamp(40px,6vw,72px)}
+.final .rw .t{color:var(--gray2);text-decoration:line-through;text-decoration-color:var(--mag);text-decoration-thickness:4px}
+
+footer{border-top:1px solid var(--line);padding-block:36px 120px}
+footer .wrap{display:flex;flex-direction:column;gap:12px}
+footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
+
+/* Sticky móvil */
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:55;padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:rgba(8,6,16,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:none;gap:10px}
+.sticky .btn{flex:1;padding:14px 10px;font-size:15px;border-radius:14px}
+@media(max-width:760px){.sticky{display:flex}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+
+<div class="orbs" aria-hidden="true">
+  <i style="width:620px;height:620px;left:-220px;top:-120px;background:rgba(0,163,255,.30)"></i>
+  <i style="width:560px;height:560px;right:-200px;top:40vh;background:rgba(255,0,255,.20)"></i>
+  <i style="width:520px;height:520px;left:30%;top:120vh;background:rgba(107,33,168,.35)"></i>
+</div>
+
+<nav class="top" aria-label="Principal">
+  <div class="wrap navin">
+    <a class="logo" href="#inicio"><span class="jr">JR</span><span>jairoromo<span class="gt">.ai</span></span></a>
+    <div class="navlinks">
+      <a class="l" href="#demo">Cómo funciona</a>
+      <a class="l" href="#editores">Editores</a>
+      <a class="l" href="#sesion">Sesión 1:1</a>
+      <a class="btn btn-p buy" href="#precio">Quiero el kit</a>
+    </div>
+  </div>
+</nav>
+
+<main id="inicio">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">Kit Editor IA · para Claude</span>
+        <h1>Tú grabas.<br><span class="gt">Claude edita.</span></h1>
+        <p class="lead">11 skills que convierten a Claude en tu editor de video. Le mandas tu grabación con pausas y errores, le pides en español lo que quieres y te regresa el video cortado, con subtítulos y gancho.</p>
+        <div class="cta-row">
+          <a class="btn btn-p buy" href="#precio">Quiero el Kit · US$19</a>
+          <a class="btn btn-g" href="#sesion">Prefiero que lo instalemos juntos</a>
+        </div>
+        <p class="fine">US$19 · pago único · tarjeta · acceso inmediato</p>
+      </div>
+      <div class="phone">
+        <video id="hv" src="/kit-editor-ia/promo.mp4" poster="/kit-editor-ia/poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Video promocional del Kit Editor IA"></video>
+        <button class="sound" id="snd" type="button">🔊 Ver con sonido</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROOF -->
+  <div class="proof" aria-label="El kit en cifras">
+    <div class="wrap">
+      <div class="it"><b class="gt">11</b><span>editores en un zip</span></div>
+      <div class="it"><b>0:21 → 0:12</b><span>demo de corte real</span></div>
+      <div class="it"><b>100%</b><span>en tu computadora</span></div>
+      <div class="it"><b>US$19</b><span>pago único</span></div>
+    </div>
+  </div>
+
+  <!-- DEMO TIMELINE -->
+  <section id="demo">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Mira a la IA editando</span>
+        <h2>De grabación en bruto a <span class="gt">video listo</span>.</h2>
+        <p class="lead">Una grabación de 21 segundos con 6 pausas y una toma repetida. El kit escucha, corta, subtitula y entrega 12 segundos.</p>
+      </div>
+      <div class="demo">
+        <ol class="steps" id="steps" style="padding:0;margin:0">
+          <li class="step"><span class="n">01</span><div><h3>Escucha tu grabación</h3><p class="fine" style="margin-top:4px">Transcribe cada palabra con su tiempo exacto.</p></div></li>
+          <li class="step"><span class="n">02</span><div><h3>Encuentra 6 pausas y 1 toma repetida</h3><p class="fine" style="margin-top:4px">Marca lo que sobra antes de tocar el video.</p></div></li>
+          <li class="step"><span class="n">03</span><div><h3>Quita lo que sobra</h3><p class="fine" style="margin-top:4px">21 s se vuelven 12 s, sin cortar ideas a la mitad.</p></div></li>
+          <li class="step"><span class="n">04</span><div><h3>Escribe los subtítulos</h3><p class="fine" style="margin-top:4px">Palabra por palabra, sincronizados con tu voz.</p></div></li>
+          <li class="step"><span class="n">05</span><div><h3>Listo para publicar</h3><p class="fine" style="margin-top:4px">Revisa cuadro por cuadro antes de entregártelo.</p></div></li>
+        </ol>
+        <div class="panel tlbox" aria-live="polite">
+          <div class="tl-head">
+            <div class="dur" id="dur">0:21</div>
+            <span class="chip m" id="state">En bruto</span>
+          </div>
+          <div>
+            <div class="track-l">Voz</div>
+            <div class="track" id="wave"><div class="wave" id="wavebars" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="track-l">Video</div>
+            <div class="track" id="track"></div>
+          </div>
+          <div>
+            <div class="track-l">Subtítulos</div>
+            <div class="subs" id="subs"></div>
+          </div>
+          <div class="legend fine"><span><i style="background:linear-gradient(180deg,rgba(0,163,255,.7),rgba(107,33,168,.7))"></i>se queda</span><span><i style="background:rgba(255,0,255,.45)"></i>pausa o toma repetida</span></div>
+          <button class="btn btn-g" id="replay" type="button" style="align-self:flex-start;padding:12px 18px;font-size:15px">↻ Ver otra vez</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHAT -->
+  <section id="como">
+    <div class="wrap chat-grid">
+      <div style="display:flex;flex-direction:column;gap:22px;min-width:0">
+        <div class="sec-head" style="margin-bottom:0">
+          <span class="eyebrow">Cómo funciona</span>
+          <h2>Editar ahora es <span class="gt">conversar</span>.</h2>
+          <p class="lead">Le escribes a Claude como le escribirías a tu editor. Sin comandos que memorizar.</p>
+        </div>
+        <ol class="howlist">
+          <li><div><h3>Arrastra el zip al chat</h3><p class="lead" style="font-size:16px">Claude instala los 11 editores y te avisa en cada paso.</p></div></li>
+          <li><div><h3>Manda tu grabación y di lo que quieres</h3><p class="lead" style="font-size:16px">En español y a tu manera.</p></div></li>
+          <li><div><h3>Recibe el video editado</h3><p class="lead" style="font-size:16px">¿Faltó algo? Pide el ajuste ahí mismo.</p></div></li>
+        </ol>
+      </div>
+      <div class="panel chat">
+        <div class="chat-top"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i><span style="margin-left:8px">Claude Code · tu computadora</span></div>
+        <div class="msgs" id="msgs"></div>
+        <p class="fine">Ahora tú: toca un pedido.</p>
+        <div class="asks" id="asks">
+          <button class="ask" type="button" data-r="Listo. Cada palabra se ilumina cuando la dices: bloques de 3, en magenta. Te dejé video.final.mp4.">Subtítulos palabra por palabra</button>
+          <button class="ask" type="button" data-r="Te recorté sin pantalla verde y te puse el fondo que mandaste. Primero hice una prueba de 3 s para que la apruebes.">Recórtame y cambia el fondo</button>
+          <button class="ask" type="button" data-r="Te propongo 3 ganchos sacados de lo que dijiste: «Esto no lo editó nadie», «Grabé una vez, publiqué tres» y «Tu editor cuesta US$19». Usé el primero.">Abre con un gancho fuerte</button>
+          <button class="ask" type="button" data-r="Puse «GRATIS» gigante detrás de ti, justo en el segundo 4.2, cuando lo dices.">Pon la palabra fuerte detrás de mí</button>
+          <button class="ask" type="button" data-r="Hice un checklist de 3 pasos y cada uno entra cuando lo dices. Abajo siguen los subtítulos.">Haz un checklist de lo que diga</button>
+          <button class="ask" type="button" data-r="Lo analicé: un corte cada 1.8 s, subtítulos de 3 palabras y gancho arriba. Ya edité el tuyo con ese ritmo, con tu voz y tu marca.">Edítalo como este Reels</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMANDS -->
+  <section id="editores">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Lo que incluye</span>
+        <h2><span class="gt">11 editores</span>, cada uno con su especialidad.</h2>
+        <p class="lead">Puedes llamarlos por nombre (/corte, /subtitulos…) o simplemente pedir lo que quieres. Claude elige cuál usar.</p>
+      </div>
+      <div class="cmds">
+        <div class="cmd main"><span class="jr">JR</span><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><code>editor-ia</code><p>El editor principal. Entiende tu pedido, combina los demás editores y revisa el resultado antes de entregártelo.</p></div></div>
+        <div class="cmd"><code>/corte</code><p>Quita pausas, muletillas y errores. Queda tu voz limpia.</p><span class="ask-ex">“quita las pausas”</span></div>
+        <div class="cmd"><code>/toma</code><p>¿Repetiste una frase? Se queda con la mejor toma.</p><span class="ask-ex">“quédate con la última”</span></div>
+        <div class="cmd"><code>/subtitulos</code><p>La palabra se ilumina justo cuando la dices.</p><span class="ask-ex">“palabra por palabra”</span></div>
+        <div class="cmd"><code>/gancho</code><p>La primera frase en letra grande. Te propone 3 opciones.</p><span class="ask-ex">“abre con un gancho”</span></div>
+        <div class="cmd"><code>/checklist</code><p>Cada punto entra en pantalla cuando lo mencionas.</p><span class="ask-ex">“haz una lista”</span></div>
+        <div class="cmd"><code>/fondo</code><p>Te recorta sin pantalla verde y te pone otro escenario.</p><span class="ask-ex">“cambia el fondo”</span></div>
+        <div class="cmd"><code>/impacto</code><p>Una palabra gigante aparece detrás de ti.</p><span class="ask-ex">“la frase detrás de mí”</span></div>
+        <div class="cmd"><code>/musica</code><p>La música baja sola cuando hablas, y suenan efectos en cada animación.</p><span class="ask-ex">“ponle música”</span></div>
+        <div class="cmd"><code>/referencia</code><p>Mide el ritmo de un Reels que te gusta y lo aplica al tuyo.</p><span class="ask-ex">“edítalo como este”</span></div>
+        <div class="cmd"><code>/prueba</code><p>Revisa la edición cuadro por cuadro antes de entregar.</p><span class="ask-ex">“¿cómo quedó?”</span></div>
+        <div class="cmd" style="border-style:dashed"><code>+ pedidos listos</code><p>Una guía con pedidos para Reels, anuncios y clases. Solo copias y pegas.</p><span class="ask-ex">PEDIDOS.md</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDER -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="panel cmp">
+        <div class="sec-head" style="margin-bottom:0">
+          <span class="eyebrow">Mismo mensaje, menos relleno</span>
+          <h2>Arrastra y mira cuánto <span class="gt">se va</span>.</h2>
+        </div>
+        <div class="cmp-row">
+          <div><div class="track-l">En bruto</div><div class="big" style="color:var(--gray2)">1:24</div></div>
+          <div><div class="track-l" id="lbl2">Editado</div><div class="big gt" id="ed">1:24</div></div>
+        </div>
+        <div class="bar2"><i id="b2" style="width:100%"></i></div>
+        <label class="fine" for="sl">Intensidad del corte</label>
+        <input type="range" id="sl" min="0" max="100" value="0" aria-describedby="sln">
+        <p class="fine" id="sln">0 s menos. Lo que sale son pausas y tomas repetidas, no ideas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECEIVE -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Lo que recibes</span>
+        <h2>Todo en un zip. <span class="gt">Llega al instante.</span></h2>
+      </div>
+      <div class="recv">
+        <div class="panel"><span class="ic">01 · ZIP</span><h3>11 skills de edición</h3><p>Los editores, los scripts y la tipografía de subtítulos ya incluida.</p></div>
+        <div class="panel"><span class="ic">02 · INSTALADOR</span><h3>Se instala solo</h3><p>Le pegas un mensaje a Claude y él hace la instalación en Mac o Windows.</p></div>
+        <div class="panel"><span class="ic">03 · GUÍA</span><h3>Pedidos listos</h3><p>Para Reels, anuncios y clases. Copias, pegas y ajustas.</p></div>
+        <div class="panel"><span class="ic">04 · ACTUALIZACIONES</span><h3>Mejoras incluidas</h3><p>Cuando agregue un editor nuevo, te llega sin costo.</p></div>
+      </div>
+      <p class="fine" style="margin-top:18px">No es un curso de edición. Quien edita es la IA.</p>
+    </div>
+  </section>
+
+  <!-- WHO -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Para quién es</span>
+        <h2>Para quien graba, y para quien ya se cansó de editar.</h2>
+      </div>
+      <div class="who">
+        <div class="card"><span class="chip">Creadores</span><p>Tienes grabaciones guardadas en el celular esperando “el día de editar”.</p></div>
+        <div class="card"><span class="chip m">Anunciantes</span><p>Tu campaña pide creativos nuevos cada semana. Cada uno es otra edición.</p></div>
+        <div class="card"><span class="chip" style="border-color:rgba(155,77,255,.5);background:rgba(155,77,255,.1);color:#d7bcff">Profes y consultores</span><p>Explicas bien, pero el video tiene que quedar claro sin horas de edición.</p></div>
+        <div class="card"><span class="chip" style="border-color:rgba(61,220,151,.5);background:rgba(61,220,151,.08);color:#a7f3d0">PyMEs</span><p>Le pagas a un editor y esperas días. Ahora el primer borrador sale en minutos.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SESSIONS HOOK -->
+  <section id="sesion" style="padding-top:0">
+    <div class="wrap">
+      <div class="sess">
+        <div class="sess-grid">
+          <div class="sess-copy">
+            <span class="eyebrow">Sesión 1:1 con Jairo</span>
+            <h2>¿Prefieres que lo <span class="gt">instalemos juntos</span>?</h2>
+            <p class="lead">Agenda una videollamada conmigo. Instalamos el kit en tu computadora, editamos tu primer video en vivo y, si quieres, armamos tu sistema de contenido completo con IA.</p>
+            <p class="fine">Si ya compraste el kit, dímelo en la sesión: es la forma más rápida de sacarle provecho desde el día uno.</p>
+          </div>
+          <div class="sess-opts">
+            <a class="opt" href="/sessions" ><span class="min">20<small>MIN</small></span><div><b>Instalación guiada</b><span class="d">Dejamos el kit funcionando y editas tu primer video.</span></div><span class="arr">→</span></a>
+            <a class="opt" href="/sessions" ><span class="min">45<small>MIN</small></span><div><b>Tu flujo de contenido</b><span class="d">Plantillas de pedidos con tu estilo, tu marca y tus formatos.</span></div><span class="arr">→</span></a>
+            <a class="opt" href="/sessions" ><span class="min">90<small>MIN</small></span><div><b>IA para tu negocio</b><span class="d">Video, contenido y automatización a la medida.</span></div><span class="arr">→</span></a>
+            <a class="btn btn-s" href="/sessions" >Agendar mi sesión</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="panel about">
+        <span class="jr">JR</span>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <span class="eyebrow">Quién está detrás</span>
+          <h3 style="font-size:26px">Jairo Romo · IA bien aplicada</h3>
+          <p class="lead" style="font-size:17px">Llevo más de 15 años implementando tecnología en empresas como Audi y Volkswagen North America. Hoy ayudo a emprendedores de Latinoamérica a usar la IA en su negocio real, en español y sin tecnicismos. Este kit es el flujo con el que edito mi propio contenido.</p>
+          <p class="fine">@jairoromo.ai · IA SIN FRICCIÓN</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICE -->
+  <section id="precio" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Llévate el kit</span>
+        <h2>Un editor que trabaja cuando tú quieras, <span class="gt">por menos de lo que cuesta un video editado</span>.</h2>
+      </div>
+      <div class="price-wrap">
+        <div class="price">
+          <div style="display:flex;align-items:center;gap:12px"><span class="jr">JR</span><div><h3>Kit Editor IA</h3><p class="fine">11 editores · Claude Code</p></div></div>
+          <div class="amount"><b class="gt">US$19</b><span class="fine">pago único · en tu moneda</span></div>
+          <ul class="inc">
+            <li><span><b>11 skills de edición:</b> corte, toma, subtítulos, gancho, checklist, fondo, impacto, música, referencia, prueba y el editor principal.</span></li>
+            <li><span><b>Instalador</b> para Mac y Windows que Claude corre por ti.</span></li>
+            <li><span><b>Guía de pedidos listos</b> para Reels, anuncios y clases.</span></li>
+            <li><span><b>Acceso inmediato</b> al pagar, más actualizaciones.</span></li>
+          </ul>
+          <a class="btn btn-p buy" id="buyMain" href="#precio">Quiero el Kit Editor IA</a>
+          <a class="btn btn-g" href="/sessions" >O agenda una sesión de instalación</a>
+          <p class="fine">Pago seguro con Stripe · tarjeta de crédito o débito.</p>
+          <p class="fine" id="buyErr" hidden style="color:#ffb3ff">No pudimos abrir el pago. Intenta de nuevo en un momento o escríbeme a @jairoromo.ai.</p>
+        </div>
+        <div class="panel req">
+          <span class="eyebrow">Antes de comprar</span>
+          <h3>Lo que necesitas</h3>
+          <dl>
+            <dt>Compu</dt><dd>Mac (Apple Silicon o Intel) o Windows 10/11 de 64 bits. 3 GB libres.</dd>
+            <dt>IA</dt><dd>Claude con plan de pago (Pro o Max) para usar Claude Code. Se paga aparte, directo a Anthropic.</dd>
+            <dt>Video</dt><dd>Hablado, vertical, de 20 a 90 segundos. Lo ideal para Reels, TikTok y anuncios.</dd>
+            <dt>Celular</dt><dd>Puedes pedir ediciones desde el celular si tu compu está encendida con Claude abierto.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Preguntas frecuentes</span>
+        <h2>Respuestas directas.</h2>
+      </div>
+      <div class="faq">
+        <details><summary>¿Qué es exactamente el Kit Editor IA?</summary><div class="a"><p>Es un paquete de 11 skills de edición de video para Claude. Una vez instalado, le mandas tu grabación, le pides en español lo que quieres y te devuelve el archivo cortado, con subtítulos, gancho y lo que le hayas pedido.</p></div></details>
+        <details><summary>¿Mis videos se suben a internet?</summary><div class="a"><p>No. El video se queda en tu computadora: la transcripción, los cortes y el recorte de fondo corren ahí mismo.</p><p>Para decidir los cortes, Claude lee el texto de lo que dices y algunos cuadros del video, igual que en cualquier conversación tuya con él.</p></div></details>
+        <details><summary>¿Necesito saber editar o programar?</summary><div class="a"><p>No. Escribes como le hablarías a tu editor. Claude corre los comandos por ti y te pide permiso antes de hacerlo.</p></div></details>
+        <details><summary>¿Cuánto tarda en editar un video?</summary><div class="a"><p>Cortes y subtítulos de un Reels de un minuto toman pocos minutos en una compu normal. Cambiar el fondo es lo más pesado: puede tardar más, y por eso primero te muestra una prueba corta.</p></div></details>
+        <details><summary>¿Funciona con ChatGPT?</summary><div class="a"><p>Está hecho y probado para Claude Code. Los scripts son estándar (Python y ffmpeg), pero solo damos soporte para Claude.</p></div></details>
+        <details><summary>¿Sirve para anuncios?</summary><div class="a"><p>Sí. Tiene un estilo de subtítulos en caja pensado para anuncios y te avisa cuando una frase puede ser rechazada por Meta o TikTok.</p></div></details>
+        <details><summary>¿Cómo recibo el acceso?</summary><div class="a"><p>Al pagar con Stripe te llega por correo el link de descarga del zip, junto con las instrucciones de instalación.</p></div></details>
+        <details><summary>¿Y si me atoro instalándolo?</summary><div class="a"><p>Claude te guía en cada paso. Si aun así prefieres hacerlo acompañado, <a href="/sessions" >agenda una sesión conmigo</a> y lo dejamos funcionando juntos.</p></div></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section style="padding-top:0">
+    <div class="wrap final">
+      <p class="fine rw"><span class="t">pausa · eh · toma repetida · error</span></p>
+      <h2>Tú grabas.<br><span class="gt">Tu IA edita.</span></h2>
+      <div class="cta-row" style="justify-content:center">
+        <a class="btn btn-p buy" href="#precio">Quiero el Kit · US$19</a>
+        <a class="btn btn-g" href="/sessions" >Agendar sesión 1:1</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row"><a class="logo" href="#inicio"><span class="jr">JR</span><span>jairoromo<span class="gt">.ai</span></span></a><span class="fine">IA SIN FRICCIÓN · Crece sin tecnicismos</span></div>
+    <p class="fine">© 2026 Jairo Romo · jairoromo.ai · Guadalajara, México</p>
+    <p class="fine" style="color:var(--gray2)">Claude es una marca de Anthropic. Kit Editor IA es un producto independiente, sin vínculo con Anthropic.</p>
+  </div>
+</footer>
+
+<div class="sticky" aria-label="Acciones rápidas">
+  <a class="btn btn-p buy" href="#precio">Comprar · US$19</a>
+  <a class="btn btn-s" href="/sessions" >Agendar</a>
+</div>
+
+<script>
+/* Compra: crea la sesión de Stripe en el servidor y redirige al checkout */
+async function comprar(e){
+  e.preventDefault();
+  const btns=document.querySelectorAll('a.buy');
+  btns.forEach(b=>{b.dataset.t=b.textContent;b.textContent='Abriendo pago seguro…';b.style.pointerEvents='none'});
+  try{
+    const r=await fetch('/api/stripe/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'kit-editor-ia'})});
+    const d=await r.json();
+    if(d.url){location.href=d.url;return}
+    throw new Error(d.error||'sin url');
+  }catch(err){
+    btns.forEach(b=>{b.textContent=b.dataset.t;b.style.pointerEvents=''});
+    const m=document.getElementById('buyErr'); if(m){m.hidden=false}
+  }
+}
+document.querySelectorAll('a.buy').forEach(a=>a.addEventListener('click',comprar));
+
+/* Video con sonido */
+const hv=document.getElementById('hv'), snd=document.getElementById('snd');
+snd.addEventListener('click',()=>{hv.muted=!hv.muted; if(!hv.muted){hv.currentTime=0;hv.play().catch(()=>{})} snd.textContent=hv.muted?'🔊 Ver con sonido':'🔇 Silenciar'});
+
+/* Demo timeline */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SEG=[[2.2,1],[0.9,0],[1.6,0],[2.4,1],[0.8,0],[2.1,1],[1.1,0],[2.6,1],[0.9,0],[2.0,1],[1.2,0],[1.1,1],[1.0,0]];
+const track=document.getElementById('track'), wb=document.getElementById('wavebars');
+SEG.forEach(([w,k])=>{const d=document.createElement('div');d.className='seg '+(k?'k':'x');d.style.flexGrow=w;track.appendChild(d)});
+for(let i=0;i<64;i++){const b=document.createElement('b');const quiet=[6,7,8,9,10,11,20,21,22,34,35,36,48,49,50,59,60].includes(i);b.style.height=(quiet?6:20+Math.abs(Math.sin(i*1.7))*70)+'%';if(quiet)b.style.opacity=.25;wb.appendChild(b)}
+const WORDS=['Este','video','lo','editó','Claude','en','minutos.'];
+const subs=document.getElementById('subs');
+const steps=[...document.querySelectorAll('#steps .step')];
+const dur=document.getElementById('dur'), st=document.getElementById('state');
+let timers=[];
+function setStep(i){steps.forEach((s,j)=>{s.classList.toggle('on',j===i);s.classList.toggle('done',j<i)})}
+function runDemo(){
+  timers.forEach(clearTimeout);timers=[];
+  subs.innerHTML='';WORDS.forEach(w=>{const s=document.createElement('span');s.textContent=w;subs.appendChild(s)});
+  [...track.children].forEach(d=>d.classList.remove('gone'));
+  dur.textContent='0:21';dur.classList.remove('gt');st.textContent='En bruto';
+  const T=reduce?[0,0,0,0,0]:[0,1400,2800,4300,6400];
+  const at=(ms,fn)=>timers.push(setTimeout(fn,ms));
+  at(T[0],()=>{setStep(0);st.textContent='Escuchando'});
+  at(T[1],()=>{setStep(1);st.textContent='6 pausas · 1 toma'});
+  at(T[2],()=>{setStep(2);st.textContent='Cortando';[...track.children].forEach(d=>{if(d.classList.contains('x'))d.classList.add('gone')});
+    let s=21;const iv=setInterval(()=>{s--;dur.textContent='0:'+String(s).padStart(2,'0');if(s<=12){clearInterval(iv);dur.classList.add('gt')}},reduce?0:110);timers.push(iv)});
+  at(T[3],()=>{setStep(3);st.textContent='Subtitulando';[...subs.children].forEach((s,i)=>at(reduce?0:i*260,()=>{[...subs.children].forEach(x=>x.classList.remove('hot'));s.classList.add('in','hot')}))});
+  at(T[4],()=>{setStep(4);st.textContent='Listo para publicar';dur.textContent='0:12';dur.classList.add('gt')});
+}
+document.getElementById('replay').addEventListener('click',runDemo);
+const demoEl=document.getElementById('demo');
+// estado visible en reposo: arranca en el paso final y se anima al entrar en pantalla
+(function rest(){setStep(4);[...track.children].forEach(d=>{if(d.classList.contains('x'))d.classList.add('gone')});dur.textContent='0:12';dur.classList.add('gt');st.textContent='Listo para publicar';subs.innerHTML='';WORDS.forEach(w=>{const s=document.createElement('span');s.textContent=w;s.className='in';subs.appendChild(s)})})();
+if('IntersectionObserver' in window && !reduce){let done=false;new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&!done){done=true;runDemo()}})},{threshold:.35}).observe(demoEl)}
+
+/* Chat */
+const msgs=document.getElementById('msgs');
+function add(cls,html){const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;msgs.appendChild(m);while(msgs.children.length>6)msgs.removeChild(msgs.firstChild);return m}
+add('u','<span class="file">kit-editor-ia.zip</span>');
+add('a','Recibido. Instalé los <b>11 editores</b> y revisé que todo quedó en su lugar. Ya puedes mandarme tu grabación.');
+add('u','<span class="file vid">grabacion.mov · 1:24</span>Corta las pausas y quédate con la última toma');
+add('a','Quité 9 pausas y 2 tomas repetidas, y ya le puse subtítulos. <b>1:24 quedó en 0:44.</b> Archivo: grabacion.final.mp4');
+document.querySelectorAll('.ask').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.ask').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');
+  add('u',b.textContent);const t=add('a','<span class="fine">Editando…</span>');
+  setTimeout(()=>{t.innerHTML=b.dataset.r},reduce?0:700);
+}));
+
+/* Slider */
+const sl=document.getElementById('sl'), ed=document.getElementById('ed'), b2=document.getElementById('b2'), sln=document.getElementById('sln');
+function upd(){const v=+sl.value/100;const secs=Math.round(84-40*v);ed.textContent=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');b2.style.width=(secs/84*100)+'%';sln.textContent=(84-secs)+' s menos. Lo que sale son pausas y tomas repetidas, no ideas.'}
+sl.addEventListener('input',upd);upd();
+</script>
+</body>
+</html>

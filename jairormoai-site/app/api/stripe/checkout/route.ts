@@ -2,10 +2,37 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { SESSION_PACKAGES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
+import { KIT_EDITOR } from '@/lib/kit-editor-ia'
 
 export async function POST(request: Request) {
   const body = await request.json()
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+
+  // Kit Editor IA (producto digital, sin login): precio definido aquí, entrega por descarga verificada
+  if (body.product === KIT_EDITOR.id) {
+    const base = (siteUrl || new URL(request.url).origin).replace(/\/$/, '')
+    try {
+    const session = await getStripe().checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{
+        quantity: 1,
+        price_data: {
+          currency: KIT_EDITOR.currency,
+          unit_amount: KIT_EDITOR.priceCents,
+          product_data: { name: KIT_EDITOR.name, description: KIT_EDITOR.description },
+        },
+      }],
+      allow_promotion_codes: true,
+      success_url: `${base}/kit-editor-ia/gracias?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/kit-editor-ia`,
+      metadata: { product: KIT_EDITOR.id, productName: KIT_EDITOR.name },
+    })
+    return NextResponse.json({ url: session.url })
+    } catch (err) {
+      console.error('[kit-editor-ia] checkout', err)
+      return NextResponse.json({ error: 'No se pudo iniciar el pago' }, { status: 502 })
+    }
+  }
 
   // Course purchase branch
   if (body.courseSlug && body.stripePriceId) {
