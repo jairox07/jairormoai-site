@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { EyebrowPill } from '@/components/ui/EyebrowPill'
 import { verifyKitPurchase } from '@/lib/kit-editor-ia'
+import { KitPurchasePixel } from '@/components/analytics/KitPurchasePixel'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +47,7 @@ export default async function KitGraciasPage({
 
   return (
     <div className="py-24 px-6 md:px-12">
+      <KitPurchasePixel sessionId={session_id} />
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <div className="w-14 h-14 rounded-full bg-cyan/10 border border-cyan/30 flex items-center justify-center mx-auto mb-6">

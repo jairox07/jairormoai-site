@@ -246,6 +246,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
+<script src="/kit-editor-ia/pixel.js"></script>
 </head>
 <body>
 
@@ -281,6 +282,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
           <a class="btn btn-g" href="#sesion">Prefiero que lo instalemos juntos</a>
         </div>
         <p class="fine">US$19 · pago único · tarjeta · acceso inmediato</p>
+        <p class="fine" style="margin-top:4px">Necesitas una computadora (Mac o Windows 10/11) y Claude con plan de pago (Pro o Max), que se paga aparte.</p>
       </div>
       <div class="phone">
         <video id="hv" src="/kit-editor-ia/promo.mp4" poster="/kit-editor-ia/poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Video promocional del Kit Editor IA"></video>
@@ -505,6 +507,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
           <a class="btn btn-p buy" id="buyMain" href="#precio">Quiero el Kit Editor IA</a>
           <a class="btn btn-g" href="/sessions" >O agenda una sesión de instalación</a>
           <p class="fine">Pago seguro con Stripe · tarjeta de crédito o débito.</p>
+          <p class="fine">Requiere computadora (Mac o Windows 10/11) y Claude con plan de pago (Pro o Max), no incluido.</p>
           <p class="fine" id="buyErr" hidden style="color:#ffb3ff">No pudimos abrir el pago. Intenta de nuevo en un momento o escríbeme a @jairoromo.ai.</p>
         </div>
         <div class="panel req">
@@ -530,6 +533,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
       </div>
       <div class="faq">
         <details><summary>¿Qué es exactamente el Kit Editor IA?</summary><div class="a"><p>Es un paquete de 11 skills de edición de video para Claude. Una vez instalado, le mandas tu grabación, le pides en español lo que quieres y te devuelve el archivo cortado, con subtítulos, gancho y lo que le hayas pedido.</p></div></details>
+        <details><summary>¿Qué necesito para usarlo?</summary><div class="a"><p>Una computadora con Mac o Windows 10/11, unos 3 GB libres, internet y Claude con un plan de pago (Pro o Max) para usar Claude Code. La suscripción de Claude se paga directo a Anthropic y no está incluida en los US$19. No funciona en Chromebook ni desde el celular solo.</p></div></details>
         <details><summary>¿Mis videos se suben a internet?</summary><div class="a"><p>No. El video se queda en tu computadora: la transcripción, los cortes y el recorte de fondo corren ahí mismo.</p><p>Para decidir los cortes, Claude lee el texto de lo que dices y algunos cuadros del video, igual que en cualquier conversación tuya con él.</p></div></details>
         <details><summary>¿Necesito saber editar o programar?</summary><div class="a"><p>No. Escribes como le hablarías a tu editor. Claude corre los comandos por ti y te pide permiso antes de hacerlo.</p></div></details>
         <details><summary>¿Cuánto tarda en editar un video?</summary><div class="a"><p>Cortes y subtítulos de un Reels de un minuto toman pocos minutos en una compu normal. Cambiar el fondo es lo más pesado: puede tardar más, y por eso primero te muestra una prueba corta.</p></div></details>
@@ -571,6 +575,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
 /* Compra: crea la sesión de Stripe en el servidor y redirige al checkout */
 async function comprar(e){
   e.preventDefault();
+  try{window.kitTrack&&kitTrack('InitiateCheckout',{value:19,currency:'USD',content_name:'Kit Editor IA'})}catch(_){}
   const btns=document.querySelectorAll('a.buy');
   btns.forEach(b=>{b.dataset.t=b.textContent;b.textContent='Abriendo pago seguro…';b.style.pointerEvents='none'});
   try{
