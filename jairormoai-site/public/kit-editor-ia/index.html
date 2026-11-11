@@ -67,6 +67,7 @@ section{padding-block:clamp(64px,9vw,112px)}
 nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(8,6,16,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 nav.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--triple)}
 .navin{display:flex;align-items:center;gap:14px;padding-block:14px}
+.avatar{flex:none;width:120px;height:120px;border-radius:50%;padding:5px;background:var(--gBrand)}.avatar img{display:block;width:100%;height:100%;border-radius:50%;border:4px solid var(--bg);background:#1a1530;object-fit:cover}
 .jr{width:40px;height:40px;border-radius:11px;background:var(--gBrand);color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:none;flex:none}
 .logo{font-weight:800;font-size:20px;text-decoration:none;display:flex;align-items:center;gap:10px}
 .navlinks{margin-left:auto;display:flex;gap:22px;align-items:center}
@@ -476,7 +477,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
   <section style="padding-top:0">
     <div class="wrap">
       <div class="panel about">
-        <span class="jr">JR</span>
+        <span class="avatar"><img src="/kit-editor-ia/jairo.webp" alt="Jairo Romo" width="640" height="640" loading="lazy"></span>
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <span class="eyebrow">Quién está detrás</span>
           <h3 style="font-size:26px">Jairo Romo · IA bien aplicada</h3>
