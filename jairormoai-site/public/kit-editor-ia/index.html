@@ -222,6 +222,7 @@ input[type=range]{width:100%;accent-color:#FF00FF;height:28px}
 @media(max-width:860px){.price-wrap{grid-template-columns:1fr}}
 
 /* FAQ */
+.guar{max-width:640px;margin:36px auto 0;padding:20px 24px;border-radius:20px;border:1px solid rgba(61,220,151,.3);background:rgba(61,220,151,.05);text-align:left}.guar p{margin-top:8px;color:var(--gray);font-size:15px;line-height:1.6}.guar b{color:#fff}
 .faq{display:flex;flex-direction:column;gap:10px;max-width:820px}
 details{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:0 22px}
 summary{cursor:pointer;list-style:none;padding:20px 0;font-weight:800;font-size:18px;display:flex;justify-content:space-between;gap:16px}
@@ -282,7 +283,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
           <a class="btn btn-p buy" href="#precio">Quiero el Kit · US$19</a>
           <a class="btn btn-g" href="#sesion">Prefiero que lo instalemos juntos</a>
         </div>
-        <p class="fine">US$19 · pago único · tarjeta · acceso inmediato</p>
+        <p class="fine">US$19 · pago único · tarjeta · acceso inmediato · garantía de 7 días</p>
         <p class="fine" style="margin-top:4px">Necesitas una computadora (Mac o Windows 10/11) y Claude con plan de pago (Pro o Max), que se paga aparte.</p>
       </div>
       <div class="phone">
@@ -508,6 +509,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
           <a class="btn btn-p buy" id="buyMain" href="#precio">Quiero el Kit Editor IA</a>
           <a class="btn btn-g" href="/sessions" >O agenda una sesión de instalación</a>
           <p class="fine">Pago seguro con Stripe · tarjeta de crédito o débito.</p>
+          <p class="fine" style="color:#3DDC97"><b>Garantía de 7 días:</b> si no te convence o no logras instalarlo, te devuelvo el 100 %, sin preguntas.</p>
           <p class="fine">Requiere computadora (Mac o Windows 10/11) y Claude con plan de pago (Pro o Max), no incluido.</p>
           <p class="fine" id="buyErr" hidden style="color:#ffb3ff">No pudimos abrir el pago. Intenta de nuevo en un momento o escríbeme a @jairoromo.ai.</p>
         </div>
@@ -534,6 +536,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
       </div>
       <div class="faq">
         <details><summary>¿Qué es exactamente el Kit Editor IA?</summary><div class="a"><p>Es un paquete de 11 skills de edición de video para Claude. Una vez instalado, le mandas tu grabación, le pides en español lo que quieres y te devuelve el archivo cortado, con subtítulos, gancho y lo que le hayas pedido.</p></div></details>
+        <details><summary>¿Y si no me funciona o no me gusta?</summary><div class="a"><p>Tienes 7 días desde tu compra para pedir la devolución. Sin preguntas y sin tema: si no lo logras instalar, no te convence o simplemente cambiaste de opinión, te regreso el 100 % de tu dinero. Escríbeme por mensaje a @jairoromo.ai en Instagram con el correo de tu compra.</p></div></details>
         <details><summary>¿Qué necesito para usarlo?</summary><div class="a"><p>Una computadora con Mac o Windows 10/11, unos 3 GB libres, internet y Claude con un plan de pago (Pro o Max) para usar Claude Code. La suscripción de Claude se paga directo a Anthropic y no está incluida en los US$19. No funciona en Chromebook ni desde el celular solo.</p></div></details>
         <details><summary>¿Mis videos se suben a internet?</summary><div class="a"><p>No. El video se queda en tu computadora: la transcripción, los cortes y el recorte de fondo corren ahí mismo.</p><p>Para decidir los cortes, Claude lee el texto de lo que dices y algunos cuadros del video, igual que en cualquier conversación tuya con él.</p></div></details>
         <details><summary>¿Necesito saber editar o programar?</summary><div class="a"><p>No. Escribes como le hablarías a tu editor. Claude corre los comandos por ti y te pide permiso antes de hacerlo.</p></div></details>
@@ -554,6 +557,10 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
       <div class="cta-row" style="justify-content:center">
         <a class="btn btn-p buy" href="#precio">Quiero el Kit · US$19</a>
         <a class="btn btn-g" href="/sessions" >Agendar sesión 1:1</a>
+      </div>
+      <div class="guar">
+        <span class="eyebrow" style="color:#3DDC97">Garantía de 7 días</span>
+        <p><b>Si no te sirve, te devuelvo tu dinero.</b> Tienes 7 días desde tu compra para pedir la devolución del 100 %, sin preguntas. Si no logras instalarlo, no te convence o por lo que sea, no hay tema. Mándame un mensaje a @jairoromo.ai en Instagram con el correo de tu compra.</p>
       </div>
     </div>
   </section>
