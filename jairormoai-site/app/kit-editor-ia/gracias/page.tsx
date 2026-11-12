@@ -109,6 +109,10 @@ export default async function KitGraciasPage({
             Agendar mi sesión
           </Link>
         </div>
+
+        <p className="font-sora text-gray text-sm text-center mt-8">
+          Garantía de 7 días: si no te sirve o no logras instalarlo, te devuelvo el 100 % sin preguntas. Escríbeme por mensaje a @jairoromo.ai en Instagram con el correo de tu compra.
+        </p>
       </div>
     </div>
   )

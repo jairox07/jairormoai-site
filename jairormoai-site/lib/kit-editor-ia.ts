@@ -62,6 +62,7 @@ export function kitPurchaseEmail(siteUrl: string, sessionId: string): string {
     <li>Dale clic en Permitir, espera el «Todo listo» y reinicia Claude Code.</li>
   </ol>
   <p style="margin:0 0 24px;font-size:13px;color:#A6A3B8;">Tus enlaces de descarga siempre están aquí: <a href="${gracias}" style="color:#00A3FF;">página de tu compra</a>.</p>
+  <p style="margin:0 0 22px;font-size:13px;color:#3DDC97;line-height:1.6;"><b>Garantía de 7 días:</b> si no te sirve o no logras instalarlo, te devuelvo el 100 % sin preguntas. Escríbeme por mensaje a @jairoromo.ai en Instagram con el correo de tu compra.</p>
   <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:0 0 22px;">
   <p style="margin:0 0 6px;font-weight:800;color:#fff;font-size:15px;">¿Prefieres que lo instalemos juntos?</p>
   <p style="margin:0 0 14px;font-size:14px;color:#C9C6D8;line-height:1.6;">En una sesión 1:1 dejamos el kit funcionando y editamos tu primer video en vivo.</p>
