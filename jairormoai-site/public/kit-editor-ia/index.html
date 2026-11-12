@@ -587,10 +587,8 @@ async function comprar(e){
   const btns=document.querySelectorAll('a.buy');
   btns.forEach(b=>{b.dataset.t=b.textContent;b.textContent='Abriendo pago seguro…';b.style.pointerEvents='none'});
   try{
-    const r=await fetch('/api/stripe/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'kit-editor-ia'})});
-    const d=await r.json();
-    if(d.url){location.href=d.url;return}
-    throw new Error(d.error||'sin url');
+    location.href='https://buy.stripe.com/14A6oI7tH1PL1vbe936wE0l';
+    return;
   }catch(err){
     btns.forEach(b=>{b.textContent=b.dataset.t;b.style.pointerEvents=''});
     const m=document.getElementById('buyErr'); if(m){m.hidden=false}
