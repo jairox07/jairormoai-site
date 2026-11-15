@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { Fecha } from "@/components/fecha";
 import { SoapResult } from "@/components/soap-result";
 import { SECCIONES_SOAP, type NotaSoap } from "@/lib/types";
 
@@ -19,7 +20,6 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
   if (!data) notFound();
 
   const nota = data.nota_soap_final as NotaSoap;
-  const fecha = new Date(data.fecha);
   const puntos = SECCIONES_SOAP.reduce((n, { key }) => n + (nota[key]?.length ?? 0), 0);
 
   return (
@@ -39,19 +39,21 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
       <section className="mb-6">
         <p className="text-sm text-slate-500">Nota clínica SOAP</p>
         <h2 className="mt-1 text-3xl font-semibold leading-tight text-slate-900">
-          {fecha.toLocaleDateString("es-MX", { day: "numeric", month: "long" })}
+          <Fecha iso={data.fecha} formato="dia" />
         </h2>
         <p className="mt-1 text-xs text-slate-400">Borrador generado con IA · revísalo antes de usarlo</p>
       </section>
 
       <div className="mb-6 grid grid-cols-3 divide-x divide-slate-100 rounded-3xl bg-white py-4 text-center shadow-soft">
         <div>
-          <p className="text-lg font-semibold text-slate-900">{fecha.getFullYear()}</p>
+          <p className="text-lg font-semibold text-slate-900">
+            <Fecha iso={data.fecha} formato="anio" />
+          </p>
           <p className="text-xs text-slate-500">Año</p>
         </div>
         <div>
           <p className="text-lg font-semibold text-slate-900">
-            {fecha.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
+            <Fecha iso={data.fecha} formato="hora" />
           </p>
           <p className="text-xs text-slate-500">Hora</p>
         </div>

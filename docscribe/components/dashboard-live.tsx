@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CalendarDays, FileText, Loader2, Radio, Stethoscope, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BottomNav } from "@/components/bottom-nav";
+import { Fecha } from "@/components/fecha";
 import { Button } from "@/components/ui/button";
 import { LIMITE_FREE, cn, periodoActual } from "@/lib/utils";
 
@@ -215,7 +216,7 @@ export function DashboardLive({
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-slate-900">
-                            {new Date(c.fecha).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}
+                            <Fecha iso={c.fecha} formato="lista" />
                           </p>
                           <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{c.nota_soap_final?.analisis?.[0] ?? "Nota SOAP"}</p>
                         </div>
