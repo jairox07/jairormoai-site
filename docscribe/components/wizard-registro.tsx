@@ -6,11 +6,11 @@ import { AlertCircle, Check, ChevronLeft, Loader2, ShieldCheck } from "lucide-re
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AVISO_VERSION, ESPECIALIDADES } from "@/lib/perfil";
+import { AVISO_VERSION, CEDULA, ESPECIALIDADES } from "@/lib/perfil";
 import { validarRfc } from "@/lib/rfc";
 import { cn } from "@/lib/utils";
 
-type Inicial = { nombre: string; clinica: string; especialidad: string; rfc: string };
+type Inicial = { nombre: string; clinica: string; especialidad: string; rfc: string; cedula: string };
 
 const PASOS = ["Tus datos", "Especialidad", "RFC", "Privacidad"] as const;
 const OTRA = "__otra__";
@@ -26,6 +26,7 @@ export function WizardRegistro({ inicial }: { inicial: Inicial }) {
   const [paso, setPaso] = useState(0);
   const [nombre, setNombre] = useState(inicial.nombre);
   const [clinica, setClinica] = useState(inicial.clinica);
+  const [cedula, setCedula] = useState(inicial.cedula);
   const [seleccion, setSeleccion] = useState(inicial.especialidad ? (esConocida ? inicial.especialidad : OTRA) : "");
   const [otra, setOtra] = useState(esConocida ? "" : inicial.especialidad);
   const [rfcTxt, setRfcTxt] = useState(inicial.rfc);
@@ -38,7 +39,7 @@ export function WizardRegistro({ inicial }: { inicial: Inicial }) {
   const rfc = validarRfc(rfcTxt);
 
   const valido = [
-    nombre.trim().length >= 2 && clinica.trim().length >= 2,
+    nombre.trim().length >= 2 && clinica.trim().length >= 2 && CEDULA.test(cedula.replace(/\s/g, "")),
     especialidad.length >= 2,
     rfc.ok,
     aviso && pacientes,
@@ -53,6 +54,7 @@ export function WizardRegistro({ inicial }: { inicial: Inicial }) {
       p_clinica: clinica.trim(),
       p_especialidad: especialidad,
       p_rfc: rfc.rfc,
+      p_cedula: cedula.replace(/\s/g, ""),
       p_acepta_aviso: aviso && pacientes,
       p_aviso_version: AVISO_VERSION,
     });
@@ -60,6 +62,8 @@ export function WizardRegistro({ inicial }: { inicial: Inicial }) {
       setError(
         error.message.includes("RFC_INVALIDO")
           ? "El RFC no es válido."
+          : error.message.includes("CEDULA_INVALIDA")
+            ? "La cédula profesional debe tener de 6 a 8 dígitos."
           : error.message.includes("AVISO_NO_ACEPTADO")
             ? "Debes aceptar el aviso de privacidad."
             : "No se pudo guardar tu perfil. Revisa los datos e intenta de nuevo."
@@ -110,6 +114,25 @@ export function WizardRegistro({ inicial }: { inicial: Inicial }) {
             <div>
               <label htmlFor="clinica" className="text-sm text-slate-600">Nombre de la clínica o consultorio</label>
               <Input id="clinica" className="mt-1" placeholder="Clínica Sol" maxLength={120} value={clinica} onChange={(e) => setClinica(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="cedula" className="text-sm text-slate-600">Cédula profesional</label>
+              <Input
+                id="cedula"
+                className="mt-1 font-mono"
+                inputMode="numeric"
+                placeholder="12345678"
+                autoComplete="off"
+                maxLength={10}
+                value={cedula}
+                onChange={(e) => setCedula(e.target.value.replace(/[^\d\s]/g, ""))}
+              />
+              {cedula.trim() !== "" && !CEDULA.test(cedula.replace(/\s/g, "")) && (
+                <p role="alert" className="mt-1 text-sm text-rose-600">Debe tener de 6 a 8 dígitos.</p>
+              )}
+              <p className="mt-1 text-xs text-slate-400">
+                Va en el PDF de tus notas, como pide la NOM-004. No la comprobamos contra el registro de la SEP.
+              </p>
             </div>
           </>
         )}

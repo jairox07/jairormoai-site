@@ -20,6 +20,10 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
 
   if (!data) notFound();
 
+  // Datos del médico para el encabezado y la firma del PDF (RLS: solo su propio perfil).
+  const { data: perfil } = await supabase.from("perfiles").select("nombre, cedula, especialidad, clinica").maybeSingle();
+  const medico = perfil ? { nombre: perfil.nombre, cedula: perfil.cedula, especialidad: perfil.especialidad, clinica: perfil.clinica } : null;
+
   const nota = data.nota_soap_final as NotaSoap;
   const puntos = SECCIONES_SOAP.reduce((n, { key }) => n + (nota[key]?.length ?? 0), 0);
 
@@ -80,6 +84,7 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
         numero={data.numero}
         expediente={data.expediente}
         consultaId={data.id}
+        medico={medico}
       />
     </main>
   );

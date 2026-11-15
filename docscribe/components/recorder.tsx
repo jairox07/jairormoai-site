@@ -10,7 +10,7 @@ import { RecordatorioNota } from "@/components/recordatorio";
 import { borrarPendiente, guardarPendiente, leerPendiente, type Pendiente } from "@/lib/audio-pendiente";
 import { TONO_FIN, TONO_INICIO, sonar } from "@/lib/sonido";
 import { cn, formatTiempo } from "@/lib/utils";
-import type { NotaSoap } from "@/lib/types";
+import type { Medico, NotaSoap } from "@/lib/types";
 
 type Estado = "idle" | "grabando" | "procesando" | "estructurando" | "listo" | "error";
 type Paciente = { nombre: string; edad: string };
@@ -25,7 +25,7 @@ function elegirMimeType() {
   return candidatos.find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) ?? "";
 }
 
-export function Recorder() {
+export function Recorder({ medico }: { medico?: Medico | null }) {
   const [estado, setEstado] = useState<Estado>("idle");
   const [segundos, setSegundos] = useState(0);
   const [niveles, setNiveles] = useState<number[]>(() => Array(BARRAS).fill(0.05));
@@ -258,6 +258,7 @@ export function Recorder() {
           numero={resultado?.numero}
           expediente={resultado?.expediente}
           consultaId={resultado?.id}
+          medico={medico}
         />
         <Button asChild variant="outline" size="lg" className="mt-6 w-full">
           <Link href="/dashboard">Ir al inicio</Link>

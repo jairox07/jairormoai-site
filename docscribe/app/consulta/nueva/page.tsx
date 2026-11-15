@@ -15,6 +15,9 @@ export default async function NuevaConsultaPage() {
   if (!user) redirect("/login");
   if (!(await perfilCompleto(supabase, user.id))) redirect("/onboarding");
 
+  const { data: perfil } = await supabase.from("perfiles").select("nombre, cedula, especialidad, clinica").eq("user_id", user.id).maybeSingle();
+  const medico = perfil ? { nombre: perfil.nombre, cedula: perfil.cedula, especialidad: perfil.especialidad, clinica: perfil.clinica } : null;
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-5">
       <header className="mb-2 flex items-center justify-between">
@@ -28,7 +31,7 @@ export default async function NuevaConsultaPage() {
         <h1 className="text-base font-medium text-slate-900">Nueva consulta</h1>
         <span className="h-11 w-11" aria-hidden="true" />
       </header>
-      <Recorder />
+      <Recorder medico={medico} />
     </main>
   );
 }

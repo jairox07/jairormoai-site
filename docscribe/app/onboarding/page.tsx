@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AVISO_VERSION } from "@/lib/perfil";
+import { perfilVigente } from "@/lib/perfil";
 import { WizardRegistro } from "@/components/wizard-registro";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +16,10 @@ export default async function OnboardingPage() {
   // Si ya aceptó la versión vigente, no hay nada que hacer. Si cambió el aviso, se prellenan sus datos.
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("nombre, clinica, especialidad, rfc, aviso_version")
+    .select("nombre, clinica, especialidad, rfc, cedula, aviso_version")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (perfil?.aviso_version === AVISO_VERSION) redirect("/dashboard");
+  if (perfilVigente(perfil)) redirect("/dashboard");
 
   return (
     <WizardRegistro
@@ -28,6 +28,7 @@ export default async function OnboardingPage() {
         clinica: perfil?.clinica ?? "",
         especialidad: perfil?.especialidad ?? "",
         rfc: perfil?.rfc ?? "",
+        cedula: perfil?.cedula ?? "",
       }}
     />
   );

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Fecha } from "@/components/fecha";
 import { copiarTexto } from "@/lib/clipboard";
 import { construirPdf } from "@/lib/pdf";
-import { MEMBRETE, SECCIONES_SOAP, notaATexto, type NotaSoap, type Paciente } from "@/lib/types";
+import { MEMBRETE, SECCIONES_SOAP, notaATexto, type Medico, type NotaSoap, type Paciente } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const CLAVE_AUTO = "docscribe.autoEmail";
@@ -22,6 +22,7 @@ export function SoapResult({
   numero,
   expediente,
   consultaId,
+  medico,
   cabecera = true,
 }: {
   nota: NotaSoap;
@@ -31,6 +32,7 @@ export function SoapResult({
   numero?: number | null;
   expediente?: string | null;
   consultaId?: string;
+  medico?: Medico | null;
   cabecera?: boolean; // false cuando la página ya muestra el paciente
 }) {
   const fechaConsulta = fecha ? new Date(fecha) : new Date();
@@ -82,7 +84,7 @@ export function SoapResult({
   }
 
   async function exportarPdf() {
-    const doc = await construirPdf(nota, fechaConsulta, paciente, numero, expediente);
+    const doc = await construirPdf(nota, fechaConsulta, paciente, numero, expediente, medico);
     const nombreArchivo = expediente ?? `expediente-soap-${fechaConsulta.toISOString().slice(0, 10)}`;
     doc.save(`${nombreArchivo}.pdf`);
   }
@@ -92,7 +94,7 @@ export function SoapResult({
     setEnviando(true);
     try {
       if (!consultaId) throw new Error("La nota aún no está guardada. Intenta de nuevo en un momento.");
-      const doc = await construirPdf(nota, fechaConsulta, paciente, numero, expediente);
+      const doc = await construirPdf(nota, fechaConsulta, paciente, numero, expediente, medico);
       const pdfBase64 = doc.output("datauristring").split(",")[1];
       // El servidor toma paciente, expediente y fecha de la base: el cliente solo manda el ID.
       const res = await fetch("/api/email", {

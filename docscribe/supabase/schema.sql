@@ -936,5 +936,59 @@ $$;
 revoke all on function public.registrar_consulta(text, jsonb, text, integer, jsonb) from public, anon;
 grant execute on function public.registrar_consulta(text, jsonb, text, integer, jsonb) to authenticated;
 
+-- ═════════════════════════════════════════════
+-- 13. Cédula profesional del médico (va en el PDF; la NOM-004 la pide en las notas)
+--     Reemplaza guardar_perfil() de la sección 12 (nuevo parámetro p_cedula).
+-- ═════════════════════════════════════════════
+alter table public.perfiles add column if not exists cedula text;
+alter table public.perfiles drop constraint if exists perfiles_cedula_check;
+alter table public.perfiles add constraint perfiles_cedula_check check (cedula is null or cedula ~ '^[0-9]{6,8}$');
+
+drop function if exists public.guardar_perfil(text, text, text, text, boolean, text);
+
+create or replace function public.guardar_perfil(
+  p_nombre text,
+  p_clinica text,
+  p_especialidad text,
+  p_rfc text,
+  p_cedula text,
+  p_acepta_aviso boolean,
+  p_aviso_version text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_nombre text := btrim(coalesce(p_nombre, ''));
+  v_clinica text := btrim(coalesce(p_clinica, ''));
+  v_esp text := btrim(coalesce(p_especialidad, ''));
+  v_rfc text := upper(regexp_replace(coalesce(p_rfc, ''), '\s', '', 'g'));
+  v_ced text := regexp_replace(coalesce(p_cedula, ''), '\s', '', 'g');
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if not coalesce(p_acepta_aviso, false) then raise exception 'AVISO_NO_ACEPTADO'; end if;
+  if char_length(btrim(coalesce(p_aviso_version, ''))) = 0 then raise exception 'DATOS_INVALIDOS'; end if;
+  if char_length(v_nombre) not between 2 and 120
+     or char_length(v_clinica) not between 2 and 120
+     or char_length(v_esp) not between 2 and 80 then
+    raise exception 'DATOS_INVALIDOS';
+  end if;
+  if v_rfc !~ '^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$' then raise exception 'RFC_INVALIDO'; end if;
+  if v_ced !~ '^[0-9]{6,8}$' then raise exception 'CEDULA_INVALIDA'; end if;
+
+  insert into public.perfiles (user_id, nombre, clinica, especialidad, rfc, cedula, aviso_version, aviso_aceptado_at)
+  values (v_uid, v_nombre, v_clinica, v_esp, v_rfc, v_ced, p_aviso_version, now())
+  on conflict (user_id) do update
+    set nombre = excluded.nombre, clinica = excluded.clinica, especialidad = excluded.especialidad,
+        rfc = excluded.rfc, cedula = excluded.cedula, aviso_version = excluded.aviso_version,
+        aviso_aceptado_at = now(), updated_at = now();
+end;
+$$;
+revoke all on function public.guardar_perfil(text, text, text, text, text, boolean, text) from public, anon;
+grant execute on function public.guardar_perfil(text, text, text, text, text, boolean, text) to authenticated;
+
 -- Primer admin (ejecutar a mano una vez, con tu correo):
 --   update public.users set is_admin = true where email = 'tu@correo.com';

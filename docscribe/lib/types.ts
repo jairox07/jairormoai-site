@@ -20,6 +20,9 @@ export function fechaLarga(fecha: Date) {
 
 export type Paciente = { nombre: string; edad: number | null };
 
+// Datos del médico tratante, tomados de su perfil (wizard). La NOM-004 pide nombre, cédula y firma en las notas.
+export type Medico = { nombre: string; cedula: string | null; especialidad: string; clinica: string };
+
 // "María López · 42 años · Consulta #3". Sin nombre de paciente en el asunto de los correos (ver /api/email).
 export function lineaPaciente(p: Paciente, numero?: number | null) {
   const partes = [p.nombre, p.edad !== null ? `${p.edad} años` : null, numero ? `Consulta #${numero}` : null];
