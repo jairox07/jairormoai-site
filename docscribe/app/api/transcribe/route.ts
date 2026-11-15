@@ -38,6 +38,10 @@ export async function POST(request: Request) {
   if (perfil?.puede_grabar === false) {
     return NextResponse.json({ error: "Tu cuenta no tiene permiso para grabar consultas." }, { status: 403 });
   }
+  const { data: miPerfil } = await supabase.from("perfiles").select("user_id").eq("user_id", user.id).maybeSingle();
+  if (!miPerfil) {
+    return NextResponse.json({ error: "Completa tu perfil antes de grabar consultas." }, { status: 403 });
+  }
   const usadas = perfil?.periodo === periodoActual() ? perfil.consultas_usadas : 0;
   if (perfil?.tier !== "pro" && usadas >= cfg.limite_free) {
     return NextResponse.json({ error: `Alcanzaste el límite de ${cfg.limite_free} consultas este mes.` }, { status: 402 });
@@ -56,8 +60,9 @@ export async function POST(request: Request) {
     const { texto, simulado, duracion } = await transcribirAudio(audio, cfg.stt_provider);
     if (!texto) return NextResponse.json({ error: "No se detectó voz en el audio." }, { status: 422 });
     // Audio guardado en el almacenamiento privado, en la carpeta del doctor. Sin audio real (demo) no se sube.
+    // Con retención en 0 días el audio no se guarda: solo queda la transcripción y la nota.
     let audioPath: string | null = null;
-    if (!simulado) {
+    if (!simulado && cfg.retencion_audio_dias > 0) {
       const ruta = `${user.id}/${crypto.randomUUID()}.${audio.type.includes("mp4") ? "m4a" : audio.type.includes("ogg") ? "ogg" : "webm"}`;
       const { error: errSubida } = await supabase.storage
         .from("consultas-audio")

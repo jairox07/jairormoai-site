@@ -759,5 +759,182 @@ $$;
 revoke all on function public.admin_borrar_audio(uuid) from public, anon;
 grant execute on function public.admin_borrar_audio(uuid) to authenticated;
 
+-- ═════════════════════════════════════════════
+-- 12. Perfil del doctor (wizard), aceptación del aviso y retención del audio
+--     Sin perfil completo no se procesan datos de pacientes. Reemplaza registrar_consulta() y admin_guardar_config().
+-- ═════════════════════════════════════════════
+create table if not exists public.perfiles (
+  user_id           uuid primary key references public.users (id) on delete cascade,
+  nombre            text not null check (char_length(nombre) between 2 and 120),
+  clinica           text not null check (char_length(clinica) between 2 and 120),
+  especialidad      text not null check (char_length(especialidad) between 2 and 80),
+  rfc               text not null check (rfc ~ '^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$'),
+  aviso_version     text not null,
+  aviso_aceptado_at timestamptz not null,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+alter table public.perfiles enable row level security;
+
+drop policy if exists "perfiles_select_propio" on public.perfiles;
+create policy "perfiles_select_propio" on public.perfiles
+  for select to authenticated using (user_id = (select auth.uid()));
+
+create or replace function public.guardar_perfil(
+  p_nombre text,
+  p_clinica text,
+  p_especialidad text,
+  p_rfc text,
+  p_acepta_aviso boolean,
+  p_aviso_version text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_nombre text := btrim(coalesce(p_nombre, ''));
+  v_clinica text := btrim(coalesce(p_clinica, ''));
+  v_esp text := btrim(coalesce(p_especialidad, ''));
+  v_rfc text := upper(regexp_replace(coalesce(p_rfc, ''), '\s', '', 'g'));
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if not coalesce(p_acepta_aviso, false) then raise exception 'AVISO_NO_ACEPTADO'; end if;
+  if char_length(btrim(coalesce(p_aviso_version, ''))) = 0 then raise exception 'DATOS_INVALIDOS'; end if;
+  if char_length(v_nombre) not between 2 and 120
+     or char_length(v_clinica) not between 2 and 120
+     or char_length(v_esp) not between 2 and 80 then
+    raise exception 'DATOS_INVALIDOS';
+  end if;
+  if v_rfc !~ '^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$' then raise exception 'RFC_INVALIDO'; end if;
+
+  insert into public.perfiles (user_id, nombre, clinica, especialidad, rfc, aviso_version, aviso_aceptado_at)
+  values (v_uid, v_nombre, v_clinica, v_esp, v_rfc, p_aviso_version, now())
+  on conflict (user_id) do update
+    set nombre = excluded.nombre, clinica = excluded.clinica, especialidad = excluded.especialidad,
+        rfc = excluded.rfc, aviso_version = excluded.aviso_version, aviso_aceptado_at = now(), updated_at = now();
+end;
+$$;
+revoke all on function public.guardar_perfil(text, text, text, text, boolean, text) from public, anon;
+grant execute on function public.guardar_perfil(text, text, text, text, boolean, text) to authenticated;
+
+-- Retención del audio (días). 0 = no guardar audio.
+alter table public.app_config drop constraint if exists app_config_clave_check;
+alter table public.app_config add constraint app_config_clave_check
+  check (clave in ('stt_provider','llm_provider','ollama_model','correo_pdf','nueva_consulta','limite_free','retencion_audio_dias'));
+insert into public.app_config (clave, valor) values ('retencion_audio_dias', '30') on conflict (clave) do nothing;
+
+create or replace function public.admin_guardar_config(p_clave text, p_valor jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_txt text := p_valor #>> '{}';
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+
+  if p_clave in ('stt_provider','llm_provider','ollama_model') and jsonb_typeof(p_valor) <> 'string' then
+    raise exception 'VALOR_INVALIDO';
+  end if;
+  if p_clave in ('correo_pdf','nueva_consulta') and jsonb_typeof(p_valor) <> 'boolean' then
+    raise exception 'VALOR_INVALIDO';
+  end if;
+  if p_clave = 'stt_provider' and v_txt not in ('auto','openai','local','mock') then raise exception 'VALOR_INVALIDO'; end if;
+  if p_clave = 'llm_provider' and v_txt not in ('auto','gemini','openai','ollama','mock') then raise exception 'VALOR_INVALIDO'; end if;
+  if p_clave = 'ollama_model' and v_txt !~ '^[A-Za-z0-9._:/-]{1,80}$' then raise exception 'VALOR_INVALIDO'; end if;
+  if p_clave = 'limite_free' then
+    if jsonb_typeof(p_valor) <> 'number' then raise exception 'VALOR_INVALIDO'; end if;
+    if v_txt::numeric < 0 or v_txt::numeric > 100000 or v_txt::numeric <> trunc(v_txt::numeric) then
+      raise exception 'VALOR_INVALIDO';
+    end if;
+  end if;
+  if p_clave = 'retencion_audio_dias' then
+    if jsonb_typeof(p_valor) <> 'number' then raise exception 'VALOR_INVALIDO'; end if;
+    if v_txt::numeric < 0 or v_txt::numeric > 3650 or v_txt::numeric <> trunc(v_txt::numeric) then
+      raise exception 'VALOR_INVALIDO';
+    end if;
+  end if;
+
+  update public.app_config set valor = p_valor, updated_at = now() where clave = p_clave;
+  if not found then raise exception 'CLAVE_INVALIDA'; end if;
+end;
+$$;
+revoke all on function public.admin_guardar_config(text, jsonb) from public, anon;
+grant execute on function public.admin_guardar_config(text, jsonb) to authenticated;
+
+create or replace function public.registrar_consulta(
+  p_transcripcion text,
+  p_nota jsonb,
+  p_paciente text,
+  p_edad integer,
+  p_uso jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tier text;
+  v_usadas integer;
+  v_periodo text;
+  v_activo boolean;
+  v_licencia text;
+  v_grabar boolean;
+  v_actual text := to_char(now() at time zone 'utc', 'YYYY-MM');
+  v_limite integer;
+  v_nombre text := btrim(coalesce(p_paciente, ''));
+  v_numero integer;
+  v_ent integer;
+  v_sal integer;
+  v_aud numeric;
+  v_audio text := nullif(p_uso->>'audio_path', '');
+  v_id uuid := gen_random_uuid();
+  v_exp text;
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if char_length(v_nombre) < 2 or char_length(v_nombre) > 120 then raise exception 'PACIENTE_INVALIDO'; end if;
+  if p_edad is not null and (p_edad < 0 or p_edad > 130) then raise exception 'EDAD_INVALIDA'; end if;
+  if v_audio is not null and left(v_audio, char_length(v_uid::text) + 1) <> v_uid::text || '/' then
+    raise exception 'AUDIO_INVALIDO';
+  end if;
+  if not exists (select 1 from public.perfiles where user_id = v_uid) then raise exception 'PERFIL_INCOMPLETO'; end if;
+
+  select tier, consultas_usadas, periodo, activo, licencia_estado, puede_grabar
+    into v_tier, v_usadas, v_periodo, v_activo, v_licencia, v_grabar
+    from public.users where id = v_uid for update;
+  if not found then raise exception 'PERFIL_NO_ENCONTRADO'; end if;
+  if not v_activo then raise exception 'CUENTA_SUSPENDIDA'; end if;
+  if v_licencia <> 'activa' then raise exception 'LICENCIA_INACTIVA'; end if;
+  if not v_grabar then raise exception 'NO_PUEDE_GRABAR'; end if;
+  if v_periodo <> v_actual then v_usadas := 0; end if;
+
+  select coalesce((select (valor #>> '{}')::integer from public.app_config where clave = 'limite_free'), 20) into v_limite;
+  if v_tier = 'free' and v_usadas >= v_limite then raise exception 'LIMITE_ALCANZADO'; end if;
+
+  v_ent := greatest(coalesce(nullif(p_uso->>'entrada', '')::integer, 0), 0);
+  v_sal := greatest(coalesce(nullif(p_uso->>'salida', '')::integer, 0), 0);
+  v_aud := greatest(coalesce(nullif(p_uso->>'audio_segundos', '')::numeric, 0), 0);
+
+  v_exp := 'EXP-' || upper(substr(replace(v_id::text, '-', ''), 1, 8));
+
+  select coalesce(max(numero), 0) + 1 into v_numero from public.consultas where user_id = v_uid;
+
+  insert into public.consultas (id, user_id, transcripcion_raw, nota_soap_final, paciente_nombre, paciente_edad, numero,
+                                tokens_entrada, tokens_salida, audio_segundos, expediente, audio_path)
+  values (v_id, v_uid, p_transcripcion, p_nota, v_nombre, p_edad, v_numero, v_ent, v_sal, nullif(v_aud, 0), v_exp, v_audio);
+
+  update public.users set consultas_usadas = v_usadas + 1, periodo = v_actual where id = v_uid;
+  return jsonb_build_object('id', v_id, 'numero', v_numero, 'expediente', v_exp);
+end;
+$$;
+revoke all on function public.registrar_consulta(text, jsonb, text, integer, jsonb) from public, anon;
+grant execute on function public.registrar_consulta(text, jsonb, text, integer, jsonb) to authenticated;
+
 -- Primer admin (ejecutar a mano una vez, con tu correo):
 --   update public.users set is_admin = true where email = 'tu@correo.com';

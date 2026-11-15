@@ -89,9 +89,13 @@ export async function transcribirAudio(
 // ─────────────────────────────────────────────
 export async function generarNotaSoap(
   transcripcion: string,
-  opciones: { proveedor?: string; ollamaModel?: string } = {}
+  opciones: { proveedor?: string; ollamaModel?: string; especialidad?: string } = {}
 ): Promise<{ nota: NotaSoap; simulado: boolean; uso: Uso }> {
-  const usuario = `${FORMATO_JSON}\n\nTRANSCRIPCIÓN:\n"""\n${transcripcion}\n"""`;
+  // La especialidad del médico va en el mensaje del usuario (el system prompt se queda exacto como se pidió).
+  const contexto = opciones.especialidad
+    ? `Contexto: el médico que atendió la consulta es especialista en ${opciones.especialidad}. Usa la terminología propia de esa especialidad.\n\n`
+    : "";
+  const usuario = `${FORMATO_JSON}\n\n${contexto}TRANSCRIPCIÓN:\n"""\n${transcripcion}\n"""`;
   const proveedor = proveedorLlm(opciones.proveedor);
 
   if (proveedor === "ollama") {

@@ -1,8 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { perfilCompleto } from "@/lib/perfil";
 import { Recorder } from "@/components/recorder";
 
-export default function NuevaConsultaPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NuevaConsultaPage() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  if (!(await perfilCompleto(supabase, user.id))) redirect("/onboarding");
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-5">
       <header className="mb-2 flex items-center justify-between">

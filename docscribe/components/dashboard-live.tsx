@@ -240,7 +240,9 @@ export function DashboardLive({
                 <li key={c.id} className="relative">
                   {confirmandoId === c.id ? (
                     <div className="flex items-center justify-between gap-3 rounded-3xl bg-rose-50 p-4 ring-1 ring-rose-100">
-                      <p className="text-sm text-rose-800">¿Eliminar esta nota? No se puede deshacer.</p>
+                      <p className="text-sm text-rose-800">
+                        ¿Eliminar esta nota y su audio? No se puede deshacer. La norma (NOM-004) pide conservar el expediente al menos 5 años.
+                      </p>
                       <div className="flex shrink-0 gap-2">
                         <Button size="sm" variant="outline" disabled={borrandoId === c.id} onClick={() => setConfirmandoId(null)}>
                           No

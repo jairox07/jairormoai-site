@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { cargarConfig } from "@/lib/config";
+import { perfilCompleto } from "@/lib/perfil";
 import { DashboardLive } from "@/components/dashboard-live";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,8 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  // Primer ingreso (o aviso nuevo): se completa el perfil antes de usar la app.
+  if (!(await perfilCompleto(supabase, user.id))) redirect("/onboarding");
 
   const [{ data: perfil }, { data: consultas }, cfg] = await Promise.all([
     supabase.from("users").select("tier, consultas_usadas, periodo, is_admin").eq("id", user.id).single(),

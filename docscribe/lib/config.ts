@@ -9,6 +9,7 @@ export type Config = {
   correo_pdf: boolean; // permite "Enviar a mi correo"
   nueva_consulta: boolean; // interruptor general: false = mantenimiento
   limite_free: number; // consultas/mes del plan Free
+  retencion_audio_dias: number; // días que se conserva el audio; 0 = no guardarlo
 };
 
 export const CONFIG_DEFECTO: Config = {
@@ -18,6 +19,7 @@ export const CONFIG_DEFECTO: Config = {
   correo_pdf: true,
   nueva_consulta: true,
   limite_free: 20,
+  retencion_audio_dias: 30,
 };
 
 export async function cargarConfig(supabase: SupabaseClient): Promise<Config> {

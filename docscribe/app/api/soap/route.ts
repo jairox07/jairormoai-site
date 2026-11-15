@@ -41,9 +41,17 @@ export async function POST(request: Request) {
   // Duración del audio (la reporta el STT local); se guarda para el consumo del admin.
   const audioSegundos = typeof body?.audio_segundos === "number" && body.audio_segundos >= 0 ? body.audio_segundos : null;
 
+  // Especialidad del médico (wizard de registro): da contexto de terminología a la nota.
+  const { data: miPerfil } = await supabase.from("perfiles").select("especialidad").eq("user_id", user.id).maybeSingle();
+  if (!miPerfil) return NextResponse.json({ error: "Completa tu perfil antes de grabar consultas." }, { status: 403 });
+
   let resultado;
   try {
-    resultado = await generarNotaSoap(transcripcion, { proveedor: cfg.llm_provider, ollamaModel: cfg.ollama_model });
+    resultado = await generarNotaSoap(transcripcion, {
+      proveedor: cfg.llm_provider,
+      ollamaModel: cfg.ollama_model,
+      especialidad: miPerfil.especialidad,
+    });
   } catch (e) {
     console.error("[soap]", e);
     return NextResponse.json({ error: "No se pudo estructurar la nota. Intenta de nuevo." }, { status: 502 });
@@ -70,6 +78,9 @@ export async function POST(request: Request) {
     }
     if (error.message.includes("CUENTA_SUSPENDIDA")) {
       return NextResponse.json({ error: "Tu cuenta está suspendida. Contacta al administrador." }, { status: 403 });
+    }
+    if (error.message.includes("PERFIL_INCOMPLETO")) {
+      return NextResponse.json({ error: "Completa tu perfil antes de grabar consultas." }, { status: 403 });
     }
     if (error.message.includes("LICENCIA_INACTIVA")) {
       return NextResponse.json({ error: "Tu licencia no está activa. Contacta al administrador." }, { status: 403 });

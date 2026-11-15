@@ -116,6 +116,7 @@ export function AdminPanel({
   const [filtro, setFiltro] = useState("");
   const [ocupadoId, setOcupadoId] = useState<string | null>(null);
   const [limiteTxt, setLimiteTxt] = useState(String(configInicial.limite_free));
+  const [retencionTxt, setRetencionTxt] = useState(String(configInicial.retencion_audio_dias));
   const [modeloTxt, setModeloTxt] = useState(configInicial.ollama_model);
   const [toast, setToast] = useState<{ texto: string; error?: boolean } | null>(null);
   const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,6 +221,8 @@ export function AdminPanel({
   const limiteNum = Number(limiteTxt);
   const limiteValido = limiteTxt.trim() !== "" && Number.isInteger(limiteNum) && limiteNum >= 0 && limiteNum <= 100000;
   const modeloValido = /^[A-Za-z0-9._:/-]{1,80}$/.test(modeloTxt);
+  const retencionNum = Number(retencionTxt);
+  const retencionValida = retencionTxt.trim() !== "" && Number.isInteger(retencionNum) && retencionNum >= 0 && retencionNum <= 3650;
 
   const visibles = usuarios.filter((u) => u.email.toLowerCase().includes(filtro.trim().toLowerCase()));
   const totalPro = usuarios.filter((u) => u.tier === "pro").length;
@@ -300,6 +303,24 @@ export function AdminPanel({
                 </div>
                 <p className="mt-2 text-xs text-slate-500">Se cuenta por mes y se reinicia solo el día 1. Borrar notas no devuelve consultas.</p>
               </div>
+              <div className="p-4">
+                <label className="text-sm font-medium text-slate-900" htmlFor="retencion">
+                  Días que se conserva el audio
+                </label>
+                <div className="mt-2 flex gap-2">
+                  <Input id="retencion" inputMode="numeric" value={retencionTxt} onChange={(e) => setRetencionTxt(e.target.value)} className="h-11" />
+                  <Button
+                    disabled={!retencionValida || retencionNum === config.retencion_audio_dias}
+                    onClick={() => guardarConfig("retencion_audio_dias", retencionNum)}
+                  >
+                    Guardar
+                  </Button>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  0 = no guardar el audio. La nota y la transcripción se conservan hasta que el doctor las elimine. Los audios vencidos se
+                  borran desde la pestaña Grabaciones o con la tarea programada.
+                </p>
+              </div>
             </div>
           </section>
 
@@ -353,7 +374,7 @@ export function AdminPanel({
         </div>
       )}
 
-      {pestana === "grabaciones" && <AdminGrabaciones />}
+      {pestana === "grabaciones" && <AdminGrabaciones retencionDias={config.retencion_audio_dias} />}
 
       {pestana === "usuarios" && (
         <section>
