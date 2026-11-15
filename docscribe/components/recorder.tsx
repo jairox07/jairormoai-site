@@ -6,14 +6,19 @@ import { AlertCircle, Check, Loader2, Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SoapResult } from "@/components/soap-result";
+import { RecordatorioNota } from "@/components/recordatorio";
+import { borrarPendiente, guardarPendiente, leerPendiente, type Pendiente } from "@/lib/audio-pendiente";
+import { TONO_FIN, TONO_INICIO, sonar } from "@/lib/sonido";
 import { cn, formatTiempo } from "@/lib/utils";
 import type { NotaSoap } from "@/lib/types";
 
 type Estado = "idle" | "grabando" | "procesando" | "estructurando" | "listo" | "error";
+type Paciente = { nombre: string; edad: string };
 
 // 24 kbps ≈ 10.8 MB/hora. 120 min ≈ 21.6 MB. En Vercel el body máx. es 4.5 MB (~25 min): ver MAX_AUDIO_MB.
 const MAX_SEGUNDOS = 120 * 60;
 const BARRAS = 24;
+const SEGUNDOS_RECORDATORIO = 15;
 
 function elegirMimeType() {
   const candidatos = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
@@ -27,10 +32,15 @@ export function Recorder() {
   const [error, setError] = useState<string | null>(null);
   const [nota, setNota] = useState<NotaSoap | null>(null);
   const [simulado, setSimulado] = useState(false);
-  const [paciente, setPaciente] = useState({ nombre: "", edad: "" });
+  const [paciente, setPaciente] = useState<Paciente>({ nombre: "", edad: "" });
   const [resultado, setResultado] = useState<{ numero: number; paciente: { nombre: string; edad: number | null } } | null>(null);
+  const [pendiente, setPendiente] = useState<Pendiente | null>(null);
+  const [recordatorio, setRecordatorio] = useState(false);
+
   // Se congela al iniciar la grabación: lo que se escribió es lo que se guarda.
-  const pacienteRef = useRef({ nombre: "", edad: "" });
+  const pacienteRef = useRef<Paciente>({ nombre: "", edad: "" });
+  const arrancoRef = useRef(false);
+  const nombreRef = useRef<HTMLInputElement>(null);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -53,8 +63,36 @@ export function Recorder() {
 
   useEffect(() => limpiarMedios, [limpiarMedios]);
 
-  async function procesar(audio: Blob) {
+  // Si quedó una grabación sin procesar (p. ej. se cerró la pestaña), se ofrece reintentarla.
+  useEffect(() => {
+    leerPendiente().then((p) => {
+      if (p) {
+        arrancoRef.current = true; // ya hay trabajo pendiente: no molestar con el recordatorio
+        setPendiente(p);
+      }
+    });
+  }, []);
+
+  // ¿Sigues ahí? Si a los 15 s no ha empezado a grabar, aparece el recordatorio.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!arrancoRef.current) setRecordatorio(true);
+    }, SEGUNDOS_RECORDATORIO * 1000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const cerrarRecordatorio = useCallback(() => {
+    setRecordatorio(false);
+    nombreRef.current?.focus();
+  }, []);
+
+  async function procesar(audio: Blob, pac: Paciente) {
     try {
+      // Copia temporal en el dispositivo antes de subir nada: si algo falla, no se pierde.
+      const copia = { blob: audio, nombre: pac.nombre, edad: pac.edad, creado: Date.now() };
+      await guardarPendiente(copia).catch(() => {});
+      setPendiente(copia);
+
       setEstado("procesando");
       const fd = new FormData();
       const ext = audio.type.includes("mp4") ? "m4a" : audio.type.includes("ogg") ? "ogg" : "webm";
@@ -70,19 +108,25 @@ export function Recorder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transcripcion: d1.texto,
-          paciente: pacienteRef.current.nombre,
-          edad: pacienteRef.current.edad === "" ? null : Number(pacienteRef.current.edad),
+          audio_segundos: typeof d1.duracion === "number" ? d1.duracion : null,
+          paciente: pac.nombre,
+          edad: pac.edad === "" ? null : Number(pac.edad),
         }),
       });
       const d2 = await r2.json();
       if (!r2.ok) throw new Error(d2.error ?? "No se pudo generar la nota.");
 
+      // Nota guardada: la copia del dispositivo ya no hace falta.
+      await borrarPendiente();
+      setPendiente(null);
       setSimulado(Boolean(d1.simulado || d2.simulado));
       setNota(d2.nota);
       setResultado({ numero: d2.numero, paciente: d2.paciente });
       setEstado("listo");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error inesperado.");
+      setError(
+        `${e instanceof Error ? e.message : "Error inesperado."} La grabación se conserva en este dispositivo: puedes reintentar.`
+      );
       setEstado("error");
     }
   }
@@ -94,7 +138,13 @@ export function Recorder() {
       return;
     }
     pacienteRef.current = { nombre, edad: paciente.edad.trim() };
+    arrancoRef.current = true;
+    setRecordatorio(false);
     setError(null);
+
+    // El AudioContext se crea dentro del toque (Safari lo exige para poder sonar).
+    const ctx = new AudioContext();
+    audioCtxRef.current = ctx;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 },
@@ -102,10 +152,9 @@ export function Recorder() {
       streamRef.current = stream;
       // Pantalla encendida: en el celular, bloquearla corta la grabación en sesiones largas.
       navigator.wakeLock?.request("screen").then((l) => (wakeRef.current = l)).catch(() => {});
+      await ctx.resume().catch(() => {});
 
       // Web Audio API: analizador para el medidor de nivel en vivo
-      const ctx = new AudioContext();
-      audioCtxRef.current = ctx;
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 64;
       ctx.createMediaStreamSource(stream).connect(analyser);
@@ -134,10 +183,12 @@ export function Recorder() {
           setEstado("error");
           return;
         }
-        procesar(blob);
+        procesar(blob, pacienteRef.current);
       };
       rec.start(1000);
       recorderRef.current = rec;
+
+      sonar(ctx, TONO_INICIO); // aviso: ya está grabando
 
       setSegundos(0);
       timerRef.current = setInterval(() => {
@@ -149,6 +200,7 @@ export function Recorder() {
       setEstado("grabando");
     } catch (e) {
       limpiarMedios();
+      arrancoRef.current = false; // no empezó: el recordatorio vuelve a poder aparecer
       setError(
         e instanceof DOMException && e.name === "NotAllowedError"
           ? "Permite el acceso al micrófono para grabar la consulta."
@@ -159,7 +211,26 @@ export function Recorder() {
   }
 
   function detener() {
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    const rec = recorderRef.current;
+    if (rec?.state !== "recording") return;
+    sonar(audioCtxRef.current, TONO_FIN); // aviso: terminó la grabación
+    // Se espera a que suene el tono antes de cerrar el micrófono.
+    setTimeout(() => {
+      if (rec.state === "recording") rec.stop();
+    }, 350);
+  }
+
+  function reintentar() {
+    if (!pendiente) return;
+    setError(null);
+    procesar(pendiente.blob, { nombre: pendiente.nombre, edad: pendiente.edad });
+  }
+
+  async function descartar() {
+    await borrarPendiente();
+    setPendiente(null);
+    setError(null);
+    setEstado("idle");
   }
 
   // ── Resultado ──
@@ -196,11 +267,7 @@ export function Recorder() {
           {pasos.map((p, i) => (
             <li
               key={p.key}
-              className={cn(
-                "flex items-center gap-3 text-base",
-                i > actual && "text-muted-foreground/50",
-                i === actual && "font-medium"
-              )}
+              className={cn("flex items-center gap-3 text-base", i > actual && "text-muted-foreground/50", i === actual && "font-medium")}
             >
               {i < actual ? (
                 <Check className="h-5 w-5 text-primary" />
@@ -219,9 +286,29 @@ export function Recorder() {
 
   // ── Grabación ──
   const grabando = estado === "grabando";
+  const sinNombre = paciente.nombre.trim().length < 2;
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-16">
-      {!grabando && (
+      <RecordatorioNota abierto={recordatorio} onCerrar={cerrarRecordatorio} />
+
+      {!grabando && pendiente && (
+        <div role="alert" className="w-full space-y-3 rounded-3xl bg-amber-50 p-5 text-amber-900 ring-1 ring-amber-200">
+          <p className="font-medium">Consulta sin procesar{pendiente.nombre ? ` de ${pendiente.nombre}` : ""}</p>
+          <p className="text-xs">
+            La grabación se quedó guardada solo en este dispositivo hasta que la nota se genere.
+          </p>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={reintentar}>
+              Reintentar
+            </Button>
+            <Button size="sm" variant="outline" onClick={descartar}>
+              Descartar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!grabando && !pendiente && (
         <div className="w-full space-y-4 rounded-3xl bg-white p-5 shadow-soft">
           <div>
             <label htmlFor="paciente" className="text-sm font-medium text-slate-900">
@@ -229,6 +316,7 @@ export function Recorder() {
             </label>
             <Input
               id="paciente"
+              ref={nombreRef}
               autoComplete="off"
               placeholder="Ej. María López"
               maxLength={120}
@@ -276,7 +364,7 @@ export function Recorder() {
         <button
           type="button"
           onClick={grabando ? detener : iniciar}
-          disabled={!grabando && paciente.nombre.trim().length < 2}
+          disabled={!grabando && (sinNombre || !!pendiente)}
           aria-label={grabando ? "Detener grabación" : "Iniciar grabación"}
           className={cn(
             "relative flex h-28 w-28 items-center justify-center rounded-full text-white shadow-xl transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
@@ -288,7 +376,13 @@ export function Recorder() {
         </button>
       </div>
       <p className="-mt-3 text-sm font-medium text-slate-700">
-        {grabando ? "Toca para detener" : paciente.nombre.trim().length < 2 ? "Escribe el nombre del paciente" : "Toca para empezar"}
+        {grabando
+          ? "Toca para detener"
+          : pendiente
+            ? "Resuelve la consulta pendiente primero"
+            : sinNombre
+              ? "Escribe el nombre del paciente"
+              : "Toca para empezar"}
       </p>
 
       {error && (

@@ -37,15 +37,18 @@ function proveedorLlm(preferido?: string): "gemini" | "openai" | "ollama" | "moc
 // ─────────────────────────────────────────────
 // STT — Whisper (OpenAI) | faster-whisper local | simulado
 // ─────────────────────────────────────────────
+// Consumo de una llamada a la IA (para el admin). 0 cuando el proveedor no lo reporta o es demo.
+export type Uso = { entrada: number; salida: number };
+
 export async function transcribirAudio(
   audio: File,
   proveedorElegido?: string
-): Promise<{ texto: string; simulado: boolean }> {
+): Promise<{ texto: string; simulado: boolean; duracion: number | null }> {
   const proveedor = proveedorStt(proveedorElegido);
 
   if (proveedor === "mock") {
     await new Promise((r) => setTimeout(r, 1200));
-    return { texto: TRANSCRIPCION_DEMO, simulado: true };
+    return { texto: TRANSCRIPCION_DEMO, simulado: true, duracion: null };
   }
 
   if (proveedor === "local") {
@@ -58,9 +61,9 @@ export async function transcribirAudio(
       signal: AbortSignal.timeout(2 * 60 * 60 * 1000), // el servidor manda latidos; ver scripts/stt-server.py
     });
     if (!res.ok) throw new Error(`STT local ${res.status}: ${await res.text()}`);
-    const data = (await res.json()) as { text?: string; error?: string };
+    const data = (await res.json()) as { text?: string; error?: string; duration?: number };
     if (data.error) throw new Error(`STT local: ${data.error}`);
-    return { texto: (data.text ?? "").trim(), simulado: false };
+    return { texto: (data.text ?? "").trim(), simulado: false, duracion: typeof data.duration === "number" ? data.duration : null };
   }
 
   const key = process.env.OPENAI_API_KEY;
@@ -78,7 +81,7 @@ export async function transcribirAudio(
     body: fd,
   });
   if (!res.ok) throw new Error(`Whisper ${res.status}: ${await res.text()}`);
-  return { texto: (await res.text()).trim(), simulado: false };
+  return { texto: (await res.text()).trim(), simulado: false, duracion: null };
 }
 
 // ─────────────────────────────────────────────
@@ -87,7 +90,7 @@ export async function transcribirAudio(
 export async function generarNotaSoap(
   transcripcion: string,
   opciones: { proveedor?: string; ollamaModel?: string } = {}
-): Promise<{ nota: NotaSoap; simulado: boolean }> {
+): Promise<{ nota: NotaSoap; simulado: boolean; uso: Uso }> {
   const usuario = `${FORMATO_JSON}\n\nTRANSCRIPCIÓN:\n"""\n${transcripcion}\n"""`;
   const proveedor = proveedorLlm(opciones.proveedor);
 
@@ -117,12 +120,15 @@ export async function generarNotaSoap(
 
     let contenido = "";
     let resto = "";
+    let uso: Uso = { entrada: 0, salida: 0 };
     const decoder = new TextDecoder();
     const leer = (linea: string) => {
       if (!linea.trim()) return;
       const j = JSON.parse(linea);
       if (j.error) throw new Error(`Ollama: ${j.error}`);
       contenido += j.message?.content ?? "";
+      // El último fragmento (done: true) trae los conteos de tokens.
+      if (j.done) uso = { entrada: j.prompt_eval_count ?? 0, salida: j.eval_count ?? 0 };
     };
     for await (const trozo of res.body as unknown as AsyncIterable<Uint8Array>) {
       resto += decoder.decode(trozo, { stream: true });
@@ -131,7 +137,7 @@ export async function generarNotaSoap(
       lineas.forEach(leer);
     }
     leer(resto);
-    return { nota: normalizarNota(contenido), simulado: false };
+    return { nota: normalizarNota(contenido), simulado: false, uso };
   }
 
   if (proveedor === "gemini") {
@@ -152,7 +158,12 @@ export async function generarNotaSoap(
     if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
     const data = await res.json();
     const texto: string = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
-    return { nota: normalizarNota(texto), simulado: false };
+    const um = data.usageMetadata ?? {};
+    return {
+      nota: normalizarNota(texto),
+      simulado: false,
+      uso: { entrada: um.promptTokenCount ?? 0, salida: um.candidatesTokenCount ?? 0 },
+    };
   }
 
   if (proveedor === "openai") {
@@ -172,11 +183,15 @@ export async function generarNotaSoap(
     });
     if (!res.ok) throw new Error(`OpenAI ${res.status}: ${await res.text()}`);
     const data = await res.json();
-    return { nota: normalizarNota(data.choices?.[0]?.message?.content ?? ""), simulado: false };
+    return {
+      nota: normalizarNota(data.choices?.[0]?.message?.content ?? ""),
+      simulado: false,
+      uso: { entrada: data.usage?.prompt_tokens ?? 0, salida: data.usage?.completion_tokens ?? 0 },
+    };
   }
 
   await new Promise((r) => setTimeout(r, 1500));
-  return { nota: NOTA_DEMO, simulado: true };
+  return { nota: NOTA_DEMO, simulado: true, uso: { entrada: 0, salida: 0 } };
 }
 
 function normalizarNota(raw: string): NotaSoap {

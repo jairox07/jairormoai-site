@@ -26,11 +26,17 @@ export async function POST(request: Request) {
   // Pre-chequeo de cuenta y cuota (antes de gastar en STT). El chequeo definitivo es atómico en SQL.
   const { data: perfil } = await supabase
     .from("users")
-    .select("tier, consultas_usadas, periodo, activo")
+    .select("tier, consultas_usadas, periodo, activo, licencia_estado, puede_grabar")
     .eq("id", user.id)
     .single();
   if (perfil?.activo === false) {
     return NextResponse.json({ error: "Tu cuenta está suspendida. Contacta al administrador." }, { status: 403 });
+  }
+  if (perfil && perfil.licencia_estado !== "activa") {
+    return NextResponse.json({ error: "Tu licencia no está activa. Contacta al administrador." }, { status: 403 });
+  }
+  if (perfil?.puede_grabar === false) {
+    return NextResponse.json({ error: "Tu cuenta no tiene permiso para grabar consultas." }, { status: 403 });
   }
   const usadas = perfil?.periodo === periodoActual() ? perfil.consultas_usadas : 0;
   if (perfil?.tier !== "pro" && usadas >= cfg.limite_free) {
@@ -47,9 +53,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { texto, simulado } = await transcribirAudio(audio, cfg.stt_provider);
+    const { texto, simulado, duracion } = await transcribirAudio(audio, cfg.stt_provider);
     if (!texto) return NextResponse.json({ error: "No se detectó voz en el audio." }, { status: 422 });
-    return NextResponse.json({ texto, simulado });
+    return NextResponse.json({ texto, simulado, duracion });
   } catch (e) {
     console.error("[transcribe]", e);
     return NextResponse.json({ error: "Falló la transcripción. Intenta de nuevo." }, { status: 502 });

@@ -388,5 +388,169 @@ $$;
 revoke all on function public.registrar_consulta(text, jsonb, text, integer) from public, anon;
 grant execute on function public.registrar_consulta(text, jsonb, text, integer) to authenticated;
 
+-- ═════════════════════════════════════════════
+-- 9. Licencia, capacidades y consumo (reemplaza registrar_consulta de la sección 8 y los listados del admin)
+--    Licencias: 'activa' | 'cancelada' | 'pendiente_pago'. En el panel se muestra además 'por_vencer'
+--    (activa y vence en ≤ 7 días). "por_vencer" es informativo: no bloquea. Bloquea cancelada/pendiente_pago.
+-- ═════════════════════════════════════════════
+alter table public.users add column if not exists licencia_estado text not null default 'activa';
+alter table public.users drop constraint if exists users_licencia_estado_check;
+alter table public.users add constraint users_licencia_estado_check check (licencia_estado in ('activa','cancelada','pendiente_pago'));
+alter table public.users add column if not exists licencia_vence date;
+alter table public.users add column if not exists puede_grabar boolean not null default true;
+alter table public.users add column if not exists puede_correo boolean not null default true;
+
+alter table public.consultas add column if not exists tokens_entrada integer;
+alter table public.consultas add column if not exists tokens_salida integer;
+alter table public.consultas add column if not exists audio_segundos numeric;
+
+drop function if exists public.registrar_consulta(text, jsonb, text, integer);
+
+create or replace function public.registrar_consulta(
+  p_transcripcion text,
+  p_nota jsonb,
+  p_paciente text,
+  p_edad integer,
+  p_uso jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tier text;
+  v_usadas integer;
+  v_periodo text;
+  v_activo boolean;
+  v_licencia text;
+  v_grabar boolean;
+  v_actual text := to_char(now() at time zone 'utc', 'YYYY-MM');
+  v_limite integer;
+  v_nombre text := btrim(coalesce(p_paciente, ''));
+  v_numero integer;
+  v_ent integer;
+  v_sal integer;
+  v_aud numeric;
+  v_id uuid;
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if char_length(v_nombre) < 2 or char_length(v_nombre) > 120 then raise exception 'PACIENTE_INVALIDO'; end if;
+  if p_edad is not null and (p_edad < 0 or p_edad > 130) then raise exception 'EDAD_INVALIDA'; end if;
+
+  select tier, consultas_usadas, periodo, activo, licencia_estado, puede_grabar
+    into v_tier, v_usadas, v_periodo, v_activo, v_licencia, v_grabar
+    from public.users where id = v_uid for update;
+  if not found then raise exception 'PERFIL_NO_ENCONTRADO'; end if;
+  if not v_activo then raise exception 'CUENTA_SUSPENDIDA'; end if;
+  if v_licencia <> 'activa' then raise exception 'LICENCIA_INACTIVA'; end if;
+  if not v_grabar then raise exception 'NO_PUEDE_GRABAR'; end if;
+  if v_periodo <> v_actual then v_usadas := 0; end if;
+
+  select coalesce((select (valor #>> '{}')::integer from public.app_config where clave = 'limite_free'), 20) into v_limite;
+  if v_tier = 'free' and v_usadas >= v_limite then raise exception 'LIMITE_ALCANZADO'; end if;
+
+  -- consumo reportado por la IA (0 si el proveedor no lo da)
+  v_ent := greatest(coalesce(nullif(p_uso->>'entrada', '')::integer, 0), 0);
+  v_sal := greatest(coalesce(nullif(p_uso->>'salida', '')::integer, 0), 0);
+  v_aud := greatest(coalesce(nullif(p_uso->>'audio_segundos', '')::numeric, 0), 0);
+
+  -- el bloqueo de la fila de users (for update) serializa los inserts de un mismo doctor
+  select coalesce(max(numero), 0) + 1 into v_numero from public.consultas where user_id = v_uid;
+
+  insert into public.consultas (user_id, transcripcion_raw, nota_soap_final, paciente_nombre, paciente_edad, numero,
+                                tokens_entrada, tokens_salida, audio_segundos)
+  values (v_uid, p_transcripcion, p_nota, v_nombre, p_edad, v_numero, v_ent, v_sal, nullif(v_aud, 0))
+  returning id into v_id;
+
+  update public.users set consultas_usadas = v_usadas + 1, periodo = v_actual where id = v_uid;
+  return jsonb_build_object('id', v_id, 'numero', v_numero);
+end;
+$$;
+
+revoke all on function public.registrar_consulta(text, jsonb, text, integer, jsonb) from public, anon;
+grant execute on function public.registrar_consulta(text, jsonb, text, integer, jsonb) to authenticated;
+
+drop function if exists public.admin_listar_usuarios();
+
+create or replace function public.admin_listar_usuarios()
+returns table (
+  id uuid, email text, tier text, consultas_usadas integer, periodo text,
+  is_admin boolean, activo boolean, created_at timestamptz, total_consultas bigint,
+  licencia_estado text, licencia_vence date, licencia_visible text,
+  puede_grabar boolean, puede_correo boolean,
+  tokens_entrada bigint, tokens_salida bigint, audio_minutos numeric
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+  return query
+    select u.id, u.email, u.tier, u.consultas_usadas, u.periodo, u.is_admin, u.activo, u.created_at,
+           (select count(*) from public.consultas c where c.user_id = u.id),
+           u.licencia_estado, u.licencia_vence,
+           case when u.licencia_estado = 'activa' and u.licencia_vence is not null
+                     and u.licencia_vence <= current_date + 7 then 'por_vencer'
+                else u.licencia_estado end,
+           u.puede_grabar, u.puede_correo,
+           (select coalesce(sum(c.tokens_entrada), 0) from public.consultas c where c.user_id = u.id),
+           (select coalesce(sum(c.tokens_salida), 0) from public.consultas c where c.user_id = u.id),
+           (select round(coalesce(sum(c.audio_segundos), 0) / 60, 1) from public.consultas c where c.user_id = u.id)
+      from public.users u
+     order by u.created_at desc;
+end;
+$$;
+revoke all on function public.admin_listar_usuarios() from public, anon;
+grant execute on function public.admin_listar_usuarios() to authenticated;
+
+drop function if exists public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean);
+
+create or replace function public.admin_actualizar_usuario(
+  p_id uuid,
+  p_tier text default null,
+  p_activo boolean default null,
+  p_is_admin boolean default null,
+  p_reiniciar_contador boolean default false,
+  p_licencia_estado text default null,
+  p_licencia_vence date default null,
+  p_puede_grabar boolean default null,
+  p_puede_correo boolean default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+  if p_tier is not null and p_tier not in ('free','pro') then raise exception 'TIER_INVALIDO'; end if;
+  if p_licencia_estado is not null and p_licencia_estado not in ('activa','cancelada','pendiente_pago') then
+    raise exception 'LICENCIA_INVALIDA';
+  end if;
+  -- evita que el admin se deje fuera a sí mismo
+  if p_id = (select auth.uid()) and (p_is_admin = false or p_activo = false or p_licencia_estado in ('cancelada','pendiente_pago')) then
+    raise exception 'NO_PUEDES_QUITARTE_ACCESO';
+  end if;
+
+  update public.users
+     set tier             = coalesce(p_tier, tier),
+         activo           = coalesce(p_activo, activo),
+         is_admin         = coalesce(p_is_admin, is_admin),
+         licencia_estado  = coalesce(p_licencia_estado, licencia_estado),
+         licencia_vence   = coalesce(p_licencia_vence, licencia_vence),
+         puede_grabar     = coalesce(p_puede_grabar, puede_grabar),
+         puede_correo     = coalesce(p_puede_correo, puede_correo),
+         consultas_usadas = case when p_reiniciar_contador then 0 else consultas_usadas end,
+         periodo          = case when p_reiniciar_contador then to_char(now() at time zone 'utc', 'YYYY-MM') else periodo end
+   where id = p_id;
+  if not found then raise exception 'USUARIO_NO_ENCONTRADO'; end if;
+end;
+$$;
+revoke all on function public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean, text, date, boolean, boolean) from public, anon;
+grant execute on function public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean, text, date, boolean, boolean) to authenticated;
+
 -- Primer admin (ejecutar a mano una vez, con tu correo):
 --   update public.users set is_admin = true where email = 'tu@correo.com';

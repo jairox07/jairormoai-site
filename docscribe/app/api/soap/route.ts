@@ -38,6 +38,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "La edad debe ser un número entre 0 y 130." }, { status: 400 });
   }
 
+  // Duración del audio (la reporta el STT local); se guarda para el consumo del admin.
+  const audioSegundos = typeof body?.audio_segundos === "number" && body.audio_segundos >= 0 ? body.audio_segundos : null;
+
   let resultado;
   try {
     resultado = await generarNotaSoap(transcripcion, { proveedor: cfg.llm_provider, ollamaModel: cfg.ollama_model });
@@ -52,6 +55,11 @@ export async function POST(request: Request) {
     p_nota: resultado.nota,
     p_paciente: paciente,
     p_edad: edad,
+    p_uso: {
+      entrada: resultado.uso.entrada,
+      salida: resultado.uso.salida,
+      audio_segundos: audioSegundos,
+    },
   });
 
   if (error) {
@@ -60,6 +68,12 @@ export async function POST(request: Request) {
     }
     if (error.message.includes("CUENTA_SUSPENDIDA")) {
       return NextResponse.json({ error: "Tu cuenta está suspendida. Contacta al administrador." }, { status: 403 });
+    }
+    if (error.message.includes("LICENCIA_INACTIVA")) {
+      return NextResponse.json({ error: "Tu licencia no está activa. Contacta al administrador." }, { status: 403 });
+    }
+    if (error.message.includes("NO_PUEDE_GRABAR")) {
+      return NextResponse.json({ error: "Tu cuenta no tiene permiso para grabar consultas." }, { status: 403 });
     }
     if (error.message.includes("PACIENTE_INVALIDO") || error.message.includes("EDAD_INVALIDA")) {
       return NextResponse.json({ error: "Datos del paciente no válidos." }, { status: 400 });

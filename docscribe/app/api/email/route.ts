@@ -18,6 +18,10 @@ export async function POST(request: Request) {
   if (!(await cargarConfig(supabase)).correo_pdf) {
     return NextResponse.json({ error: "El envío por correo está desactivado." }, { status: 403 });
   }
+  const { data: perfil } = await supabase.from("users").select("puede_correo").eq("id", user.id).single();
+  if (perfil?.puede_correo === false) {
+    return NextResponse.json({ error: "Tu cuenta no tiene permiso para enviar correos." }, { status: 403 });
+  }
 
   const key = process.env.RESEND_API_KEY;
   if (!key) {
