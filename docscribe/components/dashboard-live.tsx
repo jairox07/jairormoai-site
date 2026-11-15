@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, FileText, Loader2, Radio, Stethoscope, Trash2 } from "lucide-react";
+import { CalendarDays, FileText, Loader2, LogOut, Mic, Radio, ShieldCheck, Stethoscope, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BottomNav } from "@/components/bottom-nav";
 import { Fecha } from "@/components/fecha";
 import { Button } from "@/components/ui/button";
-import { LIMITE_FREE, cn, periodoActual } from "@/lib/utils";
+import { cn, periodoActual } from "@/lib/utils";
 
 type Perfil = { tier: "free" | "pro"; consultas_usadas: number; periodo: string };
 type ConsultaResumen = { id: string; fecha: string; nota_soap_final: { analisis?: string[] } | null };
@@ -17,11 +17,15 @@ export function DashboardLive({
   email,
   perfilInicial,
   consultasIniciales,
+  limite,
+  esAdmin,
 }: {
   userId: string;
   email: string;
   perfilInicial: Perfil | null;
   consultasIniciales: ConsultaResumen[];
+  limite: number;
+  esAdmin: boolean;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [perfil, setPerfil] = useState<Perfil | null>(perfilInicial);
@@ -104,8 +108,8 @@ export function DashboardLive({
 
   const esPro = perfil?.tier === "pro";
   const usadas = perfil && perfil.periodo === periodoActual() ? perfil.consultas_usadas : 0;
-  const restantes = Math.max(LIMITE_FREE - usadas, 0);
-  const pct = Math.min((usadas / LIMITE_FREE) * 100, 100);
+  const restantes = Math.max(limite - usadas, 0);
+  const pct = Math.min((usadas / limite) * 100, 100);
   const bloqueado = !esPro && restantes === 0;
 
   const usuario = email.split("@")[0] || "doctor";
@@ -113,15 +117,25 @@ export function DashboardLive({
 
   return (
     <>
-      <main className="mx-auto max-w-lg px-4 pb-44 pt-6">
-        <header className="mb-6 flex items-center gap-3">
+      <main className="mx-auto max-w-lg px-4 pb-44 pt-6 md:max-w-5xl md:px-8 md:pb-12 md:pt-10">
+        <header className="mb-6 flex items-center gap-3 md:mb-10">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-100 text-lg font-semibold text-brand-700">
             {nombre.charAt(0)}
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold text-slate-900">Hola, {nombre}</h1>
-            <p className="text-sm text-slate-500">¿Listo para tu próxima consulta?</p>
+            <h1 className="truncate text-lg font-semibold text-slate-900 md:text-2xl">Hola, {nombre}</h1>
+            <p className="text-sm text-slate-500 md:text-base">¿Listo para tu próxima consulta?</p>
           </div>
+          {esAdmin && (
+            <Link
+              href="/admin"
+              aria-label="Administración"
+              title="Administración"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-brand-600 shadow-soft transition-colors hover:bg-brand-50"
+            >
+              <ShieldCheck className="h-5 w-5" />
+            </Link>
+          )}
           <span
             className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-soft"
             title={enVivo ? "Sincronizado en tiempo real" : "Conectando…"}
@@ -133,9 +147,30 @@ export function DashboardLive({
               <span className={cn("relative inline-flex h-2 w-2 rounded-full", enVivo ? "bg-emerald-500" : "bg-slate-300")} />
             </span>
           </span>
+          {/* Escritorio: acciones en la cabecera (en móvil van en la barra inferior) */}
+          <div className="hidden items-center gap-2 md:flex">
+            {bloqueado ? (
+              <Button size="lg" disabled>
+                Límite alcanzado
+              </Button>
+            ) : (
+              <Button asChild size="lg">
+                <Link href="/consulta/nueva">
+                  <Mic className="!size-5" /> Nueva consulta
+                </Link>
+              </Button>
+            )}
+            <form action="/auth/signout" method="post">
+              <Button type="submit" variant="ghost" size="lg">
+                <LogOut /> Salir
+              </Button>
+            </form>
+          </div>
         </header>
 
-        <p className="mb-3 text-center text-sm text-slate-500">Resumen del mes</p>
+        <div className="md:grid md:grid-cols-[340px_1fr] md:items-start md:gap-8">
+          <div className="md:sticky md:top-6">
+        <p className="mb-3 text-center text-sm text-slate-500 md:text-left">Resumen del mes</p>
 
         <section className="rounded-3xl bg-white p-5 shadow-soft">
           <div className="flex items-center gap-3">
@@ -152,7 +187,7 @@ export function DashboardLive({
               ) : (
                 <>
                   {restantes}
-                  <span className="text-base font-normal text-slate-400"> / {LIMITE_FREE}</span>
+                  <span className="text-base font-normal text-slate-400"> / {limite}</span>
                 </>
               )}
             </p>
@@ -165,7 +200,7 @@ export function DashboardLive({
                 role="progressbar"
                 aria-valuenow={usadas}
                 aria-valuemin={0}
-                aria-valuemax={LIMITE_FREE}
+                aria-valuemax={limite}
               >
                 <div
                   className={cn("h-full rounded-full transition-all duration-500", pct >= 90 ? "bg-rose-400" : "bg-brand-500")}
@@ -179,8 +214,9 @@ export function DashboardLive({
             </>
           )}
         </section>
+          </div>
 
-        <section className="mt-8">
+        <section className="mt-8 md:mt-0">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-medium text-slate-900">Consultas recientes</h2>
             {consultas.length > 0 && <span className="text-sm text-brand-600">{consultas.length} notas</span>}
@@ -245,6 +281,7 @@ export function DashboardLive({
             </p>
           )}
         </section>
+        </div>
       </main>
 
       <BottomNav bloqueado={bloqueado} />

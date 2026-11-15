@@ -16,16 +16,17 @@ const NO_ESPECIFICADO = "No especificado en la consulta";
 //   STT_PROVIDER: openai | local | mock   (auto: openai si hay key, local si hay STT_LOCAL_URL, si no mock)
 //   LLM_PROVIDER: gemini | openai | ollama | mock (auto: gemini > openai > ollama si hay OLLAMA_MODEL > mock)
 // ─────────────────────────────────────────────
-function proveedorStt(): "openai" | "local" | "mock" {
-  const p = process.env.STT_PROVIDER;
+// `preferido` viene de la configuración del admin (app_config); "auto" o vacío = usa el entorno.
+function proveedorStt(preferido?: string): "openai" | "local" | "mock" {
+  const p = preferido && preferido !== "auto" ? preferido : process.env.STT_PROVIDER;
   if (p === "openai" || p === "local" || p === "mock") return p;
   if (process.env.OPENAI_API_KEY) return "openai";
   if (process.env.STT_LOCAL_URL) return "local";
   return "mock";
 }
 
-function proveedorLlm(): "gemini" | "openai" | "ollama" | "mock" {
-  const p = process.env.LLM_PROVIDER;
+function proveedorLlm(preferido?: string): "gemini" | "openai" | "ollama" | "mock" {
+  const p = preferido && preferido !== "auto" ? preferido : process.env.LLM_PROVIDER;
   if (p === "gemini" || p === "openai" || p === "ollama" || p === "mock") return p;
   if (process.env.GEMINI_API_KEY) return "gemini";
   if (process.env.OPENAI_API_KEY) return "openai";
@@ -36,8 +37,11 @@ function proveedorLlm(): "gemini" | "openai" | "ollama" | "mock" {
 // ─────────────────────────────────────────────
 // STT — Whisper (OpenAI) | faster-whisper local | simulado
 // ─────────────────────────────────────────────
-export async function transcribirAudio(audio: File): Promise<{ texto: string; simulado: boolean }> {
-  const proveedor = proveedorStt();
+export async function transcribirAudio(
+  audio: File,
+  proveedorElegido?: string
+): Promise<{ texto: string; simulado: boolean }> {
+  const proveedor = proveedorStt(proveedorElegido);
 
   if (proveedor === "mock") {
     await new Promise((r) => setTimeout(r, 1200));
@@ -80,9 +84,12 @@ export async function transcribirAudio(audio: File): Promise<{ texto: string; si
 // ─────────────────────────────────────────────
 // LLM — Gemini | OpenAI | Ollama (local) | simulado
 // ─────────────────────────────────────────────
-export async function generarNotaSoap(transcripcion: string): Promise<{ nota: NotaSoap; simulado: boolean }> {
+export async function generarNotaSoap(
+  transcripcion: string,
+  opciones: { proveedor?: string; ollamaModel?: string } = {}
+): Promise<{ nota: NotaSoap; simulado: boolean }> {
   const usuario = `${FORMATO_JSON}\n\nTRANSCRIPCIÓN:\n"""\n${transcripcion}\n"""`;
-  const proveedor = proveedorLlm();
+  const proveedor = proveedorLlm(opciones.proveedor);
 
   if (proveedor === "ollama") {
     const base = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
@@ -94,7 +101,7 @@ export async function generarNotaSoap(transcripcion: string): Promise<{ nota: No
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: process.env.OLLAMA_MODEL || "qwen2.5:7b",
+        model: opciones.ollamaModel || process.env.OLLAMA_MODEL || "qwen2.5:7b",
         stream: true, // streaming: los primeros bytes llegan pronto y no salta el timeout de 5 min de Node
         format: "json",
         keep_alive: "30m",

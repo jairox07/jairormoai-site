@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { cargarConfig } from "@/lib/config";
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,10 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user?.email) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+
+  if (!(await cargarConfig(supabase)).correo_pdf) {
+    return NextResponse.json({ error: "El envío por correo está desactivado." }, { status: 403 });
+  }
 
   const key = process.env.RESEND_API_KEY;
   if (!key) {

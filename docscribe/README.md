@@ -50,6 +50,16 @@ Y Ollama corriendo con el modelo de `OLLAMA_MODEL` (`qwen2.5:7b` ≈ 35 s por no
 
 El micrófono del navegador exige HTTPS (o localhost). Por eso el celular debe abrir la URL `https://…ngrok-free.dev`, no `http://192.168.x.x:3000`. Cierra el túnel (Ctrl+C) al terminar: mientras esté abierto, cualquiera con la URL puede ver la pantalla de login.
 
+## Administración (`/admin`)
+
+Solo para usuarios con `is_admin = true` (los demás ven un 404). Muestra conteos de usuarios y consultas, **nunca el contenido clínico**.
+
+- **Usuarios:** cambiar plan Free/Pro, reiniciar el contador del mes, suspender/reactivar (una cuenta suspendida no puede crear consultas) y dar o quitar admin. Un admin no puede quitarse el acceso a sí mismo.
+- **Funcionalidades:** interruptor general de "Nuevas consultas" (modo mantenimiento), activar/desactivar el envío del PDF por correo y el límite mensual del plan Free.
+- **Proveedores:** elegir proveedor de transcripción y de notas entre los que tienen credenciales en el servidor, y el modelo de Ollama. Las API keys **no** se guardan en la base: siguen siendo variables de entorno.
+
+La seguridad está en la base de datos (funciones `admin_*` que verifican `is_admin()`), no en la interfaz. Primer admin: `update public.users set is_admin = true where email = 'tu@correo.com';`. Sin incluir a propósito: borrar cuentas (requiere la llave de servicio de Supabase), facturación y auditoría.
+
 ## Sesiones largas, borrado y correo
 
 - **Duración:** hasta 120 min por consulta (24 kbps ≈ 10.8 MB/h). La pantalla del celular se mantiene encendida mientras se graba (Wake Lock). En local la transcripción va a ~4.5× tiempo real (1 h ≈ 13 min). Ollama ajusta `num_ctx` al largo del texto; para consultas de más de ~45 min un 7B pierde calidad, usa Gemini/OpenAI.

@@ -145,3 +145,178 @@ $$;
 
 revoke all on function public.registrar_consulta(text, jsonb) from public, anon;
 grant execute on function public.registrar_consulta(text, jsonb) to authenticated;
+
+-- ═════════════════════════════════════════════
+-- 7. Administración (MVP)
+--    Idempotente: se puede ejecutar sobre una base que ya tenga las secciones 1-6.
+-- ═════════════════════════════════════════════
+alter table public.users add column if not exists is_admin boolean not null default false;
+alter table public.users add column if not exists activo boolean not null default true;
+
+-- Configuración global (sin secretos: las API keys viven en variables de entorno)
+create table if not exists public.app_config (
+  clave      text primary key check (clave in ('stt_provider','llm_provider','ollama_model','correo_pdf','nueva_consulta','limite_free')),
+  valor      jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.app_config enable row level security;
+drop policy if exists "config_select" on public.app_config;
+create policy "config_select" on public.app_config for select to authenticated using (true);
+
+insert into public.app_config (clave, valor) values
+  ('stt_provider',   '"auto"'),
+  ('llm_provider',   '"auto"'),
+  ('ollama_model',   '"qwen2.5:7b"'),
+  ('correo_pdf',     'true'),
+  ('nueva_consulta', 'true'),
+  ('limite_free',    '20')
+on conflict (clave) do nothing;
+
+-- ¿El usuario actual es admin?
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select u.is_admin from public.users u where u.id = (select auth.uid())), false);
+$$;
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
+-- Lista de usuarios con conteo de consultas (NUNCA expone el contenido clínico)
+create or replace function public.admin_listar_usuarios()
+returns table (
+  id uuid, email text, tier text, consultas_usadas integer, periodo text,
+  is_admin boolean, activo boolean, created_at timestamptz, total_consultas bigint
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+  return query
+    select u.id, u.email, u.tier, u.consultas_usadas, u.periodo, u.is_admin, u.activo, u.created_at,
+           (select count(*) from public.consultas c where c.user_id = u.id)
+      from public.users u
+     order by u.created_at desc;
+end;
+$$;
+revoke all on function public.admin_listar_usuarios() from public, anon;
+grant execute on function public.admin_listar_usuarios() to authenticated;
+
+-- Cambiar plan, suspender, dar/quitar admin o reiniciar el contador del mes
+create or replace function public.admin_actualizar_usuario(
+  p_id uuid,
+  p_tier text default null,
+  p_activo boolean default null,
+  p_is_admin boolean default null,
+  p_reiniciar_contador boolean default false
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+  if p_tier is not null and p_tier not in ('free','pro') then raise exception 'TIER_INVALIDO'; end if;
+  -- evita que el admin se deje fuera a sí mismo
+  if p_id = (select auth.uid()) and (p_is_admin = false or p_activo = false) then
+    raise exception 'NO_PUEDES_QUITARTE_ACCESO';
+  end if;
+
+  update public.users
+     set tier             = coalesce(p_tier, tier),
+         activo           = coalesce(p_activo, activo),
+         is_admin         = coalesce(p_is_admin, is_admin),
+         consultas_usadas = case when p_reiniciar_contador then 0 else consultas_usadas end,
+         periodo          = case when p_reiniciar_contador then to_char(now() at time zone 'utc', 'YYYY-MM') else periodo end
+   where id = p_id;
+  if not found then raise exception 'USUARIO_NO_ENCONTRADO'; end if;
+end;
+$$;
+revoke all on function public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean) from public, anon;
+grant execute on function public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean) to authenticated;
+
+-- Guardar un valor de configuración (validado por clave)
+create or replace function public.admin_guardar_config(p_clave text, p_valor jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_txt text := p_valor #>> '{}';
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+
+  if p_clave in ('stt_provider','llm_provider','ollama_model') and jsonb_typeof(p_valor) <> 'string' then
+    raise exception 'VALOR_INVALIDO';
+  end if;
+  if p_clave in ('correo_pdf','nueva_consulta') and jsonb_typeof(p_valor) <> 'boolean' then
+    raise exception 'VALOR_INVALIDO';
+  end if;
+  if p_clave = 'stt_provider' and v_txt not in ('auto','openai','local','mock') then raise exception 'VALOR_INVALIDO'; end if;
+  if p_clave = 'llm_provider' and v_txt not in ('auto','gemini','openai','ollama','mock') then raise exception 'VALOR_INVALIDO'; end if;
+  if p_clave = 'ollama_model' and v_txt !~ '^[A-Za-z0-9._:/-]{1,80}$' then raise exception 'VALOR_INVALIDO'; end if;
+  if p_clave = 'limite_free' then
+    if jsonb_typeof(p_valor) <> 'number' then raise exception 'VALOR_INVALIDO'; end if;
+    if v_txt::numeric < 0 or v_txt::numeric > 100000 or v_txt::numeric <> trunc(v_txt::numeric) then
+      raise exception 'VALOR_INVALIDO';
+    end if;
+  end if;
+
+  update public.app_config set valor = p_valor, updated_at = now() where clave = p_clave;
+  if not found then raise exception 'CLAVE_INVALIDA'; end if;
+end;
+$$;
+revoke all on function public.admin_guardar_config(text, jsonb) from public, anon;
+grant execute on function public.admin_guardar_config(text, jsonb) to authenticated;
+
+-- registrar_consulta: respeta cuenta suspendida y el límite configurable
+create or replace function public.registrar_consulta(p_transcripcion text, p_nota jsonb)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid     uuid := auth.uid();
+  v_tier    text;
+  v_usadas  integer;
+  v_periodo text;
+  v_activo  boolean;
+  v_actual  text := to_char(now() at time zone 'utc', 'YYYY-MM');
+  v_limite  integer;
+  v_id      uuid;
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+
+  select tier, consultas_usadas, periodo, activo
+    into v_tier, v_usadas, v_periodo, v_activo
+    from public.users where id = v_uid for update;
+  if not found then raise exception 'PERFIL_NO_ENCONTRADO'; end if;
+  if not v_activo then raise exception 'CUENTA_SUSPENDIDA'; end if;
+
+  if v_periodo <> v_actual then v_usadas := 0; end if;
+
+  select coalesce((select (valor #>> '{}')::integer from public.app_config where clave = 'limite_free'), 20)
+    into v_limite;
+  if v_tier = 'free' and v_usadas >= v_limite then raise exception 'LIMITE_ALCANZADO'; end if;
+
+  insert into public.consultas (user_id, transcripcion_raw, nota_soap_final)
+  values (v_uid, p_transcripcion, p_nota)
+  returning id into v_id;
+
+  update public.users set consultas_usadas = v_usadas + 1, periodo = v_actual where id = v_uid;
+  return v_id;
+end;
+$$;
+revoke all on function public.registrar_consulta(text, jsonb) from public, anon;
+grant execute on function public.registrar_consulta(text, jsonb) to authenticated;
+
+-- Primer admin (ejecutar a mano una vez, con tu correo):
+--   update public.users set is_admin = true where email = 'tu@correo.com';

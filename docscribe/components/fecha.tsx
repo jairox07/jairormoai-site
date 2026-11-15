@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 const FORMATOS = {
   lista: { dateStyle: "medium", timeStyle: "short" },
+  corta: { dateStyle: "medium" },
   dia: { day: "numeric", month: "long" },
   hora: { hour: "2-digit", minute: "2-digit" },
   anio: { year: "numeric" },

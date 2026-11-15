@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { cargarConfig } from "@/lib/config";
 import { generarNotaSoap } from "@/lib/ai";
 
 export const runtime = "nodejs";
@@ -14,6 +15,11 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
+  const cfg = await cargarConfig(supabase);
+  if (!cfg.nueva_consulta) {
+    return NextResponse.json({ error: "El servicio está en mantenimiento. Intenta más tarde." }, { status: 503 });
+  }
+
   const body = await request.json().catch(() => null);
   const transcripcion = typeof body?.transcripcion === "string" ? body.transcripcion.trim() : "";
   if (!transcripcion) return NextResponse.json({ error: "Transcripción vacía." }, { status: 400 });
@@ -23,7 +29,7 @@ export async function POST(request: Request) {
 
   let resultado;
   try {
-    resultado = await generarNotaSoap(transcripcion);
+    resultado = await generarNotaSoap(transcripcion, { proveedor: cfg.llm_provider, ollamaModel: cfg.ollama_model });
   } catch (e) {
     console.error("[soap]", e);
     return NextResponse.json({ error: "No se pudo estructurar la nota. Intenta de nuevo." }, { status: 502 });
@@ -37,7 +43,10 @@ export async function POST(request: Request) {
 
   if (error) {
     if (error.message.includes("LIMITE_ALCANZADO")) {
-      return NextResponse.json({ error: "Alcanzaste el límite de 20 consultas este mes." }, { status: 402 });
+      return NextResponse.json({ error: `Alcanzaste el límite de ${cfg.limite_free} consultas este mes.` }, { status: 402 });
+    }
+    if (error.message.includes("CUENTA_SUSPENDIDA")) {
+      return NextResponse.json({ error: "Tu cuenta está suspendida. Contacta al administrador." }, { status: 403 });
     }
     console.error("[soap] registrar_consulta", error);
     return NextResponse.json({ error: "No se pudo guardar la consulta." }, { status: 500 });

@@ -11,7 +11,7 @@ export function BottomNav({ bloqueado = false }: { bloqueado?: boolean }) {
   const enInicio = pathname.startsWith("/dashboard");
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg" aria-label="Navegación principal">
+    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg md:hidden" aria-label="Navegación principal">
       <div className="grid grid-cols-3 items-end rounded-t-[2rem] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-nav">
         <Link
           href="/dashboard"
