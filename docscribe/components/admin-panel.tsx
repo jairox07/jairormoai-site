@@ -274,6 +274,40 @@ export function AdminPanel({
           </div>
           <p className="-mt-4 text-center text-xs text-slate-400">Audio transcrito: {totalAudio.toLocaleString("es-MX", { maximumFractionDigits: 1 })} min</p>
 
+          {/* Gráfica simple: tokens por usuario (top 8) */}
+          <section>
+            <h2 className="mb-3 font-medium text-slate-900">Consumo por usuario</h2>
+            {(() => {
+              const top = [...usuarios]
+                .map((u) => ({ email: u.email, e: Number(u.tokens_entrada), s: Number(u.tokens_salida) }))
+                .filter((u) => u.e + u.s > 0)
+                .sort((a, b) => b.e + b.s - (a.e + a.s))
+                .slice(0, 8);
+              const max = Math.max(1, ...top.map((u) => u.e + u.s));
+              if (top.length === 0) return <p className="rounded-3xl bg-white p-4 text-sm text-slate-500 shadow-soft">Aún no hay consumo.</p>;
+              return (
+                <div className="space-y-3 rounded-3xl bg-white p-4 shadow-soft">
+                  {top.map((u) => (
+                    <div key={u.email}>
+                      <div className="mb-1 flex justify-between gap-2 text-xs">
+                        <span className="truncate text-slate-700">{u.email}</span>
+                        <span className="shrink-0 text-slate-500">{numero(u.e + u.s)}</span>
+                      </div>
+                      <div className="flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${u.email}: ${u.e} tokens de entrada, ${u.s} de salida`}>
+                        <div className="bg-brand-500" style={{ width: `${(u.e / max) * 100}%` }} />
+                        <div className="bg-brand-200" style={{ width: `${(u.s / max) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                  <p className="flex gap-4 pt-1 text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-brand-500" /> Entrada</span>
+                    <span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-brand-200" /> Salida</span>
+                  </p>
+                </div>
+              );
+            })()}
+          </section>
+
           <section>
             <h2 className="mb-3 font-medium text-slate-900">Funcionalidades</h2>
             <div className="divide-y divide-slate-100 rounded-3xl bg-white shadow-soft">
