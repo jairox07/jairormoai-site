@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilo "clínica amigable": azul cielo #2da3d3, fondo casi blanco azulado, tarjetas blancas muy redondeadas. Solo tema claro. */
+@layer base {
+  :root {
+    color-scheme: light;
+    --background: 205 40% 96%; /* #f1f6fa */
+    --foreground: 222 40% 14%; /* navy */
+    --card: 0 0% 100%;
+    --card-foreground: 222 40% 14%;
+    --primary: 197 66% 50%; /* #2da3d3 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 202 60% 95%; /* tinte azul claro, como "Reschedule" */
+    --secondary-foreground: 222 40% 14%;
+    --muted: 205 30% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 200 70% 94%;
+    --accent-foreground: 197 70% 30%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 30% 92%;
+    --input: 210 25% 86%;
+    --ring: 197 66% 50%;
+    --radius: 1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
