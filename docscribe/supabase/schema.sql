@@ -552,5 +552,212 @@ $$;
 revoke all on function public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean, text, date, boolean, boolean) from public, anon;
 grant execute on function public.admin_actualizar_usuario(uuid, text, boolean, boolean, boolean, text, date, boolean, boolean) to authenticated;
 
+-- ═════════════════════════════════════════════
+-- 10. Código de expediente por consulta (EXP-XXXXXXXX, derivado del id)
+-- ═════════════════════════════════════════════
+alter table public.consultas add column if not exists expediente text;
+
+update public.consultas
+   set expediente = 'EXP-' || upper(substr(replace(id::text, '-', ''), 1, 8))
+ where expediente is null;
+
+create unique index if not exists consultas_expediente_uq on public.consultas (expediente);
+
+create or replace function public.registrar_consulta(
+  p_transcripcion text,
+  p_nota jsonb,
+  p_paciente text,
+  p_edad integer,
+  p_uso jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tier text;
+  v_usadas integer;
+  v_periodo text;
+  v_activo boolean;
+  v_licencia text;
+  v_grabar boolean;
+  v_actual text := to_char(now() at time zone 'utc', 'YYYY-MM');
+  v_limite integer;
+  v_nombre text := btrim(coalesce(p_paciente, ''));
+  v_numero integer;
+  v_ent integer;
+  v_sal integer;
+  v_aud numeric;
+  v_id uuid := gen_random_uuid();
+  v_exp text;
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if char_length(v_nombre) < 2 or char_length(v_nombre) > 120 then raise exception 'PACIENTE_INVALIDO'; end if;
+  if p_edad is not null and (p_edad < 0 or p_edad > 130) then raise exception 'EDAD_INVALIDA'; end if;
+
+  select tier, consultas_usadas, periodo, activo, licencia_estado, puede_grabar
+    into v_tier, v_usadas, v_periodo, v_activo, v_licencia, v_grabar
+    from public.users where id = v_uid for update;
+  if not found then raise exception 'PERFIL_NO_ENCONTRADO'; end if;
+  if not v_activo then raise exception 'CUENTA_SUSPENDIDA'; end if;
+  if v_licencia <> 'activa' then raise exception 'LICENCIA_INACTIVA'; end if;
+  if not v_grabar then raise exception 'NO_PUEDE_GRABAR'; end if;
+  if v_periodo <> v_actual then v_usadas := 0; end if;
+
+  select coalesce((select (valor #>> '{}')::integer from public.app_config where clave = 'limite_free'), 20) into v_limite;
+  if v_tier = 'free' and v_usadas >= v_limite then raise exception 'LIMITE_ALCANZADO'; end if;
+
+  v_ent := greatest(coalesce(nullif(p_uso->>'entrada', '')::integer, 0), 0);
+  v_sal := greatest(coalesce(nullif(p_uso->>'salida', '')::integer, 0), 0);
+  v_aud := greatest(coalesce(nullif(p_uso->>'audio_segundos', '')::numeric, 0), 0);
+
+  v_exp := 'EXP-' || upper(substr(replace(v_id::text, '-', ''), 1, 8));
+
+  select coalesce(max(numero), 0) + 1 into v_numero from public.consultas where user_id = v_uid;
+
+  insert into public.consultas (id, user_id, transcripcion_raw, nota_soap_final, paciente_nombre, paciente_edad, numero,
+                                tokens_entrada, tokens_salida, audio_segundos, expediente)
+  values (v_id, v_uid, p_transcripcion, p_nota, v_nombre, p_edad, v_numero, v_ent, v_sal, nullif(v_aud, 0), v_exp);
+
+  update public.users set consultas_usadas = v_usadas + 1, periodo = v_actual where id = v_uid;
+  return jsonb_build_object('id', v_id, 'numero', v_numero, 'expediente', v_exp);
+end;
+$$;
+
+revoke all on function public.registrar_consulta(text, jsonb, text, integer, jsonb) from public, anon;
+grant execute on function public.registrar_consulta(text, jsonb, text, integer, jsonb) to authenticated;
+
+-- ═════════════════════════════════════════════
+-- 11. Grabaciones: bucket privado, ruta por consulta y borrado del admin
+--     Cada doctor escribe solo en su carpeta {user_id}/. El admin puede borrar cualquier audio.
+-- ═════════════════════════════════════════════
+insert into storage.buckets (id, name, public) values ('consultas-audio', 'consultas-audio', false)
+on conflict (id) do nothing;
+
+alter table public.consultas add column if not exists audio_path text;
+
+drop policy if exists "audio_insert_propio" on storage.objects;
+create policy "audio_insert_propio" on storage.objects for insert to authenticated
+  with check (bucket_id = 'consultas-audio' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+drop policy if exists "audio_select_propio_o_admin" on storage.objects;
+create policy "audio_select_propio_o_admin" on storage.objects for select to authenticated
+  using (bucket_id = 'consultas-audio' and ((storage.foldername(name))[1] = (select auth.uid())::text or public.is_admin()));
+
+drop policy if exists "audio_delete_propio_o_admin" on storage.objects;
+create policy "audio_delete_propio_o_admin" on storage.objects for delete to authenticated
+  using (bucket_id = 'consultas-audio' and ((storage.foldername(name))[1] = (select auth.uid())::text or public.is_admin()));
+
+-- registrar_consulta() con audio_path validado (misma firma que la sección 10)
+create or replace function public.registrar_consulta(
+  p_transcripcion text,
+  p_nota jsonb,
+  p_paciente text,
+  p_edad integer,
+  p_uso jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tier text;
+  v_usadas integer;
+  v_periodo text;
+  v_activo boolean;
+  v_licencia text;
+  v_grabar boolean;
+  v_actual text := to_char(now() at time zone 'utc', 'YYYY-MM');
+  v_limite integer;
+  v_nombre text := btrim(coalesce(p_paciente, ''));
+  v_numero integer;
+  v_ent integer;
+  v_sal integer;
+  v_aud numeric;
+  v_audio text := nullif(p_uso->>'audio_path', '');
+  v_id uuid := gen_random_uuid();
+  v_exp text;
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if char_length(v_nombre) < 2 or char_length(v_nombre) > 120 then raise exception 'PACIENTE_INVALIDO'; end if;
+  if p_edad is not null and (p_edad < 0 or p_edad > 130) then raise exception 'EDAD_INVALIDA'; end if;
+  if v_audio is not null and left(v_audio, char_length(v_uid::text) + 1) <> v_uid::text || '/' then
+    raise exception 'AUDIO_INVALIDO';
+  end if;
+
+  select tier, consultas_usadas, periodo, activo, licencia_estado, puede_grabar
+    into v_tier, v_usadas, v_periodo, v_activo, v_licencia, v_grabar
+    from public.users where id = v_uid for update;
+  if not found then raise exception 'PERFIL_NO_ENCONTRADO'; end if;
+  if not v_activo then raise exception 'CUENTA_SUSPENDIDA'; end if;
+  if v_licencia <> 'activa' then raise exception 'LICENCIA_INACTIVA'; end if;
+  if not v_grabar then raise exception 'NO_PUEDE_GRABAR'; end if;
+  if v_periodo <> v_actual then v_usadas := 0; end if;
+
+  select coalesce((select (valor #>> '{}')::integer from public.app_config where clave = 'limite_free'), 20) into v_limite;
+  if v_tier = 'free' and v_usadas >= v_limite then raise exception 'LIMITE_ALCANZADO'; end if;
+
+  v_ent := greatest(coalesce(nullif(p_uso->>'entrada', '')::integer, 0), 0);
+  v_sal := greatest(coalesce(nullif(p_uso->>'salida', '')::integer, 0), 0);
+  v_aud := greatest(coalesce(nullif(p_uso->>'audio_segundos', '')::numeric, 0), 0);
+
+  v_exp := 'EXP-' || upper(substr(replace(v_id::text, '-', ''), 1, 8));
+
+  select coalesce(max(numero), 0) + 1 into v_numero from public.consultas where user_id = v_uid;
+
+  insert into public.consultas (id, user_id, transcripcion_raw, nota_soap_final, paciente_nombre, paciente_edad, numero,
+                                tokens_entrada, tokens_salida, audio_segundos, expediente, audio_path)
+  values (v_id, v_uid, p_transcripcion, p_nota, v_nombre, p_edad, v_numero, v_ent, v_sal, nullif(v_aud, 0), v_exp, v_audio);
+
+  update public.users set consultas_usadas = v_usadas + 1, periodo = v_actual where id = v_uid;
+  return jsonb_build_object('id', v_id, 'numero', v_numero, 'expediente', v_exp);
+end;
+$$;
+
+revoke all on function public.registrar_consulta(text, jsonb, text, integer, jsonb) from public, anon;
+grant execute on function public.registrar_consulta(text, jsonb, text, integer, jsonb) to authenticated;
+
+create or replace function public.admin_listar_grabaciones()
+returns table (id uuid, expediente text, fecha timestamptz, audio_segundos numeric, email text, audio_path text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+  return query
+    select c.id, c.expediente, c.fecha, c.audio_segundos, u.email::text, c.audio_path
+      from public.consultas c
+      join public.users u on u.id = c.user_id
+     where c.audio_path is not null
+     order by c.fecha desc;
+end;
+$$;
+revoke all on function public.admin_listar_grabaciones() from public, anon;
+grant execute on function public.admin_listar_grabaciones() to authenticated;
+
+create or replace function public.admin_borrar_audio(p_id uuid)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_path text;
+begin
+  if not public.is_admin() then raise exception 'NO_AUTORIZADO'; end if;
+  select audio_path into v_path from public.consultas where id = p_id for update;
+  if not found then raise exception 'CONSULTA_NO_ENCONTRADA'; end if;
+  update public.consultas set audio_path = null where id = p_id;
+  return v_path;
+end;
+$$;
+revoke all on function public.admin_borrar_audio(uuid) from public, anon;
+grant execute on function public.admin_borrar_audio(uuid) to authenticated;
+
 -- Primer admin (ejecutar a mano una vez, con tu correo):
 --   update public.users set is_admin = true where email = 'tu@correo.com';

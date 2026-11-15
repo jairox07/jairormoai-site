@@ -5,6 +5,7 @@ import { Check, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Fecha } from "@/components/fecha";
 import { CrearUsuario, type NuevoUsuario } from "@/components/crear-usuario";
+import { AdminGrabaciones } from "@/components/admin-grabaciones";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn, periodoActual } from "@/lib/utils";
@@ -34,7 +35,7 @@ export type UsuarioAdmin = {
 };
 
 type Disponibles = { stt: Record<string, boolean>; llm: Record<string, boolean> };
-type Pestana = "general" | "usuarios";
+type Pestana = "general" | "usuarios" | "grabaciones";
 
 const OPCIONES_STT = [
   { v: "auto", t: "Automático (según claves del servidor)" },
@@ -230,11 +231,12 @@ export function AdminPanel({
   return (
     <div className="space-y-6">
       {/* Pestañas */}
-      <div role="tablist" aria-label="Secciones del admin" className="grid grid-cols-2 gap-2 rounded-3xl bg-white p-1.5 shadow-soft">
+      <div role="tablist" aria-label="Secciones del admin" className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-1.5 shadow-soft">
         {(
           [
             ["general", "General"],
             ["usuarios", "Usuarios"],
+            ["grabaciones", "Grabaciones"],
           ] as const
         ).map(([id, t]) => (
           <button
@@ -350,6 +352,8 @@ export function AdminPanel({
           </section>
         </div>
       )}
+
+      {pestana === "grabaciones" && <AdminGrabaciones />}
 
       {pestana === "usuarios" && (
         <section>

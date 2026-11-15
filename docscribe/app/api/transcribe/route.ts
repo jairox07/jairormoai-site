@@ -55,7 +55,17 @@ export async function POST(request: Request) {
   try {
     const { texto, simulado, duracion } = await transcribirAudio(audio, cfg.stt_provider);
     if (!texto) return NextResponse.json({ error: "No se detectó voz en el audio." }, { status: 422 });
-    return NextResponse.json({ texto, simulado, duracion });
+    // Audio guardado en el almacenamiento privado, en la carpeta del doctor. Sin audio real (demo) no se sube.
+    let audioPath: string | null = null;
+    if (!simulado) {
+      const ruta = `${user.id}/${crypto.randomUUID()}.${audio.type.includes("mp4") ? "m4a" : audio.type.includes("ogg") ? "ogg" : "webm"}`;
+      const { error: errSubida } = await supabase.storage
+        .from("consultas-audio")
+        .upload(ruta, audio, { contentType: audio.type || "audio/webm", upsert: false });
+      if (errSubida) console.error("[transcribe] subida de audio", errSubida);
+      else audioPath = ruta;
+    }
+    return NextResponse.json({ texto, simulado, duracion, audio_path: audioPath });
   } catch (e) {
     console.error("[transcribe]", e);
     return NextResponse.json({ error: "Falló la transcripción. Intenta de nuevo." }, { status: 502 });

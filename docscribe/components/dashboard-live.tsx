@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { BottomNav } from "@/components/bottom-nav";
 import { Fecha } from "@/components/fecha";
 import { Button } from "@/components/ui/button";
-import { cn, periodoActual } from "@/lib/utils";
+import { cn, formatTiempo, periodoActual } from "@/lib/utils";
 
 type Perfil = { tier: "free" | "pro"; consultas_usadas: number; periodo: string };
 type ConsultaResumen = {
@@ -17,6 +17,8 @@ type ConsultaResumen = {
   paciente_nombre: string | null;
   paciente_edad: number | null;
   numero: number | null;
+  audio_path: string | null;
+  audio_segundos: number | null;
 };
 
 export function DashboardLive({
@@ -100,11 +102,14 @@ export function DashboardLive({
   // Borrar NO devuelve cuota: consultas_usadas cuenta las generadas en el mes.
   async function borrar(id: string) {
     setBorrandoId(id);
+    // Borrar la consulta también borra su audio: no se queda guardado.
+    const ruta = consultas.find((c) => c.id === id)?.audio_path;
+    if (ruta) await supabase.storage.from("consultas-audio").remove([ruta]);
     const { error } = await supabase.from("consultas").delete().eq("id", id);
     if (!error) {
       const { data } = await supabase
         .from("consultas")
-        .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero")
+        .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero, audio_path, audio_segundos")
         .order("fecha", { ascending: false })
         .limit(10);
       setConsultas((data as ConsultaResumen[] | null) ?? consultas.filter((c) => c.id !== id));
@@ -264,6 +269,7 @@ export function DashboardLive({
                           </p>
                           <p className="mt-0.5 truncate text-xs text-slate-500">
                             <Fecha iso={c.fecha} formato="lista" />
+                            {c.audio_segundos ? ` · Audio ${formatTiempo(Math.round(c.audio_segundos))}` : ""}
                             {c.nota_soap_final?.analisis?.[0] ? ` · ${c.nota_soap_final.analisis[0]}` : ""}
                           </p>
                         </div>

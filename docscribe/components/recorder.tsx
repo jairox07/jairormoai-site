@@ -33,7 +33,12 @@ export function Recorder() {
   const [nota, setNota] = useState<NotaSoap | null>(null);
   const [simulado, setSimulado] = useState(false);
   const [paciente, setPaciente] = useState<Paciente>({ nombre: "", edad: "" });
-  const [resultado, setResultado] = useState<{ numero: number; paciente: { nombre: string; edad: number | null } } | null>(null);
+  const [resultado, setResultado] = useState<{
+    id: string;
+    numero: number;
+    expediente: string;
+    paciente: { nombre: string; edad: number | null };
+  } | null>(null);
   const [pendiente, setPendiente] = useState<Pendiente | null>(null);
   const [recordatorio, setRecordatorio] = useState(false);
 
@@ -109,6 +114,7 @@ export function Recorder() {
         body: JSON.stringify({
           transcripcion: d1.texto,
           audio_segundos: typeof d1.duracion === "number" ? d1.duracion : null,
+          audio_path: typeof d1.audio_path === "string" ? d1.audio_path : null,
           paciente: pac.nombre,
           edad: pac.edad === "" ? null : Number(pac.edad),
         }),
@@ -121,7 +127,7 @@ export function Recorder() {
       setPendiente(null);
       setSimulado(Boolean(d1.simulado || d2.simulado));
       setNota(d2.nota);
-      setResultado({ numero: d2.numero, paciente: d2.paciente });
+      setResultado({ id: d2.id, numero: d2.numero, expediente: d2.expediente, paciente: d2.paciente });
       setEstado("listo");
     } catch (e) {
       setError(
@@ -245,7 +251,14 @@ export function Recorder() {
             Modo demo: sin API keys configuradas, se usó una transcripción/nota simulada.
           </p>
         )}
-        <SoapResult nota={nota} autoEnviar paciente={resultado?.paciente} numero={resultado?.numero} />
+        <SoapResult
+          nota={nota}
+          autoEnviar
+          paciente={resultado?.paciente}
+          numero={resultado?.numero}
+          expediente={resultado?.expediente}
+          consultaId={resultado?.id}
+        />
         <Button asChild variant="outline" size="lg" className="mt-6 w-full">
           <Link href="/dashboard">Ir al inicio</Link>
         </Button>

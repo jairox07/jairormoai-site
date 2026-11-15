@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Fecha } from "@/components/fecha";
 import { SoapResult } from "@/components/soap-result";
+import { formatTiempo } from "@/lib/utils";
 import { SECCIONES_SOAP, type NotaSoap } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
   // RLS garantiza que solo se devuelve si pertenece al usuario.
   const { data } = await supabase
     .from("consultas")
-    .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero")
+    .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero, expediente, transcripcion_raw, audio_segundos")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -61,12 +62,24 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
         </div>
       </div>
 
+      <details className="group mb-6 rounded-3xl bg-white p-5 shadow-soft">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-900">
+          Transcripción completa
+          {data.audio_segundos ? (
+            <span className="text-xs font-normal text-slate-400">Audio {formatTiempo(Math.round(data.audio_segundos))}</span>
+          ) : null}
+        </summary>
+        <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{data.transcripcion_raw}</p>
+      </details>
+
       <SoapResult
         nota={nota}
         fecha={data.fecha}
         cabecera={false}
         paciente={data.paciente_nombre ? { nombre: data.paciente_nombre, edad: data.paciente_edad } : undefined}
         numero={data.numero}
+        expediente={data.expediente}
+        consultaId={data.id}
       />
     </main>
   );

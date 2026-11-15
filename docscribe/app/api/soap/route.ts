@@ -59,6 +59,8 @@ export async function POST(request: Request) {
       entrada: resultado.uso.entrada,
       salida: resultado.uso.salida,
       audio_segundos: audioSegundos,
+      // La ruta debe estar en la carpeta de este doctor (la base lo vuelve a validar).
+      audio_path: typeof body?.audio_path === "string" && body.audio_path.startsWith(`${user.id}/`) ? body.audio_path : null,
     },
   });
 
@@ -82,10 +84,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No se pudo guardar la consulta." }, { status: 500 });
   }
 
-  const fila = data as { id: string; numero: number };
+  const fila = data as { id: string; numero: number; expediente: string };
   return NextResponse.json({
     id: fila.id,
     numero: fila.numero,
+    expediente: fila.expediente,
     paciente: { nombre: paciente, edad },
     nota: resultado.nota,
     simulado: resultado.simulado,

@@ -20,6 +20,8 @@ export function SoapResult({
   autoEnviar = false,
   paciente,
   numero,
+  expediente,
+  consultaId,
   cabecera = true,
 }: {
   nota: NotaSoap;
@@ -27,6 +29,8 @@ export function SoapResult({
   autoEnviar?: boolean;
   paciente?: Paciente;
   numero?: number | null;
+  expediente?: string | null;
+  consultaId?: string;
   cabecera?: boolean; // false cuando la página ya muestra el paciente
 }) {
   const fechaConsulta = fecha ? new Date(fecha) : new Date();
@@ -78,20 +82,23 @@ export function SoapResult({
   }
 
   async function exportarPdf() {
-    const doc = await construirPdf(nota, fechaConsulta, paciente, numero);
-    doc.save(`expediente-soap-${fechaConsulta.toISOString().slice(0, 10)}.pdf`);
+    const doc = await construirPdf(nota, fechaConsulta, paciente, numero, expediente);
+    const nombreArchivo = expediente ?? `expediente-soap-${fechaConsulta.toISOString().slice(0, 10)}`;
+    doc.save(`${nombreArchivo}.pdf`);
   }
 
   // Envía el PDF al correo del usuario (el servidor decide el destinatario).
   async function enviarCorreo() {
     setEnviando(true);
     try {
-      const doc = await construirPdf(nota, fechaConsulta, paciente, numero);
+      if (!consultaId) throw new Error("La nota aún no está guardada. Intenta de nuevo en un momento.");
+      const doc = await construirPdf(nota, fechaConsulta, paciente, numero, expediente);
       const pdfBase64 = doc.output("datauristring").split(",")[1];
+      // El servidor toma paciente, expediente y fecha de la base: el cliente solo manda el ID.
       const res = await fetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfBase64, fecha: fechaConsulta.toISOString() }),
+        body: JSON.stringify({ pdfBase64, consulta_id: consultaId }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.error ?? "No se pudo enviar el correo.");

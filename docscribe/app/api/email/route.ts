@@ -5,9 +5,10 @@ import { cargarConfig } from "@/lib/config";
 export const runtime = "nodejs";
 
 const MAX_BASE64 = 14_000_000; // ≈ 10 MB de PDF
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Envía el PDF de la nota al correo del propio usuario (no acepta destinatario desde el cliente:
-// así no se puede usar como relay de correo ni mandar datos clínicos a terceros por error).
+// Envía el PDF de una consulta al correo del propio usuario. El destinatario NO viene del cliente.
+// Paciente, expediente y fecha se leen de la base (RLS: solo consultas propias), no del navegador.
 export async function POST(request: Request) {
   const supabase = createClient();
   const {
@@ -33,8 +34,37 @@ export async function POST(request: Request) {
   if (!pdfBase64 || pdfBase64.length > MAX_BASE64 || !/^[A-Za-z0-9+/=]+$/.test(pdfBase64)) {
     return NextResponse.json({ error: "PDF inválido." }, { status: 400 });
   }
-  const fecha = new Date(typeof body?.fecha === "string" ? body.fecha : Date.now());
-  const fechaTxt = (isNaN(fecha.getTime()) ? new Date() : fecha).toLocaleDateString("es-MX", { dateStyle: "long" });
+  const consultaId = typeof body?.consulta_id === "string" ? body.consulta_id : "";
+  if (!UUID.test(consultaId)) return NextResponse.json({ error: "Consulta no válida." }, { status: 400 });
+
+  const { data: c } = await supabase
+    .from("consultas")
+    .select("expediente, paciente_nombre, paciente_edad, numero, fecha")
+    .eq("id", consultaId)
+    .maybeSingle();
+  if (!c) return NextResponse.json({ error: "Consulta no encontrada." }, { status: 404 });
+
+  // Zona fija: en el servidor (UTC) la hora saldría corrida.
+  const fechaTxt = new Date(c.fecha).toLocaleString("es-MX", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "America/Mexico_City",
+  });
+  const expediente = c.expediente ?? "Sin código";
+  const paciente = `${c.paciente_nombre ?? "Sin nombre"}${c.paciente_edad !== null ? ` (${c.paciente_edad} años)` : ""}`;
+
+  const texto = [
+    "DocScribe - Expediente clínico",
+    "",
+    `Expediente: ${expediente}`,
+    `Paciente: ${paciente}`,
+    `Fecha de la consulta: ${fechaTxt}`,
+    c.numero ? `Consulta #${c.numero}` : null,
+    "",
+    "Adjuntamos la nota clínica SOAP en PDF. Es un borrador generado con IA: revísalo antes de usarlo.",
+  ]
+    .filter((linea) => linea !== null)
+    .join("\n");
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -42,9 +72,10 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       from: process.env.EMAIL_FROM || "DocScribe <onboarding@resend.dev>",
       to: [user.email],
-      subject: `DocScribe - Expediente Clínico (${fechaTxt})`,
-      text: "Adjuntamos la nota clínica SOAP de tu consulta. Es un borrador generado con IA: revísalo antes de usarlo.",
-      attachments: [{ filename: `expediente-soap.pdf`, content: pdfBase64 }],
+      // El asunto solo lleva el código de expediente: el nombre del paciente va dentro del correo.
+      subject: `DocScribe · Expediente ${expediente}`,
+      text: texto,
+      attachments: [{ filename: `${expediente}.pdf`, content: pdfBase64 }],
     }),
   });
 
