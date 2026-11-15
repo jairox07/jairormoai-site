@@ -1,7 +1,7 @@
-import { MEMBRETE, SECCIONES_SOAP, fechaLarga, type NotaSoap } from "@/lib/types";
+import { MEMBRETE, SECCIONES_SOAP, fechaLarga, lineaPaciente, type NotaSoap, type Paciente } from "@/lib/types";
 
 // Genera el PDF de la nota (cliente). Lo usan "Exportar PDF" y "Enviar por correo".
-export async function construirPdf(nota: NotaSoap, fechaConsulta: Date) {
+export async function construirPdf(nota: NotaSoap, fechaConsulta: Date, paciente?: Paciente, numero?: number | null) {
   const { jsPDF } = await import("jspdf");
   const generado = new Date();
   const doc = new jsPDF({ unit: "pt", format: "letter" });
@@ -34,6 +34,11 @@ export async function construirPdf(nota: NotaSoap, fechaConsulta: Date) {
   doc.setFont("helvetica", "normal").setFontSize(10);
   doc.text(`Fecha de generación: ${fechaLarga(generado)}`, margen, 64);
   y = 118;
+  if (paciente) {
+    doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(15, 23, 42);
+    doc.text(lineaPaciente(paciente, numero), margen, y);
+    y += 22;
+  }
 
   doc.setTextColor(100, 116, 139).setFontSize(10);
   doc.text(`Fecha de la consulta: ${fechaLarga(fechaConsulta)}`, margen, y);

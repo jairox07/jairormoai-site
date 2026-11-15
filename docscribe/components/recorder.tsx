@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, Check, Loader2, Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SoapResult } from "@/components/soap-result";
 import { cn, formatTiempo } from "@/lib/utils";
 import type { NotaSoap } from "@/lib/types";
@@ -26,6 +27,10 @@ export function Recorder() {
   const [error, setError] = useState<string | null>(null);
   const [nota, setNota] = useState<NotaSoap | null>(null);
   const [simulado, setSimulado] = useState(false);
+  const [paciente, setPaciente] = useState({ nombre: "", edad: "" });
+  const [resultado, setResultado] = useState<{ numero: number; paciente: { nombre: string; edad: number | null } } | null>(null);
+  // Se congela al iniciar la grabación: lo que se escribió es lo que se guarda.
+  const pacienteRef = useRef({ nombre: "", edad: "" });
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -63,13 +68,18 @@ export function Recorder() {
       const r2 = await fetch("/api/soap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcripcion: d1.texto }),
+        body: JSON.stringify({
+          transcripcion: d1.texto,
+          paciente: pacienteRef.current.nombre,
+          edad: pacienteRef.current.edad === "" ? null : Number(pacienteRef.current.edad),
+        }),
       });
       const d2 = await r2.json();
       if (!r2.ok) throw new Error(d2.error ?? "No se pudo generar la nota.");
 
       setSimulado(Boolean(d1.simulado || d2.simulado));
       setNota(d2.nota);
+      setResultado({ numero: d2.numero, paciente: d2.paciente });
       setEstado("listo");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error inesperado.");
@@ -78,6 +88,12 @@ export function Recorder() {
   }
 
   async function iniciar() {
+    const nombre = paciente.nombre.trim();
+    if (nombre.length < 2) {
+      setError("Escribe el nombre del paciente para empezar.");
+      return;
+    }
+    pacienteRef.current = { nombre, edad: paciente.edad.trim() };
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -158,7 +174,7 @@ export function Recorder() {
             Modo demo: sin API keys configuradas, se usó una transcripción/nota simulada.
           </p>
         )}
-        <SoapResult nota={nota} autoEnviar />
+        <SoapResult nota={nota} autoEnviar paciente={resultado?.paciente} numero={resultado?.numero} />
         <Button asChild variant="outline" size="lg" className="mt-6 w-full">
           <Link href="/dashboard">Ir al inicio</Link>
         </Button>
@@ -205,6 +221,39 @@ export function Recorder() {
   const grabando = estado === "grabando";
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-16">
+      {!grabando && (
+        <div className="w-full space-y-4 rounded-3xl bg-white p-5 shadow-soft">
+          <div>
+            <label htmlFor="paciente" className="text-sm font-medium text-slate-900">
+              Nombre del paciente
+            </label>
+            <Input
+              id="paciente"
+              autoComplete="off"
+              placeholder="Ej. María López"
+              maxLength={120}
+              className="mt-2 h-11"
+              value={paciente.nombre}
+              onChange={(e) => setPaciente((p) => ({ ...p, nombre: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label htmlFor="edad" className="text-sm font-medium text-slate-900">
+              Edad <span className="font-normal text-slate-400">(opcional)</span>
+            </label>
+            <Input
+              id="edad"
+              inputMode="numeric"
+              placeholder="Ej. 42"
+              maxLength={3}
+              className="mt-2 h-11"
+              value={paciente.edad}
+              onChange={(e) => setPaciente((p) => ({ ...p, edad: e.target.value.replace(/\D/g, "") }))}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="w-full rounded-3xl bg-white px-6 py-7 text-center shadow-soft">
         <p className="text-sm text-slate-500">{grabando ? "Grabando consulta…" : "Listo para grabar"}</p>
         <p className="mt-1 text-6xl font-light tabular-nums tracking-tight text-slate-900" aria-live="off">
@@ -227,9 +276,10 @@ export function Recorder() {
         <button
           type="button"
           onClick={grabando ? detener : iniciar}
+          disabled={!grabando && paciente.nombre.trim().length < 2}
           aria-label={grabando ? "Detener grabación" : "Iniciar grabación"}
           className={cn(
-            "relative flex h-28 w-28 items-center justify-center rounded-full text-white shadow-xl transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-300",
+            "relative flex h-28 w-28 items-center justify-center rounded-full text-white shadow-xl transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
             grabando ? "bg-rose-500 shadow-rose-500/40 hover:bg-rose-600" : "bg-brand-500 shadow-brand-500/40 hover:bg-brand-600"
           )}
         >
@@ -237,7 +287,9 @@ export function Recorder() {
           {grabando ? <Square className="relative h-10 w-10 fill-current" /> : <Mic className="h-12 w-12" />}
         </button>
       </div>
-      <p className="-mt-3 text-sm font-medium text-slate-700">{grabando ? "Toca para detener" : "Toca para empezar"}</p>
+      <p className="-mt-3 text-sm font-medium text-slate-700">
+        {grabando ? "Toca para detener" : paciente.nombre.trim().length < 2 ? "Escribe el nombre del paciente" : "Toca para empezar"}
+      </p>
 
       {error && (
         <p role="alert" className="flex max-w-xs items-start gap-2 text-sm text-rose-600">

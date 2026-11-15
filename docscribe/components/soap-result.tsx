@@ -4,16 +4,31 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Download, Loader2, Mail, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Fecha } from "@/components/fecha";
 import { copiarTexto } from "@/lib/clipboard";
 import { construirPdf } from "@/lib/pdf";
-import { MEMBRETE, SECCIONES_SOAP, notaATexto, type NotaSoap } from "@/lib/types";
+import { MEMBRETE, SECCIONES_SOAP, notaATexto, type NotaSoap, type Paciente } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const CLAVE_AUTO = "docscribe.autoEmail";
 const accion = "h-auto min-w-0 flex-1 flex-col gap-1 rounded-3xl py-3 text-xs";
 
 // autoEnviar: true solo cuando la nota acaba de generarse (pantalla de grabación), no al reabrir una guardada.
-export function SoapResult({ nota, fecha, autoEnviar = false }: { nota: NotaSoap; fecha?: string; autoEnviar?: boolean }) {
+export function SoapResult({
+  nota,
+  fecha,
+  autoEnviar = false,
+  paciente,
+  numero,
+  cabecera = true,
+}: {
+  nota: NotaSoap;
+  fecha?: string;
+  autoEnviar?: boolean;
+  paciente?: Paciente;
+  numero?: number | null;
+  cabecera?: boolean; // false cuando la página ya muestra el paciente
+}) {
   const fechaConsulta = fecha ? new Date(fecha) : new Date();
   const [toast, setToast] = useState<{ texto: string; error?: boolean } | null>(null);
   const [puedeCompartir, setPuedeCompartir] = useState(false);
@@ -47,12 +62,12 @@ export function SoapResult({ nota, fecha, autoEnviar = false }: { nota: NotaSoap
   }
 
   async function copiar() {
-    const ok = await copiarTexto(notaATexto(nota, fechaConsulta));
+    const ok = await copiarTexto(notaATexto(nota, fechaConsulta, paciente, numero));
     ok ? avisar("¡Copiado!") : avisar("No se pudo copiar", true);
   }
 
   async function compartir() {
-    const texto = notaATexto(nota, fechaConsulta);
+    const texto = notaATexto(nota, fechaConsulta, paciente, numero);
     try {
       await navigator.share({ title: MEMBRETE, text: texto });
     } catch (e) {
@@ -63,7 +78,7 @@ export function SoapResult({ nota, fecha, autoEnviar = false }: { nota: NotaSoap
   }
 
   async function exportarPdf() {
-    const doc = await construirPdf(nota, fechaConsulta);
+    const doc = await construirPdf(nota, fechaConsulta, paciente, numero);
     doc.save(`expediente-soap-${fechaConsulta.toISOString().slice(0, 10)}.pdf`);
   }
 
@@ -71,7 +86,7 @@ export function SoapResult({ nota, fecha, autoEnviar = false }: { nota: NotaSoap
   async function enviarCorreo() {
     setEnviando(true);
     try {
-      const doc = await construirPdf(nota, fechaConsulta);
+      const doc = await construirPdf(nota, fechaConsulta, paciente, numero);
       const pdfBase64 = doc.output("datauristring").split(",")[1];
       const res = await fetch("/api/email", {
         method: "POST",
@@ -97,6 +112,20 @@ export function SoapResult({ nota, fecha, autoEnviar = false }: { nota: NotaSoap
 
   return (
     <div className="space-y-4">
+      {cabecera && paciente && (
+        <div className="flex items-center justify-between gap-3 rounded-3xl bg-white p-4 shadow-soft">
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-slate-900">{paciente.nombre}</p>
+            <p className="text-xs text-slate-500">
+              {paciente.edad !== null && `${paciente.edad} años · `}
+              <Fecha iso={fechaConsulta.toISOString()} formato="corta" />
+            </p>
+          </div>
+          {numero ? (
+            <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">#{numero}</span>
+          ) : null}
+        </div>
+      )}
       <div role="toolbar" aria-label="Acciones de la nota" className="flex gap-2">
         <Button variant="secondary" onClick={copiar} className={accion}>
           <Copy className="!size-5" /> Copiar

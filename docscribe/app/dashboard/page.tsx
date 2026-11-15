@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     supabase.from("users").select("tier, consultas_usadas, periodo, is_admin").eq("id", user.id).single(),
     supabase
       .from("consultas")
-      .select("id, fecha, nota_soap_final")
+      .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero")
       .order("fecha", { ascending: false })
       .limit(10),
     cargarConfig(supabase),

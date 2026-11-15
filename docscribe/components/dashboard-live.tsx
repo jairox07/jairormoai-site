@@ -10,7 +10,14 @@ import { Button } from "@/components/ui/button";
 import { cn, periodoActual } from "@/lib/utils";
 
 type Perfil = { tier: "free" | "pro"; consultas_usadas: number; periodo: string };
-type ConsultaResumen = { id: string; fecha: string; nota_soap_final: { analisis?: string[] } | null };
+type ConsultaResumen = {
+  id: string;
+  fecha: string;
+  nota_soap_final: { analisis?: string[] } | null;
+  paciente_nombre: string | null;
+  paciente_edad: number | null;
+  numero: number | null;
+};
 
 export function DashboardLive({
   userId,
@@ -67,7 +74,7 @@ export function DashboardLive({
             setConsultas((prev) =>
               prev.some((c) => c.id === fila.id)
                 ? prev
-                : [{ id: fila.id, fecha: fila.fecha, nota_soap_final: fila.nota_soap_final }, ...prev]
+                : [fila, ...prev]
                     .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
                     .slice(0, 10)
             );
@@ -97,7 +104,7 @@ export function DashboardLive({
     if (!error) {
       const { data } = await supabase
         .from("consultas")
-        .select("id, fecha, nota_soap_final")
+        .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero")
         .order("fecha", { ascending: false })
         .limit(10);
       setConsultas((data as ConsultaResumen[] | null) ?? consultas.filter((c) => c.id !== id));
@@ -251,10 +258,14 @@ export function DashboardLive({
                           <FileText className="h-6 w-6" />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-slate-900">
-                            <Fecha iso={c.fecha} formato="lista" />
+                          <p className="flex items-center gap-2 truncate text-sm font-medium text-slate-900">
+                            <span className="truncate">{c.paciente_nombre ?? "Sin nombre"}</span>
+                            {c.numero ? <span className="shrink-0 text-xs font-normal text-slate-400">#{c.numero}</span> : null}
                           </p>
-                          <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{c.nota_soap_final?.analisis?.[0] ?? "Nota SOAP"}</p>
+                          <p className="mt-0.5 truncate text-xs text-slate-500">
+                            <Fecha iso={c.fecha} formato="lista" />
+                            {c.nota_soap_final?.analisis?.[0] ? ` · ${c.nota_soap_final.analisis[0]}` : ""}
+                          </p>
                         </div>
                         {c.id === nuevaId && (
                           <span className="absolute right-14 top-3 rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-medium text-white">

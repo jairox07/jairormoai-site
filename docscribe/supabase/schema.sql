@@ -318,5 +318,75 @@ $$;
 revoke all on function public.registrar_consulta(text, jsonb) from public, anon;
 grant execute on function public.registrar_consulta(text, jsonb) to authenticated;
 
+-- ═════════════════════════════════════════════
+-- 8. Paciente y número de consulta (por doctor)
+--    Reemplaza registrar_consulta() de las secciones 5 y 7 (misma lógica + paciente y número).
+-- ═════════════════════════════════════════════
+alter table public.consultas add column if not exists paciente_nombre text;
+alter table public.consultas add column if not exists paciente_edad integer;
+alter table public.consultas add column if not exists numero integer;
+alter table public.consultas drop constraint if exists consultas_paciente_edad_check;
+alter table public.consultas add constraint consultas_paciente_edad_check check (paciente_edad is null or paciente_edad between 0 and 130);
+create unique index if not exists consultas_user_numero_uq on public.consultas (user_id, numero);
+
+with n as (
+  select id, row_number() over (partition by user_id order by fecha, id) as rn
+    from public.consultas where numero is null
+)
+update public.consultas c set numero = n.rn from n where c.id = n.id;
+
+drop function if exists public.registrar_consulta(text, jsonb);
+
+create or replace function public.registrar_consulta(
+  p_transcripcion text,
+  p_nota jsonb,
+  p_paciente text,
+  p_edad integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_tier text;
+  v_usadas integer;
+  v_periodo text;
+  v_activo boolean;
+  v_actual text := to_char(now() at time zone 'utc', 'YYYY-MM');
+  v_limite integer;
+  v_nombre text := btrim(coalesce(p_paciente, ''));
+  v_numero integer;
+  v_id uuid;
+begin
+  if v_uid is null then raise exception 'NO_AUTENTICADO'; end if;
+  if char_length(v_nombre) < 2 or char_length(v_nombre) > 120 then raise exception 'PACIENTE_INVALIDO'; end if;
+  if p_edad is not null and (p_edad < 0 or p_edad > 130) then raise exception 'EDAD_INVALIDA'; end if;
+
+  select tier, consultas_usadas, periodo, activo into v_tier, v_usadas, v_periodo, v_activo
+    from public.users where id = v_uid for update;
+  if not found then raise exception 'PERFIL_NO_ENCONTRADO'; end if;
+  if not v_activo then raise exception 'CUENTA_SUSPENDIDA'; end if;
+  if v_periodo <> v_actual then v_usadas := 0; end if;
+
+  select coalesce((select (valor #>> '{}')::integer from public.app_config where clave = 'limite_free'), 20) into v_limite;
+  if v_tier = 'free' and v_usadas >= v_limite then raise exception 'LIMITE_ALCANZADO'; end if;
+
+  -- el bloqueo de la fila de users (for update) serializa los inserts de un mismo doctor
+  select coalesce(max(numero), 0) + 1 into v_numero from public.consultas where user_id = v_uid;
+
+  insert into public.consultas (user_id, transcripcion_raw, nota_soap_final, paciente_nombre, paciente_edad, numero)
+  values (v_uid, p_transcripcion, p_nota, v_nombre, p_edad, v_numero)
+  returning id into v_id;
+
+  update public.users set consultas_usadas = v_usadas + 1, periodo = v_actual where id = v_uid;
+  return jsonb_build_object('id', v_id, 'numero', v_numero);
+end;
+$$;
+
+revoke all on function public.registrar_consulta(text, jsonb, text, integer) from public, anon;
+grant execute on function public.registrar_consulta(text, jsonb, text, integer) to authenticated;
+
 -- Primer admin (ejecutar a mano una vez, con tu correo):
 --   update public.users set is_admin = true where email = 'tu@correo.com';

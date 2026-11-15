@@ -27,6 +27,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Transcripción demasiado larga." }, { status: 413 });
   }
 
+  // Paciente: validado aquí y de nuevo en SQL. Se revisa antes de gastar en la IA.
+  const paciente = typeof body?.paciente === "string" ? body.paciente.trim() : "";
+  if (paciente.length < 2 || paciente.length > 120) {
+    return NextResponse.json({ error: "Escribe el nombre del paciente (2 a 120 caracteres)." }, { status: 400 });
+  }
+  const edadRaw = body?.edad;
+  const edad = edadRaw === null || edadRaw === undefined || edadRaw === "" ? null : Number(edadRaw);
+  if (edad !== null && (!Number.isInteger(edad) || edad < 0 || edad > 130)) {
+    return NextResponse.json({ error: "La edad debe ser un número entre 0 y 130." }, { status: 400 });
+  }
+
   let resultado;
   try {
     resultado = await generarNotaSoap(transcripcion, { proveedor: cfg.llm_provider, ollamaModel: cfg.ollama_model });
@@ -35,10 +46,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No se pudo estructurar la nota. Intenta de nuevo." }, { status: 502 });
   }
 
-  // Inserta + descuenta cuota de forma atómica (ver supabase/schema.sql)
-  const { data: id, error } = await supabase.rpc("registrar_consulta", {
+  // Inserta + descuenta cuota + asigna número de consulta de forma atómica (ver supabase/schema.sql)
+  const { data, error } = await supabase.rpc("registrar_consulta", {
     p_transcripcion: transcripcion,
     p_nota: resultado.nota,
+    p_paciente: paciente,
+    p_edad: edad,
   });
 
   if (error) {
@@ -48,9 +61,19 @@ export async function POST(request: Request) {
     if (error.message.includes("CUENTA_SUSPENDIDA")) {
       return NextResponse.json({ error: "Tu cuenta está suspendida. Contacta al administrador." }, { status: 403 });
     }
+    if (error.message.includes("PACIENTE_INVALIDO") || error.message.includes("EDAD_INVALIDA")) {
+      return NextResponse.json({ error: "Datos del paciente no válidos." }, { status: 400 });
+    }
     console.error("[soap] registrar_consulta", error);
     return NextResponse.json({ error: "No se pudo guardar la consulta." }, { status: 500 });
   }
 
-  return NextResponse.json({ id, nota: resultado.nota, simulado: resultado.simulado });
+  const fila = data as { id: string; numero: number };
+  return NextResponse.json({
+    id: fila.id,
+    numero: fila.numero,
+    paciente: { nombre: paciente, edad },
+    nota: resultado.nota,
+    simulado: resultado.simulado,
+  });
 }

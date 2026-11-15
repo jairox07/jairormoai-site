@@ -13,7 +13,7 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
   // RLS garantiza que solo se devuelve si pertenece al usuario.
   const { data } = await supabase
     .from("consultas")
-    .select("id, fecha, nota_soap_final")
+    .select("id, fecha, nota_soap_final, paciente_nombre, paciente_edad, numero")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -39,17 +39,15 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
       <section className="mb-6">
         <p className="text-sm text-slate-500">Nota clínica SOAP</p>
         <h2 className="mt-1 text-3xl font-semibold leading-tight text-slate-900">
-          <Fecha iso={data.fecha} formato="dia" />
+          {data.paciente_nombre ?? "Sin nombre"}
         </h2>
         <p className="mt-1 text-xs text-slate-400">Borrador generado con IA · revísalo antes de usarlo</p>
       </section>
 
       <div className="mb-6 grid grid-cols-3 divide-x divide-slate-100 rounded-3xl bg-white py-4 text-center shadow-soft">
         <div>
-          <p className="text-lg font-semibold text-slate-900">
-            <Fecha iso={data.fecha} formato="anio" />
-          </p>
-          <p className="text-xs text-slate-500">Año</p>
+          <p className="text-lg font-semibold text-slate-900">{data.numero ? `#${data.numero}` : "—"}</p>
+          <p className="text-xs text-slate-500">Consulta</p>
         </div>
         <div>
           <p className="text-lg font-semibold text-slate-900">
@@ -63,7 +61,13 @@ export default async function ConsultaPage({ params }: { params: { id: string } 
         </div>
       </div>
 
-      <SoapResult nota={nota} fecha={data.fecha} />
+      <SoapResult
+        nota={nota}
+        fecha={data.fecha}
+        cabecera={false}
+        paciente={data.paciente_nombre ? { nombre: data.paciente_nombre, edad: data.paciente_edad } : undefined}
+        numero={data.numero}
+      />
     </main>
   );
 }
