@@ -7,12 +7,12 @@
 <link rel="canonical" href="https://jairoromo.ai/kit-editor-ia">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Kit Editor IA · Tú grabas. Claude edita.">
-<meta property="og:description" content="11 skills que convierten a Claude en tu editor de video. Grabas, se lo mandas y te lo regresa cortado, con subtítulos y gancho. US$19, pago único.">
+<meta property="og:description" content="12 skills y 7 estilos de video que convierten a Claude en tu editor. Grabas, se lo mandas y te lo regresa cortado, con subtítulos y gancho. US$19, pago único.">
 <meta property="og:image" content="/kit-editor-ia/poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico">
 <title>Kit Editor IA</title>
-<meta name="description" content="Kit Editor IA de jairoromo.ai: 11 skills que convierten a Claude en tu editor de video. Grabas, se lo mandas y te lo devuelve editado. US$19, pago único.">
+<meta name="description" content="Kit Editor IA de jairoromo.ai: 12 skills y 7 estilos de video que convierten a Claude en tu editor. Grabas, se lo mandas y te lo devuelve editado. US$19, pago único.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap">
@@ -150,6 +150,13 @@ nav.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;bac
 @media(max-width:860px){.chat-grid{grid-template-columns:1fr}}
 
 /* COMMANDS */
+.estilos{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center}
+.estilos img{width:100%;height:auto;border-radius:20px;border:1px solid var(--line);display:block}
+.estilos ul{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:10px}
+.estilos li{color:var(--ink2);font-size:16px;padding-left:18px;position:relative}
+.estilos li::before{content:"";position:absolute;left:0;top:.6em;width:7px;height:7px;border-radius:50%;background:var(--mag)}
+.estilos li b{color:var(--ink)}
+@media(max-width:860px){.estilos{grid-template-columns:1fr}}
 .cmds{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .cmd{padding:22px;display:flex;flex-direction:column;gap:10px;border-radius:20px;border:1px solid var(--line);background:var(--panel);min-width:0}
 .cmd code{font-family:var(--mono);font-weight:700;font-size:17px;color:#fff}
@@ -278,7 +285,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
       <div class="hero-copy">
         <span class="eyebrow">Kit Editor IA · para Claude</span>
         <h1>Tú grabas.<br><span class="gt">Claude edita.</span></h1>
-        <p class="lead">11 skills que convierten a Claude en tu editor de video. Le mandas tu grabación con pausas y errores, le pides en español lo que quieres y te regresa el video cortado, con subtítulos y gancho.</p>
+        <p class="lead">12 skills y 7 estilos de video que convierten a Claude en tu editor. Le mandas tu grabación con pausas y errores, le pides en español lo que quieres y te regresa el video cortado, con subtítulos y gancho.</p>
         <div class="cta-row">
           <a class="btn btn-p buy" href="#precio">Quiero el Kit · US$19</a>
           <a class="btn btn-g" href="#sesion">Prefiero que lo instalemos juntos</a>
@@ -353,7 +360,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
           <p class="lead">Le escribes a Claude como le escribirías a tu editor. Sin comandos que memorizar.</p>
         </div>
         <ol class="howlist">
-          <li><div><h3>Arrastra el zip al chat</h3><p class="lead" style="font-size:16px">Claude instala los 11 editores y te avisa en cada paso.</p></div></li>
+          <li><div><h3>Arrastra el zip al chat</h3><p class="lead" style="font-size:16px">Claude instala los 12 editores y los 7 estilos y te avisa en cada paso.</p></div></li>
           <li><div><h3>Manda tu grabación y di lo que quieres</h3><p class="lead" style="font-size:16px">En español y a tu manera.</p></div></li>
           <li><div><h3>Recibe el video editado</h3><p class="lead" style="font-size:16px">¿Faltó algo? Pide el ajuste ahí mismo.</p></div></li>
         </ol>
@@ -375,11 +382,35 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
   </section>
 
   <!-- COMMANDS -->
+  <section id="estilos">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Nuevo · versión 2</span>
+        <h2><span class="gt">7 estilos</span> de video listos para elegir.</h2>
+        <p class="lead">Cada uno trae su propia tipografía y diseño de subtítulos. Eliges el que va con tu marca y Claude lo aplica a tu grabación.</p>
+      </div>
+      <div class="estilos">
+        <img src="/kit-editor-ia/estilos.jpg" alt="Catálogo de los 7 estilos del Kit Editor IA: Cine Premium, Notificación, Negocios Bold, Podcast Minimal, Reto / Energía, Explicador y Neón de marca" width="1400" height="1574" loading="lazy">
+        <div>
+          <p class="lead" style="font-size:17px">Todos siguen la misma estructura que funciona en Reels y TikTok:</p>
+          <ul>
+            <li><b>B-roll al inicio</b> para abrir con movimiento.</li>
+            <li><b>Palabra gigante detrás de ti</b> al abrir y al cerrar.</li>
+            <li><b>Íconos o imágenes</b> en lo importante, con zooms y transiciones.</li>
+            <li><b>Cierre con llamado a la acción</b>: “Comenta GUÍA”, “Sígueme”…</li>
+          </ul>
+          <p class="lead" style="font-size:17px;margin-top:18px"><b style="color:var(--ink)">¿Quieres el tuyo?</b> Dale un video o pega un link que te guste y Claude copia el estilo (no el contenido) y lo guarda para reusarlo.</p>
+          <p class="fine" style="margin-top:10px">Antes del render final ves una vista previa y apruebas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="editores">
     <div class="wrap">
       <div class="sec-head">
         <span class="eyebrow">Lo que incluye</span>
-        <h2><span class="gt">11 editores</span>, cada uno con su especialidad.</h2>
+        <h2><span class="gt">12 editores</span>, cada uno con su especialidad.</h2>
         <p class="lead">Puedes llamarlos por nombre (/corte, /subtitulos…) o simplemente pedir lo que quieres. Claude elige cuál usar.</p>
       </div>
       <div class="cmds">
@@ -392,7 +423,9 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
         <div class="cmd"><code>/fondo</code><p>Te recorta sin pantalla verde y te pone otro escenario.</p><span class="ask-ex">“cambia el fondo”</span></div>
         <div class="cmd"><code>/impacto</code><p>Una palabra gigante aparece detrás de ti.</p><span class="ask-ex">“la frase detrás de mí”</span></div>
         <div class="cmd"><code>/musica</code><p>La música baja sola cuando hablas, y suenan efectos en cada animación.</p><span class="ask-ex">“ponle música”</span></div>
-        <div class="cmd"><code>/referencia</code><p>Mide el ritmo de un Reels que te gusta y lo aplica al tuyo.</p><span class="ask-ex">“edítalo como este”</span></div>
+        <div class="cmd"><code>/referencia</code><p>Crea tu propio estilo desde un video o link que te guste y lo guarda.</p><span class="ask-ex">“edítalo como este”</span></div>
+        <div class="cmd"><code>/editar</code><p>Asistente guiado: te enseña los estilos y te hace 3 preguntas con opciones.</p><span class="ask-ex">“no sé qué pedir”</span></div>
+        <div class="cmd"><code>/estilos</code><p>Te enseña el catálogo con imágenes de los 7 estilos.</p><span class="ask-ex">“¿qué estilos hay?”</span></div>
         <div class="cmd"><code>/prueba</code><p>Revisa la edición cuadro por cuadro antes de entregar.</p><span class="ask-ex">“¿cómo quedó?”</span></div>
         <div class="cmd" style="border-style:dashed"><code>+ pedidos listos</code><p>Una guía con pedidos para Reels, anuncios y clases. Solo copias y pegas.</p><span class="ask-ex">PEDIDOS.md</span></div>
       </div>
@@ -427,7 +460,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
         <h2>Todo en un zip. <span class="gt">Llega al instante.</span></h2>
       </div>
       <div class="recv">
-        <div class="panel"><span class="ic">01 · ZIP</span><h3>11 skills de edición</h3><p>Los editores, los scripts y la tipografía de subtítulos ya incluida.</p></div>
+        <div class="panel"><span class="ic">01 · ZIP</span><h3>12 skills + 7 estilos</h3><p>Los editores, los 7 estilos de video, los scripts y las tipografías ya incluidas.</p></div>
         <div class="panel"><span class="ic">02 · INSTALADOR</span><h3>Se instala solo</h3><p>Le pegas un mensaje a Claude y él hace la instalación en Mac o Windows.</p></div>
         <div class="panel"><span class="ic">03 · GUÍA</span><h3>Pedidos listos</h3><p>Para Reels, anuncios y clases. Copias, pegas y ajustas.</p></div>
         <div class="panel"><span class="ic">04 · ACTUALIZACIONES</span><h3>Mejoras incluidas</h3><p>Cuando agregue un editor nuevo, te llega sin costo.</p></div>
@@ -498,10 +531,11 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
       </div>
       <div class="price-wrap">
         <div class="price">
-          <div style="display:flex;align-items:center;gap:12px"><span class="jr">JR</span><div><h3>Kit Editor IA</h3><p class="fine">11 editores · Claude Code</p></div></div>
+          <div style="display:flex;align-items:center;gap:12px"><span class="jr">JR</span><div><h3>Kit Editor IA</h3><p class="fine">12 editores · 7 estilos · Claude Code</p></div></div>
           <div class="amount"><b class="gt">US$19</b><span class="fine">pago único · en tu moneda</span></div>
           <ul class="inc">
-            <li><span><b>11 skills de edición:</b> corte, toma, subtítulos, gancho, checklist, fondo, impacto, música, referencia, prueba y el editor principal.</span></li>
+            <li><span><b>12 skills de edición:</b> corte, toma, subtítulos, gancho, checklist, fondo, impacto, música, referencia, prueba, el asistente guiado /editar y el editor principal.</span></li>
+            <li><span><b>7 estilos de video:</b> Cine Premium, Notificación, Negocios Bold, Podcast Minimal, Reto / Energía, Explicador y Neón de marca, o crea el tuyo desde un video o link.</span></li>
             <li><span><b>Instalador</b> para Mac y Windows que Claude corre por ti.</span></li>
             <li><span><b>Guía de pedidos listos</b> para Reels, anuncios y clases.</span></li>
             <li><span><b>Acceso inmediato</b> al pagar, más actualizaciones.</span></li>
@@ -535,7 +569,7 @@ footer .row{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
         <h2>Respuestas directas.</h2>
       </div>
       <div class="faq">
-        <details><summary>¿Qué es exactamente el Kit Editor IA?</summary><div class="a"><p>Es un paquete de 11 skills de edición de video para Claude. Una vez instalado, le mandas tu grabación, le pides en español lo que quieres y te devuelve el archivo cortado, con subtítulos, gancho y lo que le hayas pedido.</p></div></details>
+        <details><summary>¿Qué es exactamente el Kit Editor IA?</summary><div class="a"><p>Es un paquete de 12 skills de edición de video y 7 estilos listos para Claude. Una vez instalado, le mandas tu grabación, le pides en español lo que quieres y te devuelve el archivo cortado, con subtítulos, gancho y lo que le hayas pedido.</p></div></details>
         <details><summary>¿Y si no me funciona o no me gusta?</summary><div class="a"><p>Tienes 7 días desde tu compra para pedir la devolución. Sin preguntas y sin tema: si no lo logras instalar, no te convence o simplemente cambiaste de opinión, te regreso el 100 % de tu dinero. Escríbeme por mensaje a @jairoromo.ai en Instagram con el correo de tu compra.</p></div></details>
         <details><summary>¿Qué necesito para usarlo?</summary><div class="a"><p>Una computadora con Mac o Windows 10/11, unos 3 GB libres, internet y Claude con un plan de pago (Pro o Max) para usar Claude Code. La suscripción de Claude se paga directo a Anthropic y no está incluida en los US$19. No funciona en Chromebook ni desde el celular solo.</p></div></details>
         <details><summary>¿Mis videos se suben a internet?</summary><div class="a"><p>No. El video se queda en tu computadora: la transcripción, los cortes y el recorte de fondo corren ahí mismo.</p><p>Para decidir los cortes, Claude lee el texto de lo que dices y algunos cuadros del video, igual que en cualquier conversación tuya con él.</p></div></details>
@@ -636,7 +670,7 @@ if('IntersectionObserver' in window && !reduce){let done=false;new IntersectionO
 const msgs=document.getElementById('msgs');
 function add(cls,html){const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;msgs.appendChild(m);while(msgs.children.length>6)msgs.removeChild(msgs.firstChild);return m}
 add('u','<span class="file">kit-editor-ia.zip</span>');
-add('a','Recibido. Instalé los <b>11 editores</b> y revisé que todo quedó en su lugar. Ya puedes mandarme tu grabación.');
+add('a','Recibido. Instalé los <b>12 editores</b> y los <b>7 estilos</b> y revisé que todo quedó en su lugar. Ya puedes mandarme tu grabación.');
 add('u','<span class="file vid">grabacion.mov · 1:24</span>Corta las pausas y quédate con la última toma');
 add('a','Quité 9 pausas y 2 tomas repetidas, y ya le puse subtítulos. <b>1:24 quedó en 0:44.</b> Archivo: grabacion.final.mp4');
 document.querySelectorAll('.ask').forEach(b=>b.addEventListener('click',()=>{
