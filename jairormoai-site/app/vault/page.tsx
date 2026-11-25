@@ -65,7 +65,7 @@ export default async function VaultPage() {
           <div className="flex-1">
             <p className="font-mono text-[11px] tracking-[2.5px] uppercase text-[#7fd0ff] mb-1">Nuevo · Skill de pago</p>
             <p className="font-sora font-black text-2xl">Kit Editor IA: tú grabas, Claude edita</p>
-            <p className="font-sora text-white/70">11 skills de edición de video para Claude Code. Cortes, mejor toma, subtítulos, gancho y fondo.</p>
+            <p className="font-sora text-white/70">12 skills y 7 estilos de video para Claude Code. Cortes, mejor toma, subtítulos, gancho y fondo.</p>
           </div>
           <span className="font-sora font-black rounded-xl bg-white text-[#0b0716] px-5 py-3 self-start md:self-center group-hover:translate-x-1 transition-transform">
             US$19 →

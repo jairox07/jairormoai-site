@@ -5,7 +5,7 @@ import { getStripe } from '@/lib/stripe'
 export const KIT_EDITOR = {
   id: 'kit-editor-ia',
   name: 'Kit Editor IA',
-  description: '11 skills de edición de video para Claude Code: cortes, mejor toma, subtítulos, gancho, fondo, música y más.',
+  description: '12 skills y 7 estilos de video para Claude Code: cortes, mejor toma, subtítulos, gancho, fondo, música y más.',
   priceCents: 1900,
   currency: 'usd',
   files: {
